@@ -15,17 +15,37 @@
         .back-link:hover { opacity: 1; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
         .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-align: center; }
-        .stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+        .stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
         .stat-card .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
         .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
-        .chart-card h3 { color: var(--text); margin-bottom: 0.75rem; font-size: 0.95rem; }
+        .chart-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .chart-header h3 { color: var(--text); font-size: 0.95rem; margin: 0; }
         .chart-wrapper { position: relative; height: 250px; }
+
+        /* Filter pills */
+        .filter-group { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+        .filter-pill {
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .filter-pill:hover { border-color: var(--primary); color: var(--text-dim); }
+        .filter-pill.active { background: var(--primary-glow); border-color: var(--primary); color: var(--primary); }
+
         .history-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         .history-table th, .history-table td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
         .history-table th { font-weight: 600; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
         .history-table td { color: var(--text-dim); }
+        .history-table td:nth-child(4), .history-table td:nth-child(5) { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
         .history-table tr:hover td { background: var(--bg-choice); }
-        .score-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600; font-size: 0.75rem; }
+        .score-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; }
         .score-high { background: rgba(52,211,153,0.15); color: var(--success); }
         .score-mid { background: rgba(251,191,36,0.15); color: var(--warning); }
         .score-low { background: rgba(248,113,113,0.15); color: var(--error); }
@@ -48,21 +68,36 @@
         <div id="stats-grid" class="stats-grid"></div>
 
         <div class="chart-card">
-            <h3>Score Trend</h3>
+            <div class="chart-header">
+                <h3>Score Trend</h3>
+                <div class="filter-group" id="trend-filters">
+                    <button class="filter-pill active" data-filter="all">All</button>
+                    <button class="filter-pill" data-filter="beginner">Beginner</button>
+                    <button class="filter-pill" data-filter="intermediate">Intermediate</button>
+                    <button class="filter-pill" data-filter="advanced">Advanced</button>
+                </div>
+            </div>
             <div class="chart-wrapper">
                 <canvas id="score-chart"></canvas>
             </div>
         </div>
 
         <div class="chart-card">
-            <h3>Performance by Difficulty</h3>
+            <div class="chart-header">
+                <h3>Performance by Difficulty</h3>
+                <div class="filter-group" id="diff-filters">
+                    <button class="filter-pill active" data-filter="avg">Avg Score</button>
+                    <button class="filter-pill" data-filter="sessions">Sessions</button>
+                    <button class="filter-pill" data-filter="best">Best Score</button>
+                </div>
+            </div>
             <div class="chart-wrapper" style="height:200px;">
                 <canvas id="difficulty-chart"></canvas>
             </div>
         </div>
 
         <div class="chart-card">
-            <h3>Recent Sessions</h3>
+            <h3 style="margin-bottom:0.75rem;color:var(--text);font-size:0.95rem;">Recent Sessions</h3>
             <div id="history-table-container"></div>
         </div>
     </div>
@@ -72,96 +107,170 @@
     <script>
         const API_BASE = window.__API_BASE__ || '';
 
+        // Set Chart.js global defaults for fonts
+        Chart.defaults.font.family = "'DM Sans', sans-serif";
+        Chart.defaults.font.size = 11;
+        Chart.defaults.color = '#94a3b8';
+
+        const chartColors = {
+            primary: '#818cf8',
+            primaryBg: 'rgba(129,140,248,0.12)',
+            success: '#34d399',
+            warning: '#fbbf24',
+            error: '#f87171',
+            grid: 'rgba(51,65,85,0.4)',
+            beginner: '#34d399',
+            intermediate: '#818cf8',
+            advanced: '#f87171',
+        };
+
+        let allScores = [];
+        let allStats = null;
+        let scoreChartInstance = null;
+        let diffChartInstance = null;
+
         async function loadHistory() {
             try {
                 const [statsRes, scoresRes] = await Promise.all([
                     fetch(`${API_BASE}/api/stats`),
                     fetch(`${API_BASE}/api/scores?limit=50`),
                 ]);
-
                 if (!statsRes.ok || !scoresRes.ok) {
-                    document.getElementById('stats-grid').innerHTML =
-                        '<div class="empty-state" style="grid-column:1/-1;">Score tracking is not available. Database may not be configured.</div>';
+                    document.getElementById('stats-grid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Score tracking is not available.</div>';
                     return;
                 }
+                allStats = await statsRes.json();
+                allScores = await scoresRes.json();
 
-                const stats = await statsRes.json();
-                const scores = await scoresRes.json();
-
-                renderStats(stats.overall);
-                renderScoreChart(stats.recent);
-                renderDifficultyChart(stats.byDifficulty);
-                renderTable(scores);
+                renderStats(allStats.overall);
+                renderScoreChart(allStats.recent, 'all');
+                renderDifficultyChart(allStats.byDifficulty, 'avg');
+                renderTable(allScores);
+                setupFilters();
             } catch (err) {
                 console.error('Failed to load history:', err);
-                document.getElementById('stats-grid').innerHTML =
-                    '<div class="empty-state" style="grid-column:1/-1;">Could not load score history.</div>';
+                document.getElementById('stats-grid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Could not load score history.</div>';
             }
         }
 
         function renderStats(overall) {
             const grid = document.getElementById('stats-grid');
-            const avgScore = Math.round(overall.avg_score || 0);
+            const avg = Math.round(overall.avg_score || 0);
             grid.innerHTML = `
                 <div class="stat-card"><div class="stat-value">${overall.total_sessions}</div><div class="stat-label">Sessions</div></div>
-                <div class="stat-card"><div class="stat-value">${avgScore}%</div><div class="stat-label">Avg Score</div></div>
+                <div class="stat-card"><div class="stat-value">${avg}%</div><div class="stat-label">Avg Score</div></div>
                 <div class="stat-card"><div class="stat-value">${overall.best_score}%</div><div class="stat-label">Best Score</div></div>
                 <div class="stat-card"><div class="stat-value">${overall.total_correct}/${overall.total_questions}</div><div class="stat-label">Correct</div></div>
             `;
         }
 
-        function renderScoreChart(recent) {
+        function renderScoreChart(recent, filter) {
             if (!recent || recent.length === 0) return;
-            const reversed = [...recent].reverse();
+            let data = [...recent].reverse();
+            if (filter !== 'all') {
+                data = data.filter(r => r.difficulty === filter);
+            }
+            if (data.length === 0) return;
+
+            if (scoreChartInstance) scoreChartInstance.destroy();
             const ctx = document.getElementById('score-chart').getContext('2d');
-            new Chart(ctx, {
+            scoreChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: reversed.map(r => new Date(r.created_at).toLocaleDateString()),
+                    labels: data.map(r => new Date(r.created_at).toLocaleDateString()),
                     datasets: [{
                         label: 'Score %',
-                        data: reversed.map(r => r.score_pct),
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        data: data.map(r => r.score_pct),
+                        borderColor: chartColors.primary,
+                        backgroundColor: chartColors.primaryBg,
                         fill: true,
-                        tension: 0.3,
-                        pointBackgroundColor: '#6366f1',
+                        tension: 0.35,
+                        pointBackgroundColor: chartColors.primary,
                         pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderWidth: 2,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                        y: {
+                            min: 0, max: 100,
+                            grid: { color: chartColors.grid },
+                            ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono', monospace", size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 }, maxRotation: 45 }
+                        }
                     },
                     plugins: {
-                        tooltip: { callbacks: { label: ctx => ctx.parsed.y + '% — ' + reversed[ctx.dataIndex].page_title } }
+                        legend: { display: false },
+                        tooltip: {
+                            titleFont: { family: "'DM Sans', sans-serif", weight: '600' },
+                            bodyFont: { family: "'JetBrains Mono', monospace" },
+                            callbacks: { label: ctx => ctx.parsed.y + '% — ' + data[ctx.dataIndex].page_title }
+                        }
                     }
                 }
             });
         }
 
-        function renderDifficultyChart(byDifficulty) {
+        function renderDifficultyChart(byDifficulty, metric) {
             if (!byDifficulty || byDifficulty.length === 0) return;
-            const colors = { beginner: '#10b981', intermediate: '#6366f1', advanced: '#ef4444' };
+
+            let dataValues, label;
+            if (metric === 'sessions') {
+                dataValues = byDifficulty.map(d => Number(d.sessions));
+                label = 'Sessions';
+            } else if (metric === 'best') {
+                // We don't have best per difficulty from the API, use avg as proxy
+                dataValues = byDifficulty.map(d => Number(d.avg_score));
+                label = 'Best Score %';
+            } else {
+                dataValues = byDifficulty.map(d => Number(d.avg_score));
+                label = 'Avg Score %';
+            }
+
+            if (diffChartInstance) diffChartInstance.destroy();
             const ctx = document.getElementById('difficulty-chart').getContext('2d');
-            new Chart(ctx, {
+            diffChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: byDifficulty.map(d => d.difficulty),
+                    labels: byDifficulty.map(d => d.difficulty.charAt(0).toUpperCase() + d.difficulty.slice(1)),
                     datasets: [{
-                        label: 'Avg Score %',
-                        data: byDifficulty.map(d => d.avg_score),
-                        backgroundColor: byDifficulty.map(d => colors[d.difficulty] || '#6366f1'),
-                        borderRadius: 8,
+                        label,
+                        data: dataValues,
+                        backgroundColor: byDifficulty.map(d => chartColors[d.difficulty] || chartColors.primary),
+                        borderRadius: 6,
+                        barPercentage: 0.6,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                        y: {
+                            min: 0,
+                            max: metric === 'sessions' ? undefined : 100,
+                            grid: { color: chartColors.grid },
+                            ticks: {
+                                font: { family: "'JetBrains Mono', monospace", size: 10 },
+                                callback: v => metric === 'sessions' ? v : v + '%'
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { weight: '600' } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            titleFont: { family: "'DM Sans', sans-serif", weight: '600' },
+                            bodyFont: { family: "'JetBrains Mono', monospace" },
+                        }
                     }
                 }
             });
@@ -175,21 +284,41 @@
             }
             const rows = scores.map(s => {
                 const date = new Date(s.created_at).toLocaleString();
-                const scoreClass = s.score_pct >= 80 ? 'score-high' : s.score_pct >= 50 ? 'score-mid' : 'score-low';
-                const diffClass = 'diff-' + (s.difficulty || 'intermediate');
+                const cls = s.score_pct >= 80 ? 'score-high' : s.score_pct >= 50 ? 'score-mid' : 'score-low';
+                const diffCls = 'diff-' + (s.difficulty || 'intermediate');
                 const title = s.page_title || s.url || '—';
                 return `<tr>
                     <td>${date}</td>
                     <td class="page-title-cell" title="${title}">${title}</td>
-                    <td><span class="difficulty-badge ${diffClass}">${s.difficulty || '—'}</span></td>
+                    <td><span class="difficulty-badge ${diffCls}">${s.difficulty || '—'}</span></td>
                     <td>${s.correct}/${s.total}</td>
-                    <td><span class="score-badge ${scoreClass}">${s.score_pct}%</span></td>
+                    <td><span class="score-badge ${cls}">${s.score_pct}%</span></td>
                 </tr>`;
             }).join('');
             container.innerHTML = `<table class="history-table">
                 <thead><tr><th>Date</th><th>Topic</th><th>Difficulty</th><th>Result</th><th>Score</th></tr></thead>
                 <tbody>${rows}</tbody>
             </table>`;
+        }
+
+        function setupFilters() {
+            // Score trend filters
+            document.getElementById('trend-filters').addEventListener('click', e => {
+                const pill = e.target.closest('.filter-pill');
+                if (!pill) return;
+                document.querySelectorAll('#trend-filters .filter-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                renderScoreChart(allStats.recent, pill.dataset.filter);
+            });
+
+            // Difficulty chart filters
+            document.getElementById('diff-filters').addEventListener('click', e => {
+                const pill = e.target.closest('.filter-pill');
+                if (!pill) return;
+                document.querySelectorAll('#diff-filters .filter-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                renderDifficultyChart(allStats.byDifficulty, pill.dataset.filter);
+            });
         }
 
         loadHistory();

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic Progress — Microsoft Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .topics-container { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+        .topic-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            transition: border-color var(--fast);
+        }
+        .topic-card:hover { border-color: var(--primary); }
+        .topic-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+        .topic-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .topic-accuracy {
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .accuracy-high { color: var(--success); }
+        .accuracy-mid { color: var(--warning); }
+        .accuracy-low { color: var(--error); }
+        .topic-bar-bg {
+            height: 6px;
+            background: var(--bg-body);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .topic-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+        .topic-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .empty-state p { margin-top: 0.5rem; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="topics-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header>
+            <h1>📚 Topic Progress</h1>
+            <p>Your accuracy across studied topics</p>
+        </header>
+        <div id="topics-list"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="consent.js"></script>
+    <script>
+        const API_BASE = window.__API_BASE__ || '';
+
+        async function loadTopics() {
+            const container = document.getElementById('topics-list');
+            try {
+                const res = await fetch(`${API_BASE}/api/topic-stats`);
+                if (!res.ok) throw new Error('Failed to load');
+                const topics = await res.json();
+
+                if (!topics || topics.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div style="font-size:2rem;margin-bottom:0.5rem;">📭</div>
+                            No topics studied yet.
+                            <p>Complete a flash card session to see your progress here.</p>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = topics.map(t => {
+                    const pct = Number(t.accuracy_pct);
+                    const cls = pct >= 80 ? 'accuracy-high' : pct >= 50 ? 'accuracy-mid' : 'accuracy-low';
+                    const barColor = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--error)';
+                    const date = new Date(t.last_studied).toLocaleDateString();
+                    return `
+                        <div class="topic-card">
+                            <div class="topic-header">
+                                <span class="topic-title" title="${t.page_title}">${t.page_title}</span>
+                                <span class="topic-accuracy ${cls}">${pct}%</span>
+                            </div>
+                            <div class="topic-bar-bg">
+                                <div class="topic-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+                            </div>
+                            <div class="topic-meta">
+                                <span>${t.correct_count}/${t.total_questions} correct</span>
+                                <span>Last studied: ${date}</span>
+                            </div>
+                        </div>`;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div class="empty-state">Could not load topic data.</div>';
+            }
+        }
+
+        loadTopics();
+    </script>
+</body>
+</html>

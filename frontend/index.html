@@ -32,7 +32,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <title>Microsoft Learn Flash Cards</title>
     <link rel="stylesheet" href="styles.css">
@@ -220,16 +220,25 @@
             <span class="history-link-arrow">→</span>
         </a>
 
+        <a href="/topics.html" class="history-link" aria-label="View topic progress">
+            <span class="history-link-icon">📚</span>
+            <span class="history-link-content">
+                <span class="history-link-title">Topic Progress</span>
+                <span class="history-link-desc">See your accuracy across studied topics</span>
+            </span>
+            <span class="history-link-arrow">→</span>
+        </a>
+
         <footer class="footer">
             <p>&copy; 2024 Microsoft Learn Flash Cards. Built with ❤️ for learning.</p>
         </footer>
     </div>
 
-    <!-- Load Inter font as fallback -->
+    <!-- Load font as fallback -->
     <script>
         // Fallback for font loading
         if ('fonts' in document) {
-            document.fonts.load('1em Inter').then(() => {
+            document.fonts.load('1em "DM Sans"').then(() => {
                 document.documentElement.classList.add('fonts-loaded');
             });
         }

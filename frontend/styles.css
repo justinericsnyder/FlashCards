@@ -30,10 +30,13 @@
 
     --fast: 0.15s ease;
     --normal: 0.25s ease;
+
+    --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-sans);
     background: var(--bg-body);
     color: var(--text);
     min-height: 100vh;
@@ -257,6 +260,7 @@ header a:hover { opacity: 1; }
     font-weight: 600;
     color: var(--text-dim);
     font-size: 0.75rem;
+    font-family: var(--font-mono);
 }
 
 /* Flashcard */
@@ -443,6 +447,7 @@ header a:hover { opacity: 1; }
     font-size: 1.5rem;
     font-weight: 800;
     color: var(--primary);
+    font-family: var(--font-mono);
 }
 
 #results-section h2 {

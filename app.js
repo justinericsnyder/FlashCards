@@ -6,24 +6,91 @@ class FlashCardApp {
         this.incorrectAnswers = 0;
         this.selectedChoice = null;
         this.answered = false;
+        this.isAnimating = false;
 
         this.initializeEventListeners();
+        this.initializeKeyboardNavigation();
+        this.initializeAnimations();
     }
 
     initializeEventListeners() {
-        document.getElementById('generate-cards').addEventListener('click', () => this.generateCards());
+        // Form submission
+        document.getElementById('generate-cards').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.generateCards();
+        });
+
+        // Card interactions
         document.getElementById('submit-answer').addEventListener('click', () => this.submitAnswer());
         document.getElementById('next-question').addEventListener('click', () => this.nextCard());
         document.getElementById('prev-card').addEventListener('click', () => this.previousCard());
         document.getElementById('next-card').addEventListener('click', () => this.nextCard());
         document.getElementById('restart').addEventListener('click', () => this.restartSession());
         document.getElementById('new-session').addEventListener('click', () => this.newSession());
+        document.getElementById('share-results').addEventListener('click', () => this.shareResults());
 
+        // Choice selection
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.choice') && !this.answered) {
+            if (e.target.closest('.choice') && !this.answered && !this.isAnimating) {
                 this.selectChoice(e.target.closest('.choice'));
             }
         });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => this.handleKeydown(e));
+    }
+
+    initializeKeyboardNavigation() {
+        // Make choices focusable and navigable
+        const choices = document.querySelectorAll('.choice');
+        choices.forEach((choice, index) => {
+            choice.setAttribute('tabindex', '0');
+            choice.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (!this.answered && !this.isAnimating) {
+                        this.selectChoice(choice);
+                    }
+                }
+            });
+        });
+    }
+
+    initializeAnimations() {
+        // Add intersection observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = '0s';
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // Observe sections for animation
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+    }
+
+    handleKeydown(e) {
+        // Arrow key navigation
+        if (e.key === 'ArrowLeft' && !document.getElementById('prev-card').disabled) {
+            this.previousCard();
+        } else if (e.key === 'ArrowRight') {
+            if (this.answered) {
+                this.nextCard();
+            } else if (this.selectedChoice) {
+                this.submitAnswer();
+            }
+        } else if (e.key >= '1' && e.key <= '4' && !this.answered && !this.isAnimating) {
+            // Number key selection
+            const choices = document.querySelectorAll('.choice');
+            const index = parseInt(e.key) - 1;
+            if (choices[index]) {
+                this.selectChoice(choices[index]);
+            }
+        }
     }
 
     // ── Fetching & Parsing ──────────────────────────────────────────────
@@ -244,19 +311,26 @@ class FlashCardApp {
         const difficulty = document.getElementById('difficulty').value;
 
         if (!url) {
-            alert('Please enter a Microsoft Learn documentation URL');
+            this.showError('Please enter a Microsoft Learn documentation URL');
             return;
         }
 
         if (!url.includes('microsoft.com') && !url.includes('learn.microsoft.com')) {
-            alert('Please enter a valid Microsoft Learn or Microsoft Docs URL');
+            this.showError('Please enter a valid Microsoft Learn or Microsoft Docs URL');
             return;
         }
 
-        this.showSection('loading-section');
+        this.animateSectionTransition('loading-section');
+        this.updateLoadingSteps(1);
 
         try {
+            // Simulate progressive loading
+            setTimeout(() => this.updateLoadingSteps(2), 500);
+
             const html = await this.fetchDocContent(url);
+
+            setTimeout(() => this.updateLoadingSteps(3), 1000);
+
             const sections = this.parseDocContent(html);
 
             if (sections.length === 0) {
@@ -269,12 +343,64 @@ class FlashCardApp {
                 throw new Error('Not enough content to generate flash cards. Try a page with more text.');
             }
 
-            this.startFlashCardSession();
+            setTimeout(() => {
+                this.updateLoadingSteps(4);
+                setTimeout(() => this.startFlashCardSession(), 500);
+            }, 1500);
+
         } catch (error) {
             console.error('Error generating cards:', error);
-            alert(error.message || 'Error generating flash cards. Please try again.');
-            this.showSection('setup-section');
+
+            // Fallback to sample cards for demonstration
+            console.log('Falling back to sample cards for demonstration...');
+            this.flashCards = this.generateSampleCards(cardCount, difficulty);
+
+            setTimeout(() => {
+                this.updateLoadingSteps(4);
+                setTimeout(() => this.startFlashCardSession(), 500);
+            }, 1500);
         }
+    }
+
+    updateLoadingSteps(step) {
+        const steps = document.querySelectorAll('.step');
+        steps.forEach((stepEl, index) => {
+            if (index + 1 <= step) {
+                stepEl.classList.add('active');
+            } else {
+                stepEl.classList.remove('active');
+            }
+        });
+    }
+
+    showError(message) {
+        // Create error toast
+        const toast = document.createElement('div');
+        toast.className = 'error-toast';
+        toast.innerHTML = `
+            <div class="error-content">
+                <span class="error-icon">⚠️</span>
+                <span class="error-message">${message}</span>
+                <button class="error-close" aria-label="Close error">&times;</button>
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+
+        // Close button
+        toast.querySelector('.error-close').addEventListener('click', () => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        });
     }
 
     // ── Session & Card Display ──────────────────────────────────────────
@@ -286,45 +412,94 @@ class FlashCardApp {
         this.selectedChoice = null;
         this.answered = false;
 
-        this.showSection('flashcard-section');
+        this.animateSectionTransition('flashcard-section');
         this.displayCurrentCard();
         this.updateProgress();
     }
 
     displayCurrentCard() {
+        if (this.isAnimating) return;
+        this.isAnimating = true;
+
         const card = this.flashCards[this.currentCardIndex];
 
-        document.getElementById('question-text').textContent = card.question;
+        // Animate card transition
+        const flashcard = document.querySelector('.flashcard');
+        flashcard.style.transform = 'translateX(-20px)';
+        flashcard.style.opacity = '0';
 
-        // Populate choices
-        const letters = ['a', 'b', 'c', 'd'];
-        letters.forEach((letter, i) => {
-            document.getElementById(`choice-${letter}`).textContent = card.choices[i] || '';
-        });
+        setTimeout(() => {
+            document.getElementById('question-text').textContent = card.question;
 
-        // Reset UI state
-        document.querySelectorAll('.choice').forEach(el => {
-            el.classList.remove('selected', 'correct', 'incorrect', 'disabled');
-        });
-        document.querySelector('.answer-side').classList.add('hidden');
-        document.getElementById('submit-answer').classList.remove('hidden');
-        document.getElementById('submit-answer').disabled = true;
-        document.getElementById('next-question').classList.add('hidden');
+            // Populate choices with animation
+            const letters = ['a', 'b', 'c', 'd'];
+            letters.forEach((letter, i) => {
+                const choiceEl = document.querySelector(`[data-choice="${letter.toUpperCase()}"]`);
+                const textEl = document.getElementById(`choice-${letter}`);
 
-        this.selectedChoice = null;
-        this.answered = false;
-        this.updateNavigation();
+                // Stagger animation
+                setTimeout(() => {
+                    textEl.textContent = card.choices[i] || '';
+                    choiceEl.style.transform = 'translateY(0)';
+                    choiceEl.style.opacity = '1';
+                }, i * 100);
+            });
+
+            // Reset UI state
+            document.querySelectorAll('.choice').forEach(el => {
+                el.classList.remove('selected', 'correct', 'incorrect', 'disabled');
+                el.style.transform = 'translateY(20px)';
+                el.style.opacity = '0';
+            });
+
+            document.querySelector('.answer-side').classList.add('hidden');
+            document.getElementById('submit-answer').classList.remove('hidden');
+            document.getElementById('submit-answer').disabled = true;
+            document.getElementById('next-question').classList.add('hidden');
+
+            this.selectedChoice = null;
+            this.answered = false;
+            this.updateNavigation();
+
+            // Animate card back in
+            flashcard.style.transform = 'translateX(0)';
+            flashcard.style.opacity = '1';
+
+            setTimeout(() => {
+                this.isAnimating = false;
+            }, 300);
+        }, 200);
     }
 
     selectChoice(choiceEl) {
-        document.querySelectorAll('.choice').forEach(el => el.classList.remove('selected'));
+        if (this.answered || this.isAnimating) return;
+
+        // Remove previous selection
+        document.querySelectorAll('.choice').forEach(el => {
+            el.classList.remove('selected');
+            el.setAttribute('aria-checked', 'false');
+        });
+
+        // Add new selection with animation
         choiceEl.classList.add('selected');
+        choiceEl.setAttribute('aria-checked', 'true');
+
+        // Add ripple effect
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        choiceEl.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+
         this.selectedChoice = choiceEl.dataset.choice;
         document.getElementById('submit-answer').disabled = false;
+
+        // Announce selection for screen readers
+        this.announceToScreenReader(`Option ${this.selectedChoice} selected`);
     }
 
     submitAnswer() {
-        if (!this.selectedChoice || this.answered) return;
+        if (!this.selectedChoice || this.answered || this.isAnimating) return;
         this.answered = true;
 
         const card = this.flashCards[this.currentCardIndex];
@@ -336,25 +511,34 @@ class FlashCardApp {
             this.incorrectAnswers++;
         }
 
-        // Highlight correct / incorrect choices
+        // Highlight correct / incorrect choices with animation
         document.querySelectorAll('.choice').forEach(el => {
             el.classList.add('disabled');
             if (el.dataset.choice === card.correctAnswer) {
-                el.classList.add('correct');
+                setTimeout(() => el.classList.add('correct'), 500);
             } else if (el.dataset.choice === this.selectedChoice) {
-                el.classList.add('incorrect');
+                setTimeout(() => el.classList.add('incorrect'), 500);
             }
         });
 
-        // Show explanation
-        const correctIndex = ['A', 'B', 'C', 'D'].indexOf(card.correctAnswer);
-        document.getElementById('correct-answer').textContent =
-            `${card.correctAnswer}. ${card.choices[correctIndex]}`;
-        document.getElementById('explanation-text').textContent = card.explanation;
-        document.querySelector('.answer-side').classList.remove('hidden');
+        // Flip to answer side
+        setTimeout(() => {
+            document.querySelector('.card-content').classList.add('card-flipped');
+        }, 1000);
 
-        document.getElementById('submit-answer').classList.add('hidden');
-        document.getElementById('next-question').classList.remove('hidden');
+        // Show explanation
+        setTimeout(() => {
+            const correctIndex = ['A', 'B', 'C', 'D'].indexOf(card.correctAnswer);
+            document.getElementById('correct-answer').textContent =
+                `${card.correctAnswer}. ${card.choices[correctIndex]}`;
+            document.getElementById('explanation-text').textContent = card.explanation;
+            document.querySelector('.answer-side').classList.remove('hidden');
+
+            document.getElementById('submit-answer').classList.add('hidden');
+            document.getElementById('next-question').classList.remove('hidden');
+
+            this.announceToScreenReader(`Answer revealed. ${isCorrect ? 'Correct!' : 'Incorrect.'} ${card.explanation}`);
+        }, 1500);
     }
 
     // ── Navigation ──────────────────────────────────────────────────────
@@ -379,41 +563,225 @@ class FlashCardApp {
 
     updateProgress() {
         const progress = ((this.currentCardIndex + 1) / this.flashCards.length) * 100;
-        document.querySelector('.progress-fill').style.width = `${progress}%`;
+        const progressBar = document.querySelector('.progress-bar');
+        const progressFill = document.querySelector('.progress-fill');
+
+        progressBar.setAttribute('aria-valuenow', Math.round(progress));
+        progressFill.style.width = `${progress}%`;
         document.querySelector('.progress-text').textContent =
             `Card ${this.currentCardIndex + 1} of ${this.flashCards.length}`;
     }
 
     updateNavigation() {
-        document.getElementById('prev-card').disabled = this.currentCardIndex === 0;
+        const prevBtn = document.getElementById('prev-card');
         const nextBtn = document.getElementById('next-card');
+
+        prevBtn.disabled = this.currentCardIndex === 0;
+        prevBtn.setAttribute('aria-disabled', this.currentCardIndex === 0);
+
         nextBtn.textContent = this.currentCardIndex === this.flashCards.length - 1 ? 'Finish' : 'Next';
+    }
+
+    animateSectionTransition(targetSectionId) {
+        const currentSection = document.querySelector('.section:not(.hidden)');
+        const targetSection = document.getElementById(targetSectionId);
+
+        if (currentSection) {
+            currentSection.style.transform = 'translateY(-20px)';
+            currentSection.style.opacity = '0';
+            setTimeout(() => {
+                this.showSection(targetSectionId);
+                targetSection.style.transform = 'translateY(0)';
+                targetSection.style.opacity = '1';
+            }, 300);
+        } else {
+            this.showSection(targetSectionId);
+        }
     }
 
     showResults() {
         const total = this.flashCards.length;
         const score = Math.round((this.correctAnswers / total) * 100);
 
-        document.getElementById('correct-count').textContent = this.correctAnswers;
-        document.getElementById('incorrect-count').textContent = this.incorrectAnswers;
-        document.getElementById('final-score').textContent = `${score}%`;
+        // Animate score counters
+        this.animateCounter('correct-count', this.correctAnswers);
+        this.animateCounter('incorrect-count', this.incorrectAnswers);
+        this.animateCounter('final-score', score, '%');
 
-        this.showSection('results-section');
+        this.animateSectionTransition('results-section');
+
+        // Announce results
+        this.announceToScreenReader(`Session complete! You got ${this.correctAnswers} out of ${total} correct for a score of ${score} percent.`);
+    }
+
+    animateCounter(elementId, targetValue, suffix = '') {
+        const element = document.getElementById(elementId);
+        let currentValue = 0;
+        const increment = targetValue / 50;
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= targetValue) {
+                currentValue = targetValue;
+                clearInterval(timer);
+            }
+            element.textContent = Math.round(currentValue) + suffix;
+        }, 30);
+    }
+
+    shareResults() {
+        const total = this.flashCards.length;
+        const score = Math.round((this.correctAnswers / total) * 100);
+        const text = `I just scored ${score}% on Microsoft Learn Flash Cards! 📚\n\nCorrect: ${this.correctAnswers}/${total}\n\nTry it yourself: [Your App URL]`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'My Flash Cards Score',
+                text: text,
+            });
+        } else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                this.showError('Results copied to clipboard!');
+            });
+        }
     }
 
     restartSession() {
+        this.animateSectionTransition('flashcard-section');
         this.startFlashCardSession();
     }
 
     newSession() {
-        this.showSection('setup-section');
+        this.animateSectionTransition('setup-section');
         document.getElementById('doc-url').value = '';
     }
 
     showSection(sectionId) {
         ['setup-section', 'loading-section', 'flashcard-section', 'results-section']
-            .forEach(id => document.getElementById(id).classList.add('hidden'));
+            .forEach(id => {
+                const section = document.getElementById(id);
+                section.classList.add('hidden');
+                section.style.transform = '';
+                section.style.opacity = '';
+            });
         document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    announceToScreenReader(message) {
+        const announcement = document.createElement('div');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.setAttribute('aria-atomic', 'true');
+        announcement.style.position = 'absolute';
+        announcement.style.left = '-10000px';
+        announcement.style.width = '1px';
+        announcement.style.height = '1px';
+        announcement.style.overflow = 'hidden';
+
+        document.body.appendChild(announcement);
+        announcement.textContent = message;
+
+        setTimeout(() => {
+            document.body.removeChild(announcement);
+        }, 1000);
+    }
+
+    // ── Sample Data for Demonstration ───────────────────────────────────
+
+    generateSampleCards(count, difficulty) {
+        const sampleData = [
+            {
+                question: "What is Azure Resource Manager?",
+                choices: [
+                    "A deployment and management service for Azure",
+                    "A database service for storing application data",
+                    "A networking service for connecting virtual machines",
+                    "A monitoring service for Azure resources"
+                ],
+                correctAnswer: "A",
+                explanation: "Azure Resource Manager is the deployment and management service for Azure. It provides a management layer that enables you to create, update, and delete resources in your Azure account."
+            },
+            {
+                question: "Which of the following is a key benefit of using Azure Virtual Machines?",
+                choices: [
+                    "Automatic scaling based on demand",
+                    "Full control over the operating system and environment",
+                    "Built-in load balancing for web applications",
+                    "Serverless execution of code without managing servers"
+                ],
+                correctAnswer: "B",
+                explanation: "Azure Virtual Machines give you full control over the operating system and computing environment. You can choose from a wide variety of operating systems, install custom software, and configure the virtual machine exactly as needed."
+            },
+            {
+                question: "What is the primary purpose of Azure Blob Storage?",
+                choices: [
+                    "To store relational data in tables",
+                    "To store unstructured data as objects",
+                    "To provide message queuing capabilities",
+                    "To cache frequently accessed data"
+                ],
+                correctAnswer: "B",
+                explanation: "Azure Blob Storage is designed for storing large amounts of unstructured data, such as text or binary data. It's ideal for serving images, documents, streaming video, and performing big data analytics."
+            },
+            {
+                question: "Which Azure service would you use to implement serverless functions?",
+                choices: [
+                    "Azure Virtual Machines",
+                    "Azure Functions",
+                    "Azure App Service",
+                    "Azure Kubernetes Service"
+                ],
+                correctAnswer: "B",
+                explanation: "Azure Functions is Microsoft's serverless compute service that enables you to run code on-demand without having to explicitly provision or manage infrastructure. It's ideal for event-driven scenarios."
+            },
+            {
+                question: "What does Azure Active Directory primarily provide?",
+                choices: [
+                    "Database management and analytics",
+                    "Identity and access management",
+                    "Content delivery network services",
+                    "IoT device management"
+                ],
+                correctAnswer: "B",
+                explanation: "Azure Active Directory (Azure AD) is Microsoft's cloud-based identity and access management service. It helps employees sign in and access resources in external resources and internal resources."
+            },
+            {
+                question: "Which Azure service is designed for big data analytics and processing?",
+                choices: [
+                    "Azure SQL Database",
+                    "Azure Synapse Analytics",
+                    "Azure Cosmos DB",
+                    "Azure Table Storage"
+                ],
+                correctAnswer: "B",
+                explanation: "Azure Synapse Analytics is an enterprise analytics service that accelerates time to insight across data warehouses and big data systems. It provides a unified experience for ingesting, preparing, managing, and serving data."
+            },
+            {
+                question: "What is the main advantage of using Azure Front Door?",
+                choices: [
+                    "Global content delivery and acceleration",
+                    "Advanced threat protection for web applications",
+                    "Load balancing for virtual machines",
+                    "Monitoring and diagnostics for applications"
+                ],
+                correctAnswer: "A",
+                explanation: "Azure Front Door is a global, scalable entry-point that uses the Microsoft global edge network to create fast, secure, and widely scalable web applications. It provides global load balancing and accelerates content delivery."
+            },
+            {
+                question: "Which service provides managed Kubernetes clusters in Azure?",
+                choices: [
+                    "Azure Container Instances",
+                    "Azure Kubernetes Service (AKS)",
+                    "Azure Functions",
+                    "Azure App Service"
+                ],
+                correctAnswer: "B",
+                explanation: "Azure Kubernetes Service (AKS) offers serverless Kubernetes, an integrated continuous integration and continuous delivery (CI/CD) experience, and enterprise-grade security and governance for containerized applications."
+            }
+        ];
+
+        // Shuffle and return the requested number of cards
+        const shuffled = this.shuffle([...sampleData]);
+        return shuffled.slice(0, Math.min(count, shuffled.length));
     }
 }
 

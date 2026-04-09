@@ -3,6 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Generate interactive flash cards from Microsoft Learn documentation. Study Azure, Microsoft 365, and other Microsoft technologies with AI-generated questions.">
+    <meta name="keywords" content="flash cards, Microsoft Learn, Azure, Microsoft 365, study, learning, documentation">
+    <meta name="author" content="Flash Cards App">
+    <meta name="theme-color" content="#6366f1">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-domain.com/">
+    <meta property="og:title" content="Microsoft Learn Flash Cards">
+    <meta property="og:description" content="Generate interactive flash cards from Microsoft Learn documentation">
+    <meta property="og:image" content="https://your-domain.com/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-domain.com/">
+    <meta property="twitter:title" content="Microsoft Learn Flash Cards">
+    <meta property="twitter:description" content="Generate interactive flash cards from Microsoft Learn documentation">
+    <meta property="twitter:image" content="https://your-domain.com/twitter-image.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <title>Microsoft Learn Flash Cards</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -10,44 +41,190 @@
     <div class="container">
         <header>
             <h1>Microsoft Learn Flash Cards</h1>
-            <p>Generate flash cards from Microsoft Learn documentation</p>
+            <p>Transform Microsoft Learn documentation into interactive study sessions</p>
         </header>
 
-        <div id="setup-section" class="section">
-            <div class="input-group">
-                <label for="doc-url">Microsoft Learn Documentation URL:</label>
-                <input type="url" id="doc-url" placeholder="https://docs.microsoft.com/...">
-            </div>
-            
-            <div class="controls">
-                <div class="control-group">
-                    <label for="card-count">Number of Cards:</label>
-                    <select id="card-count">
-                        <option value="5">5 Cards</option>
-                        <option value="10" selected>10 Cards</option>
-                        <option value="15">15 Cards</option>
-                        <option value="20">20 Cards</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="difficulty">Difficulty Level:</label>
-                    <select id="difficulty">
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate" selected>Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                    </select>
-                </div>
-            </div>
-            
-            <button id="generate-cards" class="btn-primary">Generate Flash Cards</button>
-        </div>
+        <main>
+            <section id="setup-section" class="section" role="main" aria-labelledby="setup-heading">
+                <h2 id="setup-heading" class="sr-only">Setup Your Study Session</h2>
 
-        <div id="loading-section" class="section hidden">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Processing documentation and generating flash cards...</p>
-            </div>
+                <form class="setup-form" novalidate>
+                    <div class="input-group">
+                        <label for="doc-url">Documentation URL</label>
+                        <input
+                            type="url"
+                            id="doc-url"
+                            placeholder="https://docs.microsoft.com/en-us/azure/..."
+                            aria-describedby="url-help"
+                            required
+                        >
+                        <small id="url-help" class="help-text">
+                            Enter any Microsoft Learn or Microsoft Docs URL to generate flash cards from its content
+                        </small>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="card-count">Number of Cards</label>
+                            <select id="card-count" aria-describedby="card-count-help">
+                                <option value="5">5 Cards</option>
+                                <option value="10" selected>10 Cards</option>
+                                <option value="15">15 Cards</option>
+                                <option value="20">20 Cards</option>
+                            </select>
+                            <small id="card-count-help" class="help-text">Choose how many questions to generate</small>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="difficulty">Difficulty Level</label>
+                            <select id="difficulty" aria-describedby="difficulty-help">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate" selected>Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                            <small id="difficulty-help" class="help-text">Adjust question complexity</small>
+                        </div>
+                    </div>
+
+                    <button id="generate-cards" class="btn btn-primary" type="submit">
+                        <span class="btn-icon">🚀</span>
+                        Generate Flash Cards
+                    </button>
+                </form>
+            </section>
+
+            <section id="loading-section" class="section hidden" role="status" aria-live="polite" aria-labelledby="loading-heading">
+                <div class="loading">
+                    <div class="spinner" aria-hidden="true"></div>
+                    <h2 id="loading-heading">Generating Your Flash Cards</h2>
+                    <p>Processing documentation and creating questions...</p>
+                    <div class="loading-steps">
+                        <div class="step active" data-step="1">Fetching content</div>
+                        <div class="step" data-step="2">Parsing documentation</div>
+                        <div class="step" data-step="3">Generating questions</div>
+                        <div class="step" data-step="4">Creating answers</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="flashcard-section" class="section hidden" role="main" aria-labelledby="flashcard-heading">
+                <h2 id="flashcard-heading" class="sr-only">Flash Card Study Session</h2>
+
+                <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="progress-fill"></div>
+                    <span class="progress-text">Card 1 of 10</span>
+                </div>
+
+                <div class="flashcard" role="region" aria-labelledby="question-text">
+                    <div class="card-content">
+                        <div class="question-side" aria-live="polite">
+                            <h3>Question</h3>
+                            <p id="question-text"></p>
+
+                            <div class="choices-container" role="radiogroup" aria-labelledby="question-text">
+                                <div class="choice" data-choice="A" tabindex="0" role="radio" aria-checked="false">
+                                    <span class="choice-letter">A</span>
+                                    <span class="choice-text" id="choice-a"></span>
+                                </div>
+                                <div class="choice" data-choice="B" tabindex="0" role="radio" aria-checked="false">
+                                    <span class="choice-letter">B</span>
+                                    <span class="choice-text" id="choice-b"></span>
+                                </div>
+                                <div class="choice" data-choice="C" tabindex="0" role="radio" aria-checked="false">
+                                    <span class="choice-letter">C</span>
+                                    <span class="choice-text" id="choice-c"></span>
+                                </div>
+                                <div class="choice" data-choice="D" tabindex="0" role="radio" aria-checked="false">
+                                    <span class="choice-letter">D</span>
+                                    <span class="choice-text" id="choice-d"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="answer-side hidden" aria-live="polite">
+                            <h3>Correct Answer</h3>
+                            <p id="correct-answer"></p>
+                            <div class="explanation">
+                                <h4>Explanation</h4>
+                                <p id="explanation-text"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <button id="submit-answer" class="btn btn-primary" disabled aria-describedby="submit-help">
+                            Submit Answer
+                        </button>
+                        <button id="next-question" class="btn btn-secondary hidden">
+                            Next Question
+                        </button>
+                    </div>
+                    <small id="submit-help" class="help-text sr-only">Select an answer above to enable this button</small>
+                </div>
+
+                <nav class="navigation" aria-labelledby="navigation-heading">
+                    <h3 id="navigation-heading" class="sr-only">Card Navigation</h3>
+                    <button id="prev-card" class="btn btn-secondary" disabled aria-label="Previous card">
+                        ← Previous
+                    </button>
+                    <button id="next-card" class="btn btn-secondary" aria-label="Next card">
+                        Next →
+                    </button>
+                    <button id="restart" class="btn btn-primary hidden" aria-label="Restart session">
+                        🔄 Restart
+                    </button>
+                </nav>
+            </section>
+
+            <section id="results-section" class="section hidden" role="region" aria-labelledby="results-heading">
+                <h2 id="results-heading">Session Complete! 🎉</h2>
+
+                <div class="score-summary">
+                    <div class="score-item">
+                        <span class="score-label">Correct</span>
+                        <span id="correct-count" class="score-value">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Incorrect</span>
+                        <span id="incorrect-count" class="score-value">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Score</span>
+                        <span id="final-score" class="score-value">0%</span>
+                    </div>
+                </div>
+
+                <div class="results-actions">
+                    <button id="new-session" class="btn btn-primary">
+                        <span class="btn-icon">➕</span>
+                        New Session
+                    </button>
+                    <button id="share-results" class="btn btn-secondary" aria-label="Share your results">
+                        <span class="btn-icon">📤</span>
+                        Share Results
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 Microsoft Learn Flash Cards. Built with ❤️ for learning.</p>
+        </footer>
+    </div>
+
+    <!-- Load Inter font as fallback -->
+    <script>
+        // Fallback for font loading
+        if ('fonts' in document) {
+            document.fonts.load('1em Inter').then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        }
+    </script>
+
+    <script src="app.js"></script>
+</body>
+</html>
         </div>
 
         <div id="flashcard-section" class="section hidden">

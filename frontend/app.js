@@ -77,10 +77,8 @@ class FlashCardApp {
     }
 
     handleKeydown(e) {
-        // Arrow key navigation
-        if (e.key === 'ArrowLeft' && !document.getElementById('prev-card').disabled) {
-            this.previousCard();
-        } else if (e.key === 'ArrowRight') {
+        // Arrow key navigation — only after answering
+        if (e.key === 'ArrowRight') {
             if (this.answered) {
                 this.nextCard();
             } else if (this.selectedChoice) {
@@ -632,6 +630,8 @@ class FlashCardApp {
             document.getElementById('submit-answer').classList.add('hidden');
             document.getElementById('next-question').classList.remove('hidden');
 
+            this.updateNavigation();
+
             this.announceToScreenReader(`Answer revealed. ${isCorrect ? 'Correct!' : 'Incorrect.'} ${card.explanation}`);
         }, 800);
     }
@@ -668,13 +668,18 @@ class FlashCardApp {
     }
 
     updateNavigation() {
-        const prevBtn = document.getElementById('prev-card');
-        const nextBtn = document.getElementById('next-card');
-
-        prevBtn.disabled = this.currentCardIndex === 0;
-        prevBtn.setAttribute('aria-disabled', this.currentCardIndex === 0);
-
-        nextBtn.textContent = this.currentCardIndex === this.flashCards.length - 1 ? 'Finish' : 'Next';
+        const nav = document.querySelector('.navigation');
+        // Hide navigation until question is answered — no skipping allowed
+        if (!this.answered) {
+            nav.style.display = 'none';
+        } else {
+            nav.style.display = 'flex';
+            const prevBtn = document.getElementById('prev-card');
+            const nextBtn = document.getElementById('next-card');
+            prevBtn.disabled = true; // no going back
+            prevBtn.setAttribute('aria-disabled', 'true');
+            nextBtn.textContent = this.currentCardIndex === this.flashCards.length - 1 ? 'Finish' : 'Next →';
+        }
     }
 
     animateSectionTransition(targetSectionId) {

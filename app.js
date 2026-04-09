@@ -96,8 +96,8 @@ class FlashCardApp {
     // ── Fetching & Parsing ──────────────────────────────────────────────
 
     async fetchDocContent(url) {
-        // Use allorigins as a CORS proxy to fetch the page HTML
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        // Use our own server-side proxy to fetch the page HTML
+        const proxyUrl = `/api/fetch-page?url=${encodeURIComponent(url)}`;
         const response = await fetch(proxyUrl);
         if (!response.ok) throw new Error(`Failed to fetch page (${response.status})`);
         return await response.text();
@@ -429,6 +429,9 @@ class FlashCardApp {
         flashcard.style.opacity = '0';
 
         setTimeout(() => {
+            // Reset flip state so the question side is visible
+            document.querySelector('.card-content').classList.remove('card-flipped');
+
             document.getElementById('question-text').textContent = card.question;
 
             // Populate choices with animation

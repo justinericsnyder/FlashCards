@@ -16,7 +16,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.allorigins.win"],
+      connectSrc: ["'self'"],
     },
   },
 }));
@@ -33,6 +33,57 @@ app.use(express.static(path.join(__dirname), {
   etag: true,
   lastModified: true,
 }));
+
+// Proxy endpoint to fetch external documentation pages server-side
+app.get('/api/fetch-page', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) {
+    return res.status(400).json({ error: 'Missing "url" query parameter' });
+  }
+
+  // Only allow Microsoft domains
+  let parsed;
+  try {
+    parsed = new URL(targetUrl);
+    if (!parsed.hostname.endsWith('microsoft.com')) {
+      return res.status(403).json({ error: 'Only Microsoft documentation URLs are allowed' });
+    }
+  } catch {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  const fetchPage = (url, redirectsLeft = 5) => {
+    return new Promise((resolve, reject) => {
+      if (redirectsLeft <= 0) return reject(new Error('Too many redirects'));
+
+      const urlObj = new URL(url);
+      const mod = urlObj.protocol === 'https:' ? require('https') : require('http');
+
+      mod.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FlashCardBot/1.0)' } }, (upstream) => {
+        // Follow redirects
+        if ([301, 302, 303, 307, 308].includes(upstream.statusCode) && upstream.headers.location) {
+          return resolve(fetchPage(upstream.headers.location, redirectsLeft - 1));
+        }
+        if (upstream.statusCode !== 200) {
+          return reject(new Error(`Upstream returned ${upstream.statusCode}`));
+        }
+        const chunks = [];
+        upstream.on('data', (chunk) => chunks.push(chunk));
+        upstream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+        upstream.on('error', reject);
+      }).on('error', reject);
+    });
+  };
+
+  try {
+    const html = await fetchPage(targetUrl);
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (err) {
+    console.error('Proxy fetch error:', err.message);
+    res.status(502).json({ error: 'Failed to fetch the requested page' });
+  }
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {

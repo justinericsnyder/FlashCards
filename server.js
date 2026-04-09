@@ -288,6 +288,21 @@ app.post('/api/question-log', async (req, res) => {
   }
 });
 
+// Get recent unique topics for quick-access
+app.get('/api/recent-topics', async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ error: 'Database not configured' });
+  }
+  try {
+    const db_conn = require('./db');
+    const topics = await db_conn.getRecentTopics();
+    res.json(topics);
+  } catch (err) {
+    console.error('Get recent topics error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch recent topics' });
+  }
+});
+
 // Get per-topic stats
 app.get('/api/topic-stats', async (req, res) => {
   if (!process.env.DATABASE_URL) {

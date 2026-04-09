@@ -143,7 +143,7 @@ async function getTopicStats() {
   return topics;
 }
 
-module.exports = { initialize, saveScore, getScores, getStats, saveQuestionLog, getTopicStats, getPastQuestions, getGlobalTopicStats };
+module.exports = { initialize, saveScore, getScores, getStats, saveQuestionLog, getTopicStats, getPastQuestions, getGlobalTopicStats, getRecentTopics };
 
 async function getPastQuestions(url) {
   const db = getSql();
@@ -177,5 +177,22 @@ async function getGlobalTopicStats() {
     ORDER BY total_answers DESC
   `;
 
+  return topics;
+}
+
+async function getRecentTopics() {
+  const db = getSql();
+  const topics = await db`
+    SELECT
+      url, page_title,
+      MAX(created_at) as last_used,
+      ROUND(AVG(score_pct)) as avg_score,
+      COUNT(*) as sessions
+    FROM scores
+    WHERE url IS NOT NULL AND page_title IS NOT NULL
+    GROUP BY url, page_title
+    ORDER BY MAX(created_at) DESC
+    LIMIT 6
+  `;
   return topics;
 }

@@ -454,6 +454,61 @@ header a:hover { opacity: 1; }
     flex-wrap: wrap;
 }
 
+/* Recent Topics */
+.recent-topics { margin-top: 1.25rem; }
+.recent-topics-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+.recent-topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+.recent-topic-card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.7rem;
+    background: var(--bg-choice);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all var(--fast);
+    text-decoration: none;
+}
+.recent-topic-card:hover {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+}
+.recent-topic-info { flex: 1; min-width: 0; }
+.recent-topic-name {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.recent-topic-meta {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 0.1rem;
+}
+.recent-topic-score {
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
 /* Floating Side Nav (desktop) */
 .side-nav {
     position: fixed;

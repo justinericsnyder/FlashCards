@@ -14,6 +14,7 @@ class FlashCardApp {
         this.initializeEventListeners();
         this.initializeKeyboardNavigation();
         this.initializeAnimations();
+        this.loadRecentTopics();
     }
 
     initializeEventListeners() {
@@ -74,6 +75,44 @@ class FlashCardApp {
         document.querySelectorAll('.section').forEach(section => {
             observer.observe(section);
         });
+    }
+
+    async loadRecentTopics() {
+        const container = document.getElementById('recent-topics');
+        if (!container) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/recent-topics`);
+            if (!res.ok) return;
+            const topics = await res.json();
+            if (!topics || topics.length === 0) return;
+
+            const scoreClass = pct => pct >= 80 ? 'color:var(--success)' : pct >= 50 ? 'color:var(--warning)' : 'color:var(--error)';
+
+            container.innerHTML = `
+                <div class="recent-topics-title">Recent Topics</div>
+                <div class="recent-topics-grid">
+                    ${topics.map(t => `
+                        <div class="recent-topic-card" data-url="${t.url}" title="${t.page_title}">
+                            <div class="recent-topic-info">
+                                <span class="recent-topic-name">${t.page_title}</span>
+                                <span class="recent-topic-meta">${t.sessions} session${t.sessions > 1 ? 's' : ''}</span>
+                            </div>
+                            <span class="recent-topic-score" style="${scoreClass(Number(t.avg_score))}">${t.avg_score}%</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // Click handler — fill the URL input
+            container.addEventListener('click', e => {
+                const card = e.target.closest('.recent-topic-card');
+                if (!card) return;
+                document.getElementById('doc-url').value = card.dataset.url;
+                document.getElementById('doc-url').focus();
+            });
+        } catch (err) {
+            console.warn('Could not load recent topics:', err);
+        }
     }
 
     handleKeydown(e) {
@@ -570,6 +609,9 @@ class FlashCardApp {
     submitAnswer() {
         if (!this.selectedChoice || this.answered || this.isAnimating) return;
         this.answered = true;
+
+        // Hide submit button immediately
+        document.getElementById('submit-answer').classList.add('hidden');
 
         const card = this.flashCards[this.currentCardIndex];
         const isCorrect = this.selectedChoice === card.correctAnswer;

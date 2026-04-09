@@ -131,7 +131,7 @@ app.post('/api/generate-cards', async (req, res) => {
     return res.status(503).json({ error: 'ANTHROPIC_API_KEY is not configured. Set it as an environment variable.' });
   }
 
-  const { sections, count, difficulty } = req.body;
+  const { sections, count, difficulty, url: pageUrl } = req.body;
   if (!sections || !Array.isArray(sections) || sections.length === 0) {
     console.error('❌ No sections provided');
     return res.status(400).json({ error: 'No content sections provided' });
@@ -139,11 +139,34 @@ app.post('/api/generate-cards', async (req, res) => {
 
   console.log(`📄 Generating ${count} cards at ${difficulty} difficulty from ${sections.length} sections`);
 
+  // Fetch previously asked questions for this URL to avoid repeats
+  let pastQuestions = [];
+  if (pageUrl && process.env.DATABASE_URL) {
+    try {
+      pastQuestions = await db.getPastQuestions(pageUrl);
+      console.log(`📋 Found ${pastQuestions.length} previously asked questions for this URL`);
+    } catch (err) {
+      console.warn('Could not fetch past questions:', err.message);
+    }
+  }
+
   // Build a condensed version of the page content for the prompt
   const contentText = sections
     .map(s => `## ${s.heading}\n${s.content.join('\n')}`)
     .join('\n\n')
-    .substring(0, 12000); // Stay within reasonable token limits
+    .substring(0, 12000);
+
+  // Build the avoidance instruction
+  let avoidInstruction = '';
+  if (pastQuestions.length > 0) {
+    const questionList = pastQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n');
+    avoidInstruction = `
+IMPORTANT — AVOID REPEATING THESE PREVIOUSLY ASKED QUESTIONS (or questions that test the same concept in a different way):
+${questionList}
+
+Generate NEW questions that test DIFFERENT concepts or facts from the content. Only if you have completely exhausted all possible unique questions from the content should you revisit previously asked topics.
+`;
+  }
 
   const prompt = `You are an expert educator creating flash cards from Microsoft documentation.
 
@@ -156,7 +179,7 @@ RULES:
 - Wrong answers should be plausible but clearly incorrect based on the content.
 - Explanations should reference the specific content that supports the correct answer.
 - Vary question styles: "What is...", "Which of the following...", "What is the purpose of...", "How does... work?", etc.
-
+${avoidInstruction}
 DOCUMENTATION CONTENT:
 ${contentText}
 

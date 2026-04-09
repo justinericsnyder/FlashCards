@@ -143,4 +143,19 @@ async function getTopicStats() {
   return topics;
 }
 
-module.exports = { initialize, saveScore, getScores, getStats, saveQuestionLog, getTopicStats };
+module.exports = { initialize, saveScore, getScores, getStats, saveQuestionLog, getTopicStats, getPastQuestions };
+
+async function getPastQuestions(url) {
+  const db = getSql();
+  if (!db || !url) return [];
+  try {
+    const rows = await db`
+      SELECT DISTINCT question FROM question_logs
+      WHERE url = ${url}
+      ORDER BY question
+    `;
+    return rows.map(r => r.question);
+  } catch {
+    return [];
+  }
+}

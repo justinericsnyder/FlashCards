@@ -402,7 +402,7 @@ class FlashCardApp {
             const response = await fetch(`${API_BASE}/api/generate-cards`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sections, count: cardCount, difficulty }),
+                body: JSON.stringify({ sections, count: cardCount, difficulty, url }),
             });
 
             const data = await response.json();

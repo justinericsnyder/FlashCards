@@ -546,3 +546,189 @@ header a:hover { opacity: 1; }
     .results-actions { flex-direction: column; }
     .results-actions .btn, .results-actions a { width: 100%; text-align: center; }
 }
+
+/* ── Cookie Consent Banner ─────────────────────────────── */
+#consent-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.3s ease;
+    padding: 1rem;
+}
+#consent-overlay.visible {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.consent-banner {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    max-width: 520px;
+    width: 100%;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+#consent-overlay.visible .consent-banner {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.consent-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.consent-icon { font-size: 1.25rem; }
+.consent-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.consent-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+/* Categories */
+.consent-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.consent-category {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--bg-choice);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color var(--fast);
+}
+.consent-category:hover { border-color: var(--primary); }
+.consent-category.locked { opacity: 0.7; cursor: default; }
+.consent-category.locked:hover { border-color: var(--border); }
+
+.consent-cat-info { flex: 1; min-width: 0; }
+.consent-cat-name {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.15rem;
+}
+.consent-cat-desc {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Toggle switch */
+.consent-toggle-wrap {
+    position: relative;
+    width: 38px;
+    height: 20px;
+    flex-shrink: 0;
+}
+.consent-toggle {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+.consent-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 10px;
+    transition: background 0.2s ease;
+    cursor: pointer;
+}
+.consent-toggle-slider::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.consent-toggle:checked + .consent-toggle-slider {
+    background: var(--primary-dark);
+}
+.consent-toggle:checked + .consent-toggle-slider::after {
+    transform: translateX(18px);
+    background: #fff;
+}
+.consent-toggle:disabled + .consent-toggle-slider {
+    cursor: default;
+}
+.consent-toggle:focus-visible + .consent-toggle-slider {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Action buttons */
+.consent-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.consent-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--fast);
+    white-space: nowrap;
+}
+.consent-btn:hover { transform: translateY(-1px); }
+
+.consent-btn-accept-all {
+    background: var(--primary-dark);
+    color: #fff;
+}
+.consent-btn-accept-all:hover { background: var(--primary); }
+
+.consent-btn-save {
+    background: var(--bg-choice);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+}
+.consent-btn-save:hover { border-color: var(--primary); color: var(--text); }
+
+.consent-btn-reject {
+    background: transparent;
+    color: var(--text-muted);
+}
+.consent-btn-reject:hover { color: var(--text-dim); }
+
+@media (max-width: 480px) {
+    .consent-banner { padding: 1.25rem; }
+    .consent-actions { flex-direction: column; }
+    .consent-btn { width: 100%; }
+}

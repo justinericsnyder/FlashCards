@@ -678,21 +678,23 @@ class FlashCardApp {
 
         this.animateSectionTransition('results-section');
 
-        // Save score to database
-        const url = document.getElementById('doc-url').value.trim();
-        const difficulty = document.getElementById('difficulty').value;
-        fetch(`${API_BASE}/api/scores`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                url,
-                pageTitle: this.currentPageTitle || url,
-                correct: this.correctAnswers,
-                total,
-                scorePct: score,
-                difficulty,
-            }),
-        }).catch(err => console.warn('Could not save score:', err));
+        // Save score to database (only if functional cookies accepted)
+        if (typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional')) {
+            const url = document.getElementById('doc-url').value.trim();
+            const difficulty = document.getElementById('difficulty').value;
+            fetch(`${API_BASE}/api/scores`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url,
+                    pageTitle: this.currentPageTitle || url,
+                    correct: this.correctAnswers,
+                    total,
+                    scorePct: score,
+                    difficulty,
+                }),
+            }).catch(err => console.warn('Could not save score:', err));
+        }
 
         // Announce results
         this.announceToScreenReader(`Session complete! You got ${this.correctAnswers} out of ${total} correct for a score of ${score} percent.`);

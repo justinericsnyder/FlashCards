@@ -250,6 +250,35 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
+// Log an individual question answer
+app.post('/api/question-log', async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ error: 'Database not configured' });
+  }
+  try {
+    const { url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty } = req.body;
+    const log = await db.saveQuestionLog({ url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty });
+    res.json(log);
+  } catch (err) {
+    console.error('Save question log error:', err.message);
+    res.status(500).json({ error: 'Failed to save question log' });
+  }
+});
+
+// Get per-topic stats
+app.get('/api/topic-stats', async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ error: 'Database not configured' });
+  }
+  try {
+    const topics = await db.getTopicStats();
+    res.json(topics);
+  } catch (err) {
+    console.error('Get topic stats error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch topic stats' });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({

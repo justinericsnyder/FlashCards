@@ -579,6 +579,26 @@ class FlashCardApp {
             this.incorrectAnswers++;
         }
 
+        // Log the question answer (if functional cookies accepted)
+        if (typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional')) {
+            const correctIndex = ['A', 'B', 'C', 'D'].indexOf(card.correctAnswer);
+            const docUrl = document.getElementById('doc-url').value.trim();
+            const difficulty = document.getElementById('difficulty').value;
+            fetch(`${API_BASE}/api/question-log`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: docUrl,
+                    pageTitle: this.currentPageTitle || docUrl,
+                    question: card.question,
+                    correctAnswer: card.choices[correctIndex],
+                    userAnswer: card.choices[['A','B','C','D'].indexOf(this.selectedChoice)],
+                    isCorrect,
+                    difficulty,
+                }),
+            }).catch(err => console.warn('Could not log question:', err));
+        }
+
         // Highlight correct / incorrect choices with animation
         document.querySelectorAll('.choice').forEach(el => {
             el.classList.add('disabled');

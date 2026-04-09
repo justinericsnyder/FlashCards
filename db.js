@@ -43,6 +43,21 @@ async function initialize() {
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `;
+      await db`
+        CREATE TABLE IF NOT EXISTS question_logs (
+          id SERIAL PRIMARY KEY,
+          url TEXT,
+          page_title TEXT,
+          question TEXT NOT NULL,
+          correct_answer TEXT NOT NULL,
+          user_answer TEXT NOT NULL,
+          is_correct BOOLEAN NOT NULL,
+          difficulty TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+      await db`CREATE INDEX IF NOT EXISTS idx_qlog_url ON question_logs (url)`;
+      await db`CREATE INDEX IF NOT EXISTS idx_qlog_correct ON question_logs (is_correct)`;
       console.log('✅ Database initialized');
       return;
     } catch (err) {
@@ -98,4 +113,34 @@ async function getStats() {
   return { overall, byDifficulty, recent };
 }
 
-module.exports = { initialize, saveScore, getScores, getStats };
+async function saveQuestionLog({ url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty }) {
+  const db = getSql();
+  const [row] = await db`
+    INSERT INTO question_logs (url, page_title, question, correct_answer, user_answer, is_correct, difficulty, created_at)
+    VALUES (${url}, ${pageTitle}, ${question}, ${correctAnswer}, ${userAnswer}, ${isCorrect}, ${difficulty}, NOW())
+    RETURNING *
+  `;
+  return row;
+}
+
+async function getTopicStats() {
+  const db = getSql();
+
+  const topics = await db`
+    SELECT
+      page_title,
+      url,
+      COUNT(*) as total_questions,
+      SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct_count,
+      ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as accuracy_pct,
+      MAX(created_at) as last_studied
+    FROM question_logs
+    WHERE page_title IS NOT NULL
+    GROUP BY page_title, url
+    ORDER BY last_studied DESC
+  `;
+
+  return topics;
+}
+
+module.exports = { initialize, saveScore, getScores, getStats, saveQuestionLog, getTopicStats };

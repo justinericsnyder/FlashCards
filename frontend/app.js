@@ -81,7 +81,7 @@ class FlashCardApp {
         const container = document.getElementById('recent-topics');
         if (!container) return;
         try {
-            const res = await fetch(`${API_BASE}/api/recent-topics`);
+            const res = await Auth.apiFetch(`${API_BASE}/api/recent-topics`);
             if (!res.ok) return;
             const topics = await res.json();
             if (!topics || topics.length === 0) return;
@@ -397,6 +397,12 @@ class FlashCardApp {
     // ── Main Flow ───────────────────────────────────────────────────────
 
     async generateCards() {
+        // Require sign-in before generating
+        if (!Auth.isLoggedIn()) {
+            Auth.requireAuth(() => this.generateCards());
+            return;
+        }
+
         const url = document.getElementById('doc-url').value.trim();
         const cardCount = parseInt(document.getElementById('card-count').value);
         const difficulty = document.getElementById('difficulty').value;
@@ -436,7 +442,7 @@ class FlashCardApp {
             this.updateLoadingSteps(3);
 
             // Send parsed content to server for AI-powered card generation
-            const response = await fetch(`${API_BASE}/api/generate-cards`, {
+            const response = await Auth.apiFetch(`${API_BASE}/api/generate-cards`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sections, count: cardCount, difficulty, url }),
@@ -627,7 +633,7 @@ class FlashCardApp {
             const correctIndex = ['A', 'B', 'C', 'D'].indexOf(card.correctAnswer);
             const docUrl = document.getElementById('doc-url').value.trim();
             const difficulty = document.getElementById('difficulty').value;
-            fetch(`${API_BASE}/api/question-log`, {
+            Auth.apiFetch(`${API_BASE}/api/question-log`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -756,7 +762,7 @@ class FlashCardApp {
         if (typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional')) {
             const url = document.getElementById('doc-url').value.trim();
             const difficulty = document.getElementById('difficulty').value;
-            fetch(`${API_BASE}/api/scores`, {
+            Auth.apiFetch(`${API_BASE}/api/scores`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

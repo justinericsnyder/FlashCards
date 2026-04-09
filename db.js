@@ -7,13 +7,10 @@ function getSql() {
     const dbUrl = process.env.DATABASE_URL;
     const sanitized = dbUrl.replace(/:[^@]+@/, ':***@');
     console.log('🔗 Connecting to DB:', sanitized);
-
     sql = postgres(dbUrl, {
       ssl: { rejectUnauthorized: false },
       connection: { application_name: 'flashcards' },
-      max: 5,
-      idle_timeout: 20,
-      connect_timeout: 10,
+      max: 5, idle_timeout: 20, connect_timeout: 10,
     });
   }
   return sql;
@@ -22,42 +19,48 @@ function getSql() {
 async function initialize() {
   const db = getSql();
   if (!db) return;
-
   for (let attempt = 1; attempt <= 5; attempt++) {
     try {
       console.log(`⏳ DB connection attempt ${attempt}/5...`);
-      const result = await Promise.race([
+      await Promise.race([
         db`SELECT 1 as test`,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 8000)),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Query timeout')), 8000)),
       ]);
-      console.log(`🔗 Test query result:`, result);
+      await db`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          email TEXT UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          display_name TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
       await db`
         CREATE TABLE IF NOT EXISTS scores (
           id SERIAL PRIMARY KEY,
-          url TEXT,
-          page_title TEXT,
-          correct INTEGER NOT NULL,
-          total INTEGER NOT NULL,
-          score_pct INTEGER NOT NULL,
-          difficulty TEXT,
+          user_id INTEGER REFERENCES users(id),
+          url TEXT, page_title TEXT,
+          correct INTEGER NOT NULL, total INTEGER NOT NULL,
+          score_pct INTEGER NOT NULL, difficulty TEXT,
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `;
       await db`
         CREATE TABLE IF NOT EXISTS question_logs (
           id SERIAL PRIMARY KEY,
-          url TEXT,
-          page_title TEXT,
-          question TEXT NOT NULL,
-          correct_answer TEXT NOT NULL,
-          user_answer TEXT NOT NULL,
-          is_correct BOOLEAN NOT NULL,
-          difficulty TEXT,
-          created_at TIMESTAMPTZ DEFAULT NOW()
+          user_id INTEGER REFERENCES users(id),
+          url TEXT, page_title TEXT,
+          question TEXT NOT NULL, correct_answer TEXT NOT NULL,
+          user_answer TEXT NOT NULL, is_correct BOOLEAN NOT NULL,
+          difficulty TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `;
+      // Migrations for existing tables
+      await db`ALTER TABLE scores ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)`;
+      await db`ALTER TABLE question_logs ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)`;
+      await db`CREATE INDEX IF NOT EXISTS idx_scores_user ON scores (user_id)`;
+      await db`CREATE INDEX IF NOT EXISTS idx_qlog_user ON question_logs (user_id)`;
       await db`CREATE INDEX IF NOT EXISTS idx_qlog_url ON question_logs (url)`;
-      await db`CREATE INDEX IF NOT EXISTS idx_qlog_correct ON question_logs (is_correct)`;
       console.log('✅ Database initialized');
       return;
     } catch (err) {
@@ -68,131 +71,125 @@ async function initialize() {
   console.error('❌ Could not connect to database after 5 attempts');
 }
 
-async function saveScore({ url, pageTitle, correct, total, scorePct, difficulty }) {
+// ── Users ──────────────────────────────────────────────
+async function createUser({ email, passwordHash, displayName }) {
   const db = getSql();
   const [row] = await db`
-    INSERT INTO scores (url, page_title, correct, total, score_pct, difficulty, created_at)
-    VALUES (${url}, ${pageTitle}, ${correct}, ${total}, ${scorePct}, ${difficulty}, NOW())
+    INSERT INTO users (email, password_hash, display_name)
+    VALUES (${email.toLowerCase()}, ${passwordHash}, ${displayName || null})
+    RETURNING id, email, display_name, created_at
+  `;
+  return row;
+}
+
+async function getUserByEmail(email) {
+  const db = getSql();
+  const [row] = await db`SELECT * FROM users WHERE email = ${email.toLowerCase()}`;
+  return row || null;
+}
+
+async function getUserById(id) {
+  const db = getSql();
+  const [row] = await db`SELECT id, email, display_name, created_at FROM users WHERE id = ${id}`;
+  return row || null;
+}
+
+// ── Scores (user-scoped) ───────────────────────────────
+async function saveScore({ userId, url, pageTitle, correct, total, scorePct, difficulty }) {
+  const db = getSql();
+  const [row] = await db`
+    INSERT INTO scores (user_id, url, page_title, correct, total, score_pct, difficulty)
+    VALUES (${userId}, ${url}, ${pageTitle}, ${correct}, ${total}, ${scorePct}, ${difficulty})
     RETURNING *
   `;
   return row;
 }
 
-async function getScores({ limit = 50 } = {}) {
+async function getScores({ userId, limit = 50 }) {
   const db = getSql();
-  return await db`SELECT * FROM scores ORDER BY created_at DESC LIMIT ${limit}`;
+  return await db`SELECT * FROM scores WHERE user_id = ${userId} ORDER BY created_at DESC LIMIT ${limit}`;
 }
 
-async function getStats() {
+async function getStats(userId) {
   const db = getSql();
-
   const [overall] = await db`
-    SELECT
-      COUNT(*) as total_sessions,
-      COALESCE(AVG(score_pct), 0) as avg_score,
-      COALESCE(MAX(score_pct), 0) as best_score,
-      COALESCE(SUM(correct), 0) as total_correct,
-      COALESCE(SUM(total), 0) as total_questions
-    FROM scores
+    SELECT COUNT(*) as total_sessions, COALESCE(AVG(score_pct),0) as avg_score,
+      COALESCE(MAX(score_pct),0) as best_score, COALESCE(SUM(correct),0) as total_correct,
+      COALESCE(SUM(total),0) as total_questions
+    FROM scores WHERE user_id = ${userId}
   `;
-
   const byDifficulty = await db`
     SELECT difficulty, COUNT(*) as sessions, ROUND(AVG(score_pct)) as avg_score
-    FROM scores
-    GROUP BY difficulty
-    ORDER BY difficulty
+    FROM scores WHERE user_id = ${userId} GROUP BY difficulty ORDER BY difficulty
   `;
-
   const recent = await db`
     SELECT score_pct, difficulty, created_at, page_title
-    FROM scores
-    ORDER BY created_at DESC
-    LIMIT 20
+    FROM scores WHERE user_id = ${userId} ORDER BY created_at DESC LIMIT 20
   `;
-
   return { overall, byDifficulty, recent };
 }
 
-async function saveQuestionLog({ url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty }) {
+// ── Question Logs (user-scoped) ────────────────────────
+async function saveQuestionLog({ userId, url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty }) {
   const db = getSql();
   const [row] = await db`
-    INSERT INTO question_logs (url, page_title, question, correct_answer, user_answer, is_correct, difficulty, created_at)
-    VALUES (${url}, ${pageTitle}, ${question}, ${correctAnswer}, ${userAnswer}, ${isCorrect}, ${difficulty}, NOW())
+    INSERT INTO question_logs (user_id, url, page_title, question, correct_answer, user_answer, is_correct, difficulty)
+    VALUES (${userId}, ${url}, ${pageTitle}, ${question}, ${correctAnswer}, ${userAnswer}, ${isCorrect}, ${difficulty})
     RETURNING *
   `;
   return row;
 }
 
-async function getTopicStats() {
+async function getTopicStats(userId) {
   const db = getSql();
-
-  const topics = await db`
-    SELECT
-      page_title,
-      url,
-      COUNT(*) as total_questions,
+  return await db`
+    SELECT page_title, url, COUNT(*) as total_questions,
       SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct_count,
       ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as accuracy_pct,
       MAX(created_at) as last_studied
-    FROM question_logs
-    WHERE page_title IS NOT NULL
-    GROUP BY page_title, url
-    ORDER BY last_studied DESC
+    FROM question_logs WHERE user_id = ${userId} AND page_title IS NOT NULL
+    GROUP BY page_title, url ORDER BY last_studied DESC
   `;
-
-  return topics;
 }
 
-module.exports = { initialize, saveScore, getScores, getStats, saveQuestionLog, getTopicStats, getPastQuestions, getGlobalTopicStats, getRecentTopics };
-
-async function getPastQuestions(url) {
+async function getPastQuestions(url, userId) {
   const db = getSql();
   if (!db || !url) return [];
   try {
     const rows = await db`
       SELECT DISTINCT question FROM question_logs
-      WHERE url = ${url}
-      ORDER BY question
+      WHERE url = ${url} AND user_id = ${userId} ORDER BY question
     `;
     return rows.map(r => r.question);
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
+async function getRecentTopics(userId) {
+  const db = getSql();
+  return await db`
+    SELECT url, page_title, MAX(created_at) as last_used,
+      ROUND(AVG(score_pct)) as avg_score, COUNT(*) as sessions
+    FROM scores WHERE user_id = ${userId} AND url IS NOT NULL AND page_title IS NOT NULL
+    GROUP BY url, page_title ORDER BY MAX(created_at) DESC LIMIT 6
+  `;
+}
+
+// ── Global aggregates (no user filter) ─────────────────
 async function getGlobalTopicStats() {
   const db = getSql();
-
-  const topics = await db`
-    SELECT
-      page_title,
-      url,
-      COUNT(*) as total_answers,
+  return await db`
+    SELECT page_title, url, COUNT(*) as total_answers,
       SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct_count,
       ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as global_accuracy_pct,
       COUNT(DISTINCT question) as unique_questions
-    FROM question_logs
-    WHERE page_title IS NOT NULL
-    GROUP BY page_title, url
-    ORDER BY total_answers DESC
+    FROM question_logs WHERE page_title IS NOT NULL
+    GROUP BY page_title, url ORDER BY total_answers DESC
   `;
-
-  return topics;
 }
 
-async function getRecentTopics() {
-  const db = getSql();
-  const topics = await db`
-    SELECT
-      url, page_title,
-      MAX(created_at) as last_used,
-      ROUND(AVG(score_pct)) as avg_score,
-      COUNT(*) as sessions
-    FROM scores
-    WHERE url IS NOT NULL AND page_title IS NOT NULL
-    GROUP BY url, page_title
-    ORDER BY MAX(created_at) DESC
-    LIMIT 6
-  `;
-  return topics;
-}
+module.exports = {
+  initialize, createUser, getUserByEmail, getUserById,
+  saveScore, getScores, getStats,
+  saveQuestionLog, getTopicStats, getPastQuestions,
+  getRecentTopics, getGlobalTopicStats,
+};

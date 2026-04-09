@@ -5,10 +5,13 @@ const compression = require('compression');
 const helmet = require('helmet');
 const cors = require('cors');
 const Anthropic = require('@anthropic-ai/sdk');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'flashcards-secret-change-in-production';
 
 // JSON body parsing for POST requests
 app.use(express.json({ limit: '1mb' }));
@@ -70,6 +73,83 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
+// ── Auth middleware ──────────────────────────────────────
+function authMiddleware(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  try {
+    const token = header.slice(7);
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.userId = payload.userId;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+// Optional auth — sets req.userId if token present, doesn't block
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization;
+  if (header && header.startsWith('Bearer ')) {
+    try {
+      const payload = jwt.verify(header.slice(7), JWT_SECRET);
+      req.userId = payload.userId;
+    } catch {}
+  }
+  next();
+}
+
+// ── Auth routes ─────────────────────────────────────────
+app.post('/api/auth/signup', async (req, res) => {
+  const { email, password, displayName } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+  try {
+    const existing = await db.getUserByEmail(email);
+    if (existing) return res.status(409).json({ error: 'An account with this email already exists' });
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await db.createUser({ email, passwordHash, displayName });
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ token, user: { id: user.id, email: user.email, displayName: user.display_name } });
+  } catch (err) {
+    console.error('Signup error:', err.message);
+    res.status(500).json({ error: 'Failed to create account' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
+  try {
+    const user = await db.getUserByEmail(email);
+    if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ token, user: { id: user.id, email: user.email, displayName: user.display_name } });
+  } catch (err) {
+    console.error('Login error:', err.message);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await db.getUserById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ id: user.id, email: user.email, displayName: user.display_name });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
 // Proxy endpoint to fetch external documentation pages server-side
 app.get('/api/fetch-page', async (req, res) => {
   const targetUrl = req.query.url;
@@ -123,7 +203,7 @@ app.get('/api/fetch-page', async (req, res) => {
 });
 
 // AI-powered flash card generation using Claude
-app.post('/api/generate-cards', async (req, res) => {
+app.post('/api/generate-cards', optionalAuth, async (req, res) => {
   console.log('📝 /api/generate-cards called');
 
   if (!anthropic) {
@@ -141,9 +221,9 @@ app.post('/api/generate-cards', async (req, res) => {
 
   // Fetch previously asked questions for this URL to avoid repeats
   let pastQuestions = [];
-  if (pageUrl && process.env.DATABASE_URL) {
+  if (pageUrl && process.env.DATABASE_URL && req.userId) {
     try {
-      pastQuestions = await db.getPastQuestions(pageUrl);
+      pastQuestions = await db.getPastQuestions(pageUrl, req.userId);
       console.log(`📋 Found ${pastQuestions.length} previously asked questions for this URL`);
     } catch (err) {
       console.warn('Could not fetch past questions:', err.message);
@@ -231,13 +311,13 @@ Respond with ONLY a JSON array (no markdown, no code fences) in this exact forma
 });
 
 // Save a score
-app.post('/api/scores', async (req, res) => {
+app.post('/api/scores', authMiddleware, async (req, res) => {
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ error: 'Database not configured' });
   }
   try {
     const { url, pageTitle, correct, total, scorePct, difficulty } = req.body;
-    const score = await db.saveScore({ url, pageTitle, correct, total, scorePct, difficulty });
+    const score = await db.saveScore({ userId: req.userId, url, pageTitle, correct, total, scorePct, difficulty });
     res.json(score);
   } catch (err) {
     console.error('Save score error:', err.message);
@@ -245,13 +325,13 @@ app.post('/api/scores', async (req, res) => {
   }
 });
 
-// Get score history
-app.get('/api/scores', async (req, res) => {
+// Get score history (user's own)
+app.get('/api/scores', authMiddleware, async (req, res) => {
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ error: 'Database not configured' });
   }
   try {
-    const scores = await db.getScores({ limit: parseInt(req.query.limit) || 50 });
+    const scores = await db.getScores({ userId: req.userId, limit: parseInt(req.query.limit) || 50 });
     res.json(scores);
   } catch (err) {
     console.error('Get scores error:', err.message);
@@ -259,13 +339,13 @@ app.get('/api/scores', async (req, res) => {
   }
 });
 
-// Get aggregate stats
-app.get('/api/stats', async (req, res) => {
+// Get aggregate stats (user's own)
+app.get('/api/stats', authMiddleware, async (req, res) => {
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ error: 'Database not configured' });
   }
   try {
-    const stats = await db.getStats();
+    const stats = await db.getStats(req.userId);
     res.json(stats);
   } catch (err) {
     console.error('Get stats error:', err.message);
@@ -274,13 +354,13 @@ app.get('/api/stats', async (req, res) => {
 });
 
 // Log an individual question answer
-app.post('/api/question-log', async (req, res) => {
+app.post('/api/question-log', authMiddleware, async (req, res) => {
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ error: 'Database not configured' });
   }
   try {
     const { url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty } = req.body;
-    const log = await db.saveQuestionLog({ url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty });
+    const log = await db.saveQuestionLog({ userId: req.userId, url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty });
     res.json(log);
   } catch (err) {
     console.error('Save question log error:', err.message);
@@ -288,14 +368,13 @@ app.post('/api/question-log', async (req, res) => {
   }
 });
 
-// Get recent unique topics for quick-access
-app.get('/api/recent-topics', async (req, res) => {
+// Get recent unique topics for quick-access (user's own)
+app.get('/api/recent-topics', authMiddleware, async (req, res) => {
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ error: 'Database not configured' });
   }
   try {
-    const db_conn = require('./db');
-    const topics = await db_conn.getRecentTopics();
+    const topics = await db.getRecentTopics(req.userId);
     res.json(topics);
   } catch (err) {
     console.error('Get recent topics error:', err.message);
@@ -303,13 +382,13 @@ app.get('/api/recent-topics', async (req, res) => {
   }
 });
 
-// Get per-topic stats
-app.get('/api/topic-stats', async (req, res) => {
+// Get per-topic stats (user's own)
+app.get('/api/topic-stats', authMiddleware, async (req, res) => {
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ error: 'Database not configured' });
   }
   try {
-    const topics = await db.getTopicStats();
+    const topics = await db.getTopicStats(req.userId);
     res.json(topics);
   } catch (err) {
     console.error('Get topic stats error:', err.message);

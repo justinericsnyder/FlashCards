@@ -143,7 +143,7 @@ async function getTopicStats() {
   return topics;
 }
 
-module.exports = { initialize, saveScore, getScores, getStats, saveQuestionLog, getTopicStats, getPastQuestions };
+module.exports = { initialize, saveScore, getScores, getStats, saveQuestionLog, getTopicStats, getPastQuestions, getGlobalTopicStats };
 
 async function getPastQuestions(url) {
   const db = getSql();
@@ -158,4 +158,24 @@ async function getPastQuestions(url) {
   } catch {
     return [];
   }
+}
+
+async function getGlobalTopicStats() {
+  const db = getSql();
+
+  const topics = await db`
+    SELECT
+      page_title,
+      url,
+      COUNT(*) as total_answers,
+      SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct_count,
+      ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as global_accuracy_pct,
+      COUNT(DISTINCT question) as unique_questions
+    FROM question_logs
+    WHERE page_title IS NOT NULL
+    GROUP BY page_title, url
+    ORDER BY total_answers DESC
+  `;
+
+  return topics;
 }

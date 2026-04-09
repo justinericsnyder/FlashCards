@@ -302,6 +302,20 @@ app.get('/api/topic-stats', async (req, res) => {
   }
 });
 
+// Get global topic stats (all users combined)
+app.get('/api/global-topic-stats', async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ error: 'Database not configured' });
+  }
+  try {
+    const topics = await db.getGlobalTopicStats();
+    res.json(topics);
+  } catch (err) {
+    console.error('Get global topic stats error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch global topic stats' });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({

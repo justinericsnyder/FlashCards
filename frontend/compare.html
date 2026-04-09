@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Performance — Microsoft Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .compare-container { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+
+        .compare-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .compare-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .compare-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .compare-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .compare-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            width: 50px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .compare-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-body);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .compare-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+        .compare-bar-you { background: var(--primary); }
+        .compare-bar-all { background: var(--text-muted); }
+        .compare-pct {
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            width: 40px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .compare-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .legend {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+        .legend-dot-you { background: var(--primary); }
+        .legend-dot-all { background: var(--text-muted); }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 0.9rem; }
+        .empty-state p { margin-top: 0.5rem; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="compare-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header>
+            <h1>⚡ Compare Performance</h1>
+            <p>Your accuracy vs. all users per topic</p>
+        </header>
+        <div class="legend">
+            <div class="legend-item"><span class="legend-dot legend-dot-you"></span> You</div>
+            <div class="legend-item"><span class="legend-dot legend-dot-all"></span> All Users</div>
+        </div>
+        <div id="compare-list"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="consent.js"></script>
+    <script>
+        const API_BASE = window.__API_BASE__ || '';
+
+        async function loadComparison() {
+            const container = document.getElementById('compare-list');
+            try {
+                const [userRes, globalRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/topic-stats`),
+                    fetch(`${API_BASE}/api/global-topic-stats`),
+                ]);
+
+                if (!userRes.ok || !globalRes.ok) throw new Error('Failed to load');
+
+                const userTopics = await userRes.json();
+                const globalTopics = await globalRes.json();
+
+                if (!userTopics || userTopics.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div style="font-size:2rem;margin-bottom:0.5rem;">📭</div>
+                            No data yet.
+                            <p>Complete some flash card sessions to see how you compare.</p>
+                        </div>`;
+                    return;
+                }
+
+                // Build a lookup for global stats by URL
+                const globalMap = {};
+                globalTopics.forEach(g => { globalMap[g.url] = g; });
+
+                container.innerHTML = userTopics.map(t => {
+                    const userPct = Number(t.accuracy_pct);
+                    const global = globalMap[t.url];
+                    const globalPct = global ? Number(global.global_accuracy_pct) : 0;
+                    const globalAnswers = global ? global.total_answers : 0;
+
+                    const userColor = userPct >= 80 ? 'var(--success)' : userPct >= 50 ? 'var(--warning)' : 'var(--error)';
+                    const userPctColor = userPct >= 80 ? 'color:var(--success)' : userPct >= 50 ? 'color:var(--warning)' : 'color:var(--error)';
+
+                    return `
+                        <div class="compare-card">
+                            <div class="compare-title" title="${t.page_title}">${t.page_title}</div>
+                            <div class="compare-bars">
+                                <div class="compare-row">
+                                    <span class="compare-label">You</span>
+                                    <div class="compare-bar-bg">
+                                        <div class="compare-bar-fill compare-bar-you" style="width:${userPct}%"></div>
+                                    </div>
+                                    <span class="compare-pct" style="${userPctColor}">${userPct}%</span>
+                                </div>
+                                <div class="compare-row">
+                                    <span class="compare-label">All</span>
+                                    <div class="compare-bar-bg">
+                                        <div class="compare-bar-fill compare-bar-all" style="width:${globalPct}%"></div>
+                                    </div>
+                                    <span class="compare-pct">${globalPct}%</span>
+                                </div>
+                            </div>
+                            <div class="compare-meta">
+                                <span>Your answers: ${t.correct_count}/${t.total_questions}</span>
+                                <span>Total answers across all users: ${globalAnswers}</span>
+                            </div>
+                        </div>`;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div class="empty-state">Could not load comparison data.</div>';
+            }
+        }
+
+        loadComparison();
+    </script>
+</body>
+</html>

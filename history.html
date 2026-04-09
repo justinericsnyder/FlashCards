@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score History — Microsoft Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        .history-container { max-width: 960px; margin: 0 auto; padding: 2rem 1rem; }
+        .back-link { color: rgba(255,255,255,0.8); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-weight: 500; }
+        .back-link:hover { color: #fff; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-primary); border-radius: var(--border-radius); padding: 1.5rem; text-align: center; box-shadow: var(--shadow-md); }
+        .stat-card .stat-value { font-size: 2rem; font-weight: 800; color: var(--primary-color); }
+        .stat-card .stat-label { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .chart-card { background: var(--bg-primary); border-radius: var(--border-radius-lg); padding: 2rem; box-shadow: var(--shadow-xl); margin-bottom: 2rem; }
+        .chart-card h3 { color: var(--text-primary); margin-bottom: 1rem; font-size: 1.1rem; }
+        .chart-wrapper { position: relative; height: 300px; }
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th, .history-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .history-table th { font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .history-table td { color: var(--text-primary); font-size: 0.95rem; }
+        .history-table tr:hover td { background: var(--bg-secondary); }
+        .score-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 600; font-size: 0.85rem; }
+        .score-high { background: rgba(16,185,129,0.1); color: #059669; }
+        .score-mid { background: rgba(245,158,11,0.1); color: #d97706; }
+        .score-low { background: rgba(239,68,68,0.1); color: #dc2626; }
+        .difficulty-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 500; }
+        .diff-beginner { background: rgba(16,185,129,0.1); color: #059669; }
+        .diff-intermediate { background: rgba(99,102,241,0.1); color: #6366f1; }
+        .diff-advanced { background: rgba(239,68,68,0.1); color: #dc2626; }
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
+        .page-title-cell { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header style="text-align:center; color:white; margin-bottom:2rem;">
+            <h1>📊 Score History</h1>
+            <p>Track your learning progress over time</p>
+        </header>
+
+        <div id="stats-grid" class="stats-grid"></div>
+
+        <div class="chart-card">
+            <h3>Score Trend</h3>
+            <div class="chart-wrapper">
+                <canvas id="score-chart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Performance by Difficulty</h3>
+            <div class="chart-wrapper" style="height:200px;">
+                <canvas id="difficulty-chart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Recent Sessions</h3>
+            <div id="history-table-container"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadHistory() {
+            try {
+                const [statsRes, scoresRes] = await Promise.all([
+                    fetch('/api/stats'),
+                    fetch('/api/scores?limit=50'),
+                ]);
+
+                if (!statsRes.ok || !scoresRes.ok) {
+                    document.getElementById('stats-grid').innerHTML =
+                        '<div class="empty-state" style="grid-column:1/-1;">Score tracking is not available. Database may not be configured.</div>';
+                    return;
+                }
+
+                const stats = await statsRes.json();
+                const scores = await scoresRes.json();
+
+                renderStats(stats.overall);
+                renderScoreChart(stats.recent);
+                renderDifficultyChart(stats.byDifficulty);
+                renderTable(scores);
+            } catch (err) {
+                console.error('Failed to load history:', err);
+                document.getElementById('stats-grid').innerHTML =
+                    '<div class="empty-state" style="grid-column:1/-1;">Could not load score history.</div>';
+            }
+        }
+
+        function renderStats(overall) {
+            const grid = document.getElementById('stats-grid');
+            const avgScore = Math.round(overall.avg_score || 0);
+            grid.innerHTML = `
+                <div class="stat-card"><div class="stat-value">${overall.total_sessions}</div><div class="stat-label">Sessions</div></div>
+                <div class="stat-card"><div class="stat-value">${avgScore}%</div><div class="stat-label">Avg Score</div></div>
+                <div class="stat-card"><div class="stat-value">${overall.best_score}%</div><div class="stat-label">Best Score</div></div>
+                <div class="stat-card"><div class="stat-value">${overall.total_correct}/${overall.total_questions}</div><div class="stat-label">Correct</div></div>
+            `;
+        }
+
+        function renderScoreChart(recent) {
+            if (!recent || recent.length === 0) return;
+            const reversed = [...recent].reverse();
+            const ctx = document.getElementById('score-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: reversed.map(r => new Date(r.created_at).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Score %',
+                        data: reversed.map(r => r.score_pct),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#6366f1',
+                        pointRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                    },
+                    plugins: {
+                        tooltip: { callbacks: { label: ctx => ctx.parsed.y + '% — ' + reversed[ctx.dataIndex].page_title } }
+                    }
+                }
+            });
+        }
+
+        function renderDifficultyChart(byDifficulty) {
+            if (!byDifficulty || byDifficulty.length === 0) return;
+            const colors = { beginner: '#10b981', intermediate: '#6366f1', advanced: '#ef4444' };
+            const ctx = document.getElementById('difficulty-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: byDifficulty.map(d => d.difficulty),
+                    datasets: [{
+                        label: 'Avg Score %',
+                        data: byDifficulty.map(d => d.avg_score),
+                        backgroundColor: byDifficulty.map(d => colors[d.difficulty] || '#6366f1'),
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                    }
+                }
+            });
+        }
+
+        function renderTable(scores) {
+            const container = document.getElementById('history-table-container');
+            if (!scores || scores.length === 0) {
+                container.innerHTML = '<div class="empty-state">No sessions yet. Go study!</div>';
+                return;
+            }
+            const rows = scores.map(s => {
+                const date = new Date(s.created_at).toLocaleString();
+                const scoreClass = s.score_pct >= 80 ? 'score-high' : s.score_pct >= 50 ? 'score-mid' : 'score-low';
+                const diffClass = 'diff-' + (s.difficulty || 'intermediate');
+                const title = s.page_title || s.url || '—';
+                return `<tr>
+                    <td>${date}</td>
+                    <td class="page-title-cell" title="${title}">${title}</td>
+                    <td><span class="difficulty-badge ${diffClass}">${s.difficulty || '—'}</span></td>
+                    <td>${s.correct}/${s.total}</td>
+                    <td><span class="score-badge ${scoreClass}">${s.score_pct}%</span></td>
+                </tr>`;
+            }).join('');
+            container.innerHTML = `<table class="history-table">
+                <thead><tr><th>Date</th><th>Topic</th><th>Difficulty</th><th>Result</th><th>Score</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+        }
+
+        loadHistory();
+    </script>
+</body>
+</html>

@@ -35,3 +35,6 @@ Thumbs.db
 # Screenshots and assets (uncomment if you add them)
 # screenshots/
 # assets/
+
+# Environment variables
+.env

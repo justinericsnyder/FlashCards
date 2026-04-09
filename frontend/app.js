@@ -1,3 +1,6 @@
+// API base URL — set to Railway backend in production
+const API_BASE = window.__API_BASE__ || '';
+
 class FlashCardApp {
     constructor() {
         this.flashCards = [];
@@ -97,7 +100,7 @@ class FlashCardApp {
 
     async fetchDocContent(url) {
         // Use our own server-side proxy to fetch the page HTML
-        const proxyUrl = `/api/fetch-page?url=${encodeURIComponent(url)}`;
+        const proxyUrl = `${API_BASE}/api/fetch-page?url=${encodeURIComponent(url)}`;
         const response = await fetch(proxyUrl);
         if (!response.ok) throw new Error(`Failed to fetch page (${response.status})`);
         return await response.text();
@@ -396,7 +399,7 @@ class FlashCardApp {
             this.updateLoadingSteps(3);
 
             // Send parsed content to server for AI-powered card generation
-            const response = await fetch('/api/generate-cards', {
+            const response = await fetch(`${API_BASE}/api/generate-cards`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sections, count: cardCount, difficulty }),
@@ -678,7 +681,7 @@ class FlashCardApp {
         // Save score to database
         const url = document.getElementById('doc-url').value.trim();
         const difficulty = document.getElementById('difficulty').value;
-        fetch('/api/scores', {
+        fetch(`${API_BASE}/api/scores`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

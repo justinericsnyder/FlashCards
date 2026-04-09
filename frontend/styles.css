@@ -523,6 +523,22 @@ header a:hover { opacity: 1; }
     font-size: 0.75rem;
 }
 
+.ai-disclaimer {
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.85rem;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+    text-align: left;
+}
+.ai-disclaimer strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
 /* Error Toast */
 .error-toast {
     position: fixed;

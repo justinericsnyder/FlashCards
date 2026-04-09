@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft Learn Flash Cards</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Microsoft Learn Flash Cards</h1>
+            <p>Generate flash cards from Microsoft Learn documentation</p>
+        </header>
+
+        <div id="setup-section" class="section">
+            <div class="input-group">
+                <label for="doc-url">Microsoft Learn Documentation URL:</label>
+                <input type="url" id="doc-url" placeholder="https://docs.microsoft.com/...">
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="card-count">Number of Cards:</label>
+                    <select id="card-count">
+                        <option value="5">5 Cards</option>
+                        <option value="10" selected>10 Cards</option>
+                        <option value="15">15 Cards</option>
+                        <option value="20">20 Cards</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="difficulty">Difficulty Level:</label>
+                    <select id="difficulty">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate" selected>Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button id="generate-cards" class="btn-primary">Generate Flash Cards</button>
+        </div>
+
+        <div id="loading-section" class="section hidden">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Processing documentation and generating flash cards...</p>
+            </div>
+        </div>
+
+        <div id="flashcard-section" class="section hidden">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+                <span class="progress-text">Card 1 of 10</span>
+            </div>
+            
+            <div class="flashcard">
+                <div class="card-content">
+                    <div class="question-side">
+                        <h3>Question</h3>
+                        <p id="question-text"></p>
+                        
+                        <div class="choices-container">
+                            <div class="choice" data-choice="A">
+                                <span class="choice-letter">A</span>
+                                <span class="choice-text" id="choice-a"></span>
+                            </div>
+                            <div class="choice" data-choice="B">
+                                <span class="choice-letter">B</span>
+                                <span class="choice-text" id="choice-b"></span>
+                            </div>
+                            <div class="choice" data-choice="C">
+                                <span class="choice-letter">C</span>
+                                <span class="choice-text" id="choice-c"></span>
+                            </div>
+                            <div class="choice" data-choice="D">
+                                <span class="choice-letter">D</span>
+                                <span class="choice-text" id="choice-d"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="answer-side hidden">
+                        <h3>Correct Answer</h3>
+                        <p id="correct-answer"></p>
+                        <div class="explanation">
+                            <h4>Explanation</h4>
+                            <p id="explanation-text"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-actions">
+                    <button id="submit-answer" class="btn-primary" disabled>Submit Answer</button>
+                    <button id="next-question" class="btn-secondary hidden">Next Question</button>
+                </div>
+            </div>
+            
+            <div class="navigation">
+                <button id="prev-card" class="btn-secondary" disabled>Previous</button>
+                <button id="next-card" class="btn-secondary">Next</button>
+                <button id="restart" class="btn-primary hidden">Start Over</button>
+            </div>
+        </div>
+
+        <div id="results-section" class="section hidden">
+            <h2>Session Complete!</h2>
+            <div class="score-summary">
+                <div class="score-item">
+                    <span class="score-label">Correct:</span>
+                    <span id="correct-count" class="score-value">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">Incorrect:</span>
+                    <span id="incorrect-count" class="score-value">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">Score:</span>
+                    <span id="final-score" class="score-value">0%</span>
+                </div>
+            </div>
+            <button id="new-session" class="btn-primary">New Session</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

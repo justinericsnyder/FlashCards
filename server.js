@@ -264,7 +264,7 @@ app.get('/api/info', (req, res) => {
   res.json({
     name: 'Microsoft Learn Flash Cards',
     version: '1.0.0',
-    description: 'Interactive flash cards for Microsoft Learn documentation',
+    description: 'Interactive flash cards for Microsoft Learn documentation - powered by Claude AI',
     features: [
       'Smart content generation',
       'Customizable difficulty levels',

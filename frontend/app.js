@@ -487,40 +487,44 @@ class FlashCardApp {
         this.isAnimating = true;
 
         const card = this.flashCards[this.currentCardIndex];
-
-        // Animate card transition
         const flashcard = document.querySelector('.flashcard');
-        flashcard.style.transform = 'translateX(-20px)';
+
+        // Slide out
+        flashcard.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
         flashcard.style.opacity = '0';
+        flashcard.style.transform = 'translateY(8px) scale(0.98)';
 
         setTimeout(() => {
-            // Reset flip state so the question side is visible
-            document.querySelector('.card-content').classList.remove('card-flipped');
-
             document.getElementById('question-text').textContent = card.question;
 
-            // Populate choices with animation
             const letters = ['a', 'b', 'c', 'd'];
+
+            // Reset choices first
+            document.querySelectorAll('.choice').forEach(el => {
+                el.classList.remove('selected', 'correct', 'incorrect', 'disabled');
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(10px)';
+            });
+
+            // Populate and stagger choices in
             letters.forEach((letter, i) => {
                 const choiceEl = document.querySelector(`[data-choice="${letter.toUpperCase()}"]`);
                 const textEl = document.getElementById(`choice-${letter}`);
+                textEl.textContent = card.choices[i] || '';
 
-                // Stagger animation
                 setTimeout(() => {
-                    textEl.textContent = card.choices[i] || '';
-                    choiceEl.style.transform = 'translateY(0)';
+                    choiceEl.style.transition = `opacity 0.25s ease ${i * 0.06}s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.06}s`;
                     choiceEl.style.opacity = '1';
-                }, i * 100);
+                    choiceEl.style.transform = 'translateY(0)';
+                }, 50);
             });
 
-            // Reset UI state
-            document.querySelectorAll('.choice').forEach(el => {
-                el.classList.remove('selected', 'correct', 'incorrect', 'disabled');
-                el.style.transform = 'translateY(20px)';
-                el.style.opacity = '0';
-            });
+            // Hide answer side
+            const answerSide = document.querySelector('.answer-side');
+            answerSide.classList.add('hidden');
+            answerSide.style.opacity = '0';
+            answerSide.style.transform = 'translateY(12px)';
 
-            document.querySelector('.answer-side').classList.add('hidden');
             document.getElementById('submit-answer').classList.remove('hidden');
             document.getElementById('submit-answer').disabled = true;
             document.getElementById('next-question').classList.add('hidden');
@@ -529,14 +533,13 @@ class FlashCardApp {
             this.answered = false;
             this.updateNavigation();
 
-            // Animate card back in
-            flashcard.style.transform = 'translateX(0)';
+            // Slide card back in with a subtle bounce
+            flashcard.style.transition = 'opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
             flashcard.style.opacity = '1';
+            flashcard.style.transform = 'translateY(0) scale(1)';
 
-            setTimeout(() => {
-                this.isAnimating = false;
-            }, 300);
-        }, 200);
+            setTimeout(() => { this.isAnimating = false; }, 400);
+        }, 220);
     }
 
     selectChoice(choiceEl) {
@@ -603,30 +606,34 @@ class FlashCardApp {
         document.querySelectorAll('.choice').forEach(el => {
             el.classList.add('disabled');
             if (el.dataset.choice === card.correctAnswer) {
-                setTimeout(() => el.classList.add('correct'), 500);
+                setTimeout(() => el.classList.add('correct'), 300);
             } else if (el.dataset.choice === this.selectedChoice) {
-                setTimeout(() => el.classList.add('incorrect'), 500);
+                setTimeout(() => el.classList.add('incorrect'), 300);
             }
         });
 
-        // Flip to answer side
-        setTimeout(() => {
-            document.querySelector('.card-content').classList.add('card-flipped');
-        }, 1000);
-
-        // Show explanation
+        // Slide in the explanation (no flip)
         setTimeout(() => {
             const correctIndex = ['A', 'B', 'C', 'D'].indexOf(card.correctAnswer);
             document.getElementById('correct-answer').textContent =
                 `${card.correctAnswer}. ${card.choices[correctIndex]}`;
             document.getElementById('explanation-text').textContent = card.explanation;
-            document.querySelector('.answer-side').classList.remove('hidden');
+
+            const answerSide = document.querySelector('.answer-side');
+            answerSide.classList.remove('hidden');
+            answerSide.style.opacity = '0';
+            answerSide.style.transform = 'translateY(12px)';
+            requestAnimationFrame(() => {
+                answerSide.style.transition = 'opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                answerSide.style.opacity = '1';
+                answerSide.style.transform = 'translateY(0)';
+            });
 
             document.getElementById('submit-answer').classList.add('hidden');
             document.getElementById('next-question').classList.remove('hidden');
 
             this.announceToScreenReader(`Answer revealed. ${isCorrect ? 'Correct!' : 'Incorrect.'} ${card.explanation}`);
-        }, 1500);
+        }, 800);
     }
 
     // ── Navigation ──────────────────────────────────────────────────────

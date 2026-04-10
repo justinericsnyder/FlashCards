@@ -139,11 +139,23 @@ const Auth = (() => {
         if (!el) return;
         const user = getUser();
         if (user) {
-            el.innerHTML = `<span class="user-name">${user.displayName || user.email}</span><button id="logout-btn" class="auth-link">Sign out</button>`;
-            el.querySelector('#logout-btn').addEventListener('click', logout);
+            const initials = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+            el.innerHTML = `
+                <div class="user-avatar" title="${user.displayName || user.email}">${initials}</div>
+                <span class="side-nav-label">${user.displayName || 'Account'}</span>
+            `;
+            el.style.cursor = 'pointer';
+            el.onclick = () => {
+                if (confirm('Sign out?')) logout();
+            };
         } else {
-            el.innerHTML = `<button id="login-btn" class="auth-link">Sign in</button>`;
-            el.querySelector('#login-btn').addEventListener('click', () => showAuthModal(() => window.location.reload()));
+            el.innerHTML = `
+                <i data-lucide="log-in" class="side-nav-icon"></i>
+                <span class="side-nav-label">Sign in</span>
+            `;
+            el.style.cursor = 'pointer';
+            el.onclick = () => showAuthModal(() => window.location.reload());
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     }
 

@@ -583,3 +583,80 @@ header a:hover { opacity: 1; }
 
 #user-info { margin-top: 0.4rem; font-size: 0.75rem; color: var(--text-muted); }
 .user-name { margin-right: 0.4rem; color: var(--text-dim); }
+
+/* ── Enhanced UX Elements ──────────────────────────────── */
+
+/* Large button variant */
+.btn-lg { padding: 0.7rem 1.5rem; font-size: 0.9rem; }
+.btn-full { width: 100%; }
+
+/* Loading state on buttons */
+.btn.is-loading { pointer-events: none; opacity: 0.7; }
+.btn.is-loading::after {
+    content: ''; display: inline-block; width: 14px; height: 14px;
+    border: 2px solid transparent; border-top-color: currentColor;
+    border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: 0.4rem;
+}
+
+/* Session running stats */
+.session-stats {
+    display: flex; gap: 0.75rem; justify-content: center;
+    margin-bottom: 0.75rem; font-family: var(--font-mono);
+    font-size: 0.75rem; font-weight: 600;
+}
+.stat-correct { color: var(--success); }
+.stat-wrong { color: var(--error); }
+
+/* Answer feedback banner */
+.answer-feedback {
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius);
+    font-size: 0.82rem; font-weight: 700;
+    margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    animation: feedbackSlide 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.answer-feedback.correct {
+    background: rgba(52,211,153,0.08);
+    border: 1px solid rgba(52,211,153,0.2);
+    color: var(--success);
+}
+.answer-feedback.wrong {
+    background: rgba(248,113,113,0.08);
+    border: 1px solid rgba(248,113,113,0.2);
+    color: var(--error);
+}
+@keyframes feedbackSlide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Keyboard hints */
+.keyboard-hint {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 0.6rem;
+    letter-spacing: 0.02em;
+    transition: opacity var(--fast);
+}
+
+/* Loading timer */
+.loading-timer {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+/* Choice hover number hint */
+.choice::after {
+    content: attr(data-key);
+    position: absolute; right: 0.7rem; top: 50%; transform: translateY(-50%);
+    font-size: 0.6rem; font-family: var(--font-mono);
+    color: var(--text-muted); opacity: 0;
+    transition: opacity var(--fast);
+    background: var(--border); padding: 0.1rem 0.35rem; border-radius: 3px;
+}
+.choice:hover::after { opacity: 0.6; }
+.choice.disabled::after { display: none; }

@@ -88,8 +88,7 @@
                         </div>
                     </div>
 
-                    <button id="generate-cards" class="btn btn-primary" type="submit">
-                        <span class="btn-icon">🚀</span>
+                    <button id="generate-cards" class="btn btn-primary btn-lg btn-full" type="submit">
                         Generate Flash Cards
                     </button>
                 </form>
@@ -101,13 +100,14 @@
                 <div class="loading">
                     <div class="spinner" aria-hidden="true"></div>
                     <h2 id="loading-heading">Generating Your Flash Cards</h2>
-                    <p>Processing documentation and creating questions...</p>
+                    <p>This usually takes 10-20 seconds</p>
                     <div class="loading-steps">
-                        <div class="step active" data-step="1">Fetching content</div>
-                        <div class="step" data-step="2">Parsing documentation</div>
-                        <div class="step" data-step="3">Generating questions</div>
-                        <div class="step" data-step="4">Creating answers</div>
+                        <div class="step active" data-step="1">Fetching page content</div>
+                        <div class="step" data-step="2">Analyzing documentation</div>
+                        <div class="step" data-step="3">AI generating questions</div>
+                        <div class="step" data-step="4">Preparing your session</div>
                     </div>
+                    <div class="loading-timer" id="loading-timer">0s</div>
                 </div>
             </section>
 
@@ -118,27 +118,32 @@
                     <div class="progress-fill"></div>
                     <span class="progress-text">Card 1 of 10</span>
                 </div>
+                <div class="session-stats">
+                    <span class="stat-correct" id="running-correct">✓ 0</span>
+                    <span class="stat-wrong" id="running-wrong">✗ 0</span>
+                </div>
 
                 <div class="flashcard" role="region" aria-labelledby="question-text">
+                    <div id="answer-feedback" class="answer-feedback hidden"></div>
                     <div class="card-content">
                         <div class="question-side" aria-live="polite">
                             <h3>Question</h3>
                             <p id="question-text"></p>
 
                             <div class="choices-container" role="radiogroup" aria-labelledby="question-text">
-                                <div class="choice" data-choice="A" tabindex="0" role="radio" aria-checked="false">
+                                <div class="choice" data-choice="A" data-key="1" tabindex="0" role="radio" aria-checked="false">
                                     <span class="choice-letter">A</span>
                                     <span class="choice-text" id="choice-a"></span>
                                 </div>
-                                <div class="choice" data-choice="B" tabindex="0" role="radio" aria-checked="false">
+                                <div class="choice" data-choice="B" data-key="2" tabindex="0" role="radio" aria-checked="false">
                                     <span class="choice-letter">B</span>
                                     <span class="choice-text" id="choice-b"></span>
                                 </div>
-                                <div class="choice" data-choice="C" tabindex="0" role="radio" aria-checked="false">
+                                <div class="choice" data-choice="C" data-key="3" tabindex="0" role="radio" aria-checked="false">
                                     <span class="choice-letter">C</span>
                                     <span class="choice-text" id="choice-c"></span>
                                 </div>
-                                <div class="choice" data-choice="D" tabindex="0" role="radio" aria-checked="false">
+                                <div class="choice" data-choice="D" data-key="4" tabindex="0" role="radio" aria-checked="false">
                                     <span class="choice-letter">D</span>
                                     <span class="choice-text" id="choice-d"></span>
                                 </div>
@@ -156,13 +161,14 @@
                     </div>
 
                     <div class="card-actions">
-                        <button id="submit-answer" class="btn btn-primary" disabled aria-describedby="submit-help">
+                        <button id="submit-answer" class="btn btn-primary btn-lg" disabled aria-describedby="submit-help">
                             Submit Answer
                         </button>
-                        <button id="next-question" class="btn btn-secondary hidden">
-                            Next Question
+                        <button id="next-question" class="btn btn-primary btn-lg hidden">
+                            Continue →
                         </button>
                     </div>
+                    <div class="keyboard-hint" id="keyboard-hint">Press 1-4 to select, Enter to submit</div>
                     <small id="submit-help" class="help-text sr-only">Select an answer above to enable this button</small>
                 </div>
 

@@ -116,7 +116,15 @@ class FlashCardApp {
     }
 
     handleKeydown(e) {
-        // Arrow key navigation — only after answering
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (this.answered && !this.isAnimating) {
+                this.nextCard();
+            } else if (this.selectedChoice && !this.answered) {
+                this.submitAnswer();
+            }
+            return;
+        }
         if (e.key === 'ArrowRight') {
             if (this.answered) {
                 this.nextCard();
@@ -124,7 +132,6 @@ class FlashCardApp {
                 this.submitAnswer();
             }
         } else if (e.key >= '1' && e.key <= '4' && !this.answered && !this.isAnimating) {
-            // Number key selection
             const choices = document.querySelectorAll('.choice');
             const index = parseInt(e.key) - 1;
             if (choices[index]) {
@@ -417,8 +424,21 @@ class FlashCardApp {
             return;
         }
 
+        // Show loading state
+        const genBtn = document.getElementById('generate-cards');
+        genBtn.classList.add('is-loading');
+        genBtn.textContent = 'Generating...';
+
         this.animateSectionTransition('loading-section');
         this.updateLoadingSteps(1);
+
+        // Start loading timer
+        let elapsed = 0;
+        const timerEl = document.getElementById('loading-timer');
+        const timerInterval = setInterval(() => {
+            elapsed++;
+            if (timerEl) timerEl.textContent = `${elapsed}s`;
+        }, 1000);
 
         try {
             this.updateLoadingSteps(1);
@@ -429,7 +449,6 @@ class FlashCardApp {
 
             const sections = this.parseDocContent(html);
 
-            // Capture page title from the first h1
             const parser = new DOMParser();
             const titleDoc = parser.parseFromString(html, 'text/html');
             const h1 = titleDoc.querySelector('h1');
@@ -441,7 +460,6 @@ class FlashCardApp {
 
             this.updateLoadingSteps(3);
 
-            // Send parsed content to server for AI-powered card generation
             const response = await Auth.apiFetch(`${API_BASE}/api/generate-cards`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -461,12 +479,16 @@ class FlashCardApp {
             }
 
             this.updateLoadingSteps(4);
+            clearInterval(timerInterval);
             setTimeout(() => this.startFlashCardSession(), 500);
 
         } catch (error) {
+            clearInterval(timerInterval);
             console.error('Error generating cards:', error);
             this.showError(error.message || 'Failed to generate flash cards. Please try a different URL.');
             this.animateSectionTransition('setup-section');
+            genBtn.classList.remove('is-loading');
+            genBtn.textContent = 'Generate Flash Cards';
         }
     }
 
@@ -520,6 +542,16 @@ class FlashCardApp {
         this.selectedChoice = null;
         this.answered = false;
 
+        // Reset generate button
+        const genBtn = document.getElementById('generate-cards');
+        if (genBtn) { genBtn.classList.remove('is-loading'); genBtn.textContent = 'Generate Flash Cards'; }
+
+        // Reset running stats
+        const rc = document.getElementById('running-correct');
+        const rw = document.getElementById('running-wrong');
+        if (rc) rc.textContent = '✓ 0';
+        if (rw) rw.textContent = '✗ 0';
+
         this.animateSectionTransition('flashcard-section');
         this.displayCurrentCard();
         this.updateProgress();
@@ -562,11 +594,17 @@ class FlashCardApp {
                 }, 50);
             });
 
-            // Hide answer side
+            // Hide answer side and feedback
             const answerSide = document.querySelector('.answer-side');
             answerSide.classList.add('hidden');
             answerSide.style.opacity = '0';
             answerSide.style.transform = 'translateY(12px)';
+
+            const feedback = document.getElementById('answer-feedback');
+            if (feedback) feedback.classList.add('hidden');
+
+            const hint = document.getElementById('keyboard-hint');
+            if (hint) hint.textContent = 'Press 1-4 to select, Enter to submit';
 
             document.getElementById('submit-answer').classList.remove('hidden');
             document.getElementById('submit-answer').disabled = true;
@@ -627,6 +665,22 @@ class FlashCardApp {
         } else {
             this.incorrectAnswers++;
         }
+
+        // Show feedback banner
+        const feedback = document.getElementById('answer-feedback');
+        feedback.className = `answer-feedback ${isCorrect ? 'correct' : 'wrong'}`;
+        feedback.textContent = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+        feedback.classList.remove('hidden');
+
+        // Update running stats
+        const runCorrect = document.getElementById('running-correct');
+        const runWrong = document.getElementById('running-wrong');
+        if (runCorrect) runCorrect.textContent = `✓ ${this.correctAnswers}`;
+        if (runWrong) runWrong.textContent = `✗ ${this.incorrectAnswers}`;
+
+        // Update keyboard hint
+        const hint = document.getElementById('keyboard-hint');
+        if (hint) hint.textContent = 'Press Enter or → to continue';
 
         // Log the question answer (if functional cookies accepted)
         if (typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional')) {

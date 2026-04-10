@@ -90,7 +90,7 @@ const CookieConsent = (() => {
         overlay.innerHTML = `
             <div class="consent-banner" role="dialog" aria-label="Cookie consent" aria-modal="true">
                 <div class="consent-header">
-                    <span class="consent-icon">🍪</span>
+                    <i data-lucide="shield-check" class="consent-icon-svg"></i>
                     <h2>We value your privacy</h2>
                 </div>
                 <p class="consent-desc">
@@ -125,6 +125,7 @@ const CookieConsent = (() => {
         `;
 
         document.body.appendChild(overlay);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
         // Force reflow then animate in
         requestAnimationFrame(() => {

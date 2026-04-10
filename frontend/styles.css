@@ -660,3 +660,8 @@ header a:hover { opacity: 1; }
 }
 .choice:hover::after { opacity: 0.6; }
 .choice.disabled::after { display: none; }
+
+/* ── Lucide Icons ──────────────────────────────────────── */
+.icon { width: 16px; height: 16px; stroke-width: 2; vertical-align: -2px; }
+.side-nav-icon { width: 20px; height: 20px; stroke-width: 1.75; }
+.consent-icon-svg { width: 20px; height: 20px; stroke: var(--primary); stroke-width: 1.75; flex-shrink: 0; }

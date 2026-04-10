@@ -36,6 +36,7 @@
 
     <title>Microsoft Learn Flash Cards</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div class="container">
@@ -181,7 +182,7 @@
                         Next →
                     </button>
                     <button id="restart" class="btn btn-primary hidden" aria-label="Restart session">
-                        🔄 Restart
+                        <i data-lucide="rotate-ccw" class="icon"></i> Restart
                     </button>
                 </nav>
             </section>
@@ -206,15 +207,15 @@
 
                 <div class="results-actions">
                     <button id="new-session" class="btn btn-primary">
-                        <span class="btn-icon">➕</span>
+                        <i data-lucide="plus" class="icon"></i>
                         New Session
                     </button>
                     <a href="/history.html" class="btn btn-secondary">
-                        <span class="btn-icon">📊</span>
+                        <i data-lucide="bar-chart-3" class="icon"></i>
                         Score History
                     </a>
                     <button id="share-results" class="btn btn-secondary" aria-label="Share your results">
-                        <span class="btn-icon">📤</span>
+                        <i data-lucide="share-2" class="icon"></i>
                         Share Results
                     </button>
                 </div>
@@ -223,15 +224,15 @@
 
         <nav class="side-nav" aria-label="App navigation">
             <a href="/history.html" class="side-nav-item" title="Score History">
-                <span class="side-nav-icon">📊</span>
+                <i data-lucide="bar-chart-3" class="side-nav-icon"></i>
                 <span class="side-nav-label">History</span>
             </a>
             <a href="/topics.html" class="side-nav-item" title="Topic Progress">
-                <span class="side-nav-icon">📚</span>
+                <i data-lucide="layers" class="side-nav-icon"></i>
                 <span class="side-nav-label">Topics</span>
             </a>
             <a href="/compare.html" class="side-nav-item" title="Compare Performance">
-                <span class="side-nav-icon">⚡</span>
+                <i data-lucide="git-compare-arrows" class="side-nav-icon"></i>
                 <span class="side-nav-label">Compare</span>
             </a>
         </nav>
@@ -258,5 +259,6 @@
     <script src="consent.js"></script>
     <script src="auth.js"></script>
     <script src="app.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

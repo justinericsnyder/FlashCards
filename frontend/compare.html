@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .compare-container { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem; }
         .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
@@ -96,7 +97,7 @@
     <div class="compare-container">
         <a href="/" class="back-link">← Back to Flash Cards</a>
         <header>
-            <h1>⚡ Compare Performance</h1>
+            <h1><i data-lucide="git-compare-arrows" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Compare Performance</h1>
             <p>Your accuracy vs. all users per topic</p>
         </header>
         <div class="legend">
@@ -181,5 +182,6 @@
 
         loadComparison();
     </script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

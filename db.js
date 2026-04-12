@@ -61,6 +61,30 @@ async function initialize() {
       await db`CREATE INDEX IF NOT EXISTS idx_scores_user ON scores (user_id)`;
       await db`CREATE INDEX IF NOT EXISTS idx_qlog_user ON question_logs (user_id)`;
       await db`CREATE INDEX IF NOT EXISTS idx_qlog_url ON question_logs (url)`;
+
+      // Spaced repetition review cards
+      await db`
+        CREATE TABLE IF NOT EXISTS card_reviews (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id),
+          url TEXT NOT NULL,
+          page_title TEXT,
+          question TEXT NOT NULL,
+          correct_answer TEXT NOT NULL,
+          choices JSONB,
+          explanation TEXT,
+          difficulty TEXT,
+          ease_factor REAL DEFAULT 2.5,
+          interval_days INTEGER DEFAULT 0,
+          repetitions INTEGER DEFAULT 0,
+          next_review TIMESTAMPTZ DEFAULT NOW(),
+          last_reviewed TIMESTAMPTZ,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(user_id, url, question)
+        )
+      `;
+      await db`CREATE INDEX IF NOT EXISTS idx_reviews_user_next ON card_reviews (user_id, next_review)`;
+
       console.log('✅ Database initialized');
       return;
     } catch (err) {
@@ -192,4 +216,83 @@ module.exports = {
   saveScore, getScores, getStats,
   saveQuestionLog, getTopicStats, getPastQuestions,
   getRecentTopics, getGlobalTopicStats,
+  upsertCardReview, getCardsForReview, updateReviewResult, getReviewStats,
 };
+
+// ── Spaced Repetition (SM-2) ───────────────────────────
+async function upsertCardReview({ userId, url, pageTitle, question, correctAnswer, choices, explanation, difficulty }) {
+  const db = getSql();
+  // Insert or ignore if already exists
+  await db`
+    INSERT INTO card_reviews (user_id, url, page_title, question, correct_answer, choices, explanation, difficulty)
+    VALUES (${userId}, ${url}, ${pageTitle}, ${question}, ${correctAnswer}, ${JSON.stringify(choices)}, ${explanation}, ${difficulty})
+    ON CONFLICT (user_id, url, question) DO NOTHING
+  `;
+}
+
+async function getCardsForReview(userId, limit = 10) {
+  const db = getSql();
+  return await db`
+    SELECT * FROM card_reviews
+    WHERE user_id = ${userId} AND next_review <= NOW()
+    ORDER BY next_review ASC
+    LIMIT ${limit}
+  `;
+}
+
+async function updateReviewResult(cardId, quality) {
+  // quality: 0-5 (SM-2 scale). 0-2 = fail, 3 = hard, 4 = good, 5 = easy
+  const db = getSql();
+  const [card] = await db`SELECT * FROM card_reviews WHERE id = ${cardId}`;
+  if (!card) return null;
+
+  let { ease_factor, interval_days, repetitions } = card;
+  ease_factor = Number(ease_factor);
+  interval_days = Number(interval_days);
+  repetitions = Number(repetitions);
+
+  if (quality < 3) {
+    // Failed — reset
+    repetitions = 0;
+    interval_days = 0;
+  } else {
+    // Passed
+    if (repetitions === 0) {
+      interval_days = 1;
+    } else if (repetitions === 1) {
+      interval_days = 3;
+    } else {
+      interval_days = Math.round(interval_days * ease_factor);
+    }
+    repetitions++;
+  }
+
+  // Update ease factor (SM-2 formula)
+  ease_factor = ease_factor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  if (ease_factor < 1.3) ease_factor = 1.3;
+
+  const nextReview = new Date(Date.now() + interval_days * 24 * 60 * 60 * 1000);
+
+  const [updated] = await db`
+    UPDATE card_reviews
+    SET ease_factor = ${ease_factor}, interval_days = ${interval_days},
+        repetitions = ${repetitions}, next_review = ${nextReview.toISOString()},
+        last_reviewed = NOW()
+    WHERE id = ${cardId}
+    RETURNING *
+  `;
+  return updated;
+}
+
+async function getReviewStats(userId) {
+  const db = getSql();
+  const [stats] = await db`
+    SELECT
+      COUNT(*) as total_cards,
+      SUM(CASE WHEN next_review <= NOW() THEN 1 ELSE 0 END) as due_now,
+      SUM(CASE WHEN next_review > NOW() AND next_review <= NOW() + INTERVAL '1 day' THEN 1 ELSE 0 END) as due_today,
+      SUM(CASE WHEN repetitions >= 3 THEN 1 ELSE 0 END) as mastered
+    FROM card_reviews WHERE user_id = ${userId}
+  `;
+  return stats;
+}

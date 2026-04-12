@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spaced Review — Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .review-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+        .review-stats-bar { display: flex; gap: 1rem; margin-bottom: 1.25rem; font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); }
+        .review-stats-bar span { display: flex; align-items: center; gap: 0.3rem; }
+        .review-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; position: relative; }
+        .review-card::after { content:''; position:absolute; top:1rem; bottom:1rem; left:0; width:2px; background:linear-gradient(180deg,var(--primary),transparent); border-radius:1px; opacity:0.4; }
+        .review-question { font-size: 0.9rem; line-height: 1.6; color: var(--text); margin-bottom: 1rem; }
+        .review-topic { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600; }
+        .review-choices { display: grid; gap: 0.4rem; margin-bottom: 1rem; }
+        .review-choice {
+            display: flex; align-items: flex-start; padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border); border-radius: var(--radius);
+            cursor: pointer; background: var(--bg-body); transition: all var(--fast);
+            font-size: 0.82rem; color: var(--text-dim);
+        }
+        .review-choice:hover { border-color: rgba(245,197,24,0.3); background: var(--primary-subtle); color: var(--text); }
+        .review-choice.selected { border-color: var(--primary); background: var(--primary-glow); color: var(--text); }
+        .review-choice.correct { border-color: var(--success); background: rgba(52,211,153,0.06); }
+        .review-choice.wrong { border-color: var(--error); background: rgba(248,113,113,0.06); }
+        .review-choice.disabled { pointer-events: none; opacity: 0.5; }
+        .review-choice-letter { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; background: var(--border); color: var(--text-dim); border-radius: 5px; font-weight: 700; font-size: 0.65rem; font-family: var(--font-mono); margin-right: 0.6rem; flex-shrink: 0; }
+        .review-choice.selected .review-choice-letter { background: var(--primary-dark); color: #000; }
+        .review-choice.correct .review-choice-letter { background: var(--success); color: #000; }
+        .review-choice.wrong .review-choice-letter { background: var(--error); color: #000; }
+        .review-actions { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; }
+        .review-actions .btn { flex: 1; min-width: 0; }
+        .review-feedback { padding: 0.5rem 0.75rem; border-radius: var(--radius); font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem; }
+        .review-feedback.correct { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); color: var(--success); }
+        .review-feedback.wrong { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); color: var(--error); }
+        .review-explanation { background: rgba(52,211,153,0.04); padding: 0.7rem; border-radius: var(--radius); border-left: 2px solid var(--success); font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 1rem; }
+        .quality-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
+        .quality-btn { padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-body); color: var(--text-dim); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all var(--fast); text-align: center; font-family: inherit; }
+        .quality-btn:hover { border-color: var(--primary); color: var(--text); }
+        .quality-btn .quality-label { display: block; font-size: 0.65rem; color: var(--text-muted); margin-top: 0.15rem; }
+        .empty-review { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+        .empty-review p { margin-top: 0.5rem; font-size: 0.8rem; }
+        .review-complete { text-align: center; padding: 2rem; }
+        .review-complete h2 { font-size: 1.1rem; color: var(--text); margin-bottom: 0.5rem; }
+        .review-complete p { font-size: 0.82rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="review-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header>
+            <h1><i data-lucide="brain" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Spaced Review</h1>
+            <p>Review cards at optimal intervals for long-term retention</p>
+        </header>
+        <div class="review-stats-bar" id="review-stats"></div>
+        <div id="review-area"></div>
+    </div>
+    <script src="config.js"></script>
+    <script src="consent.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        const API_BASE = window.__API_BASE__ || '';
+        let cards = [];
+        let currentIdx = 0;
+        let answered = false;
+        let selectedChoice = null;
+
+        async function init() {
+            if (!Auth.isLoggedIn()) { Auth.requireAuth(init); return; }
+            const [statsRes, cardsRes] = await Promise.all([
+                Auth.apiFetch(`${API_BASE}/api/reviews/stats`),
+                Auth.apiFetch(`${API_BASE}/api/reviews/due?limit=20`),
+            ]);
+            const stats = await statsRes.json();
+            cards = await cardsRes.json();
+
+            document.getElementById('review-stats').innerHTML = `
+                <span><i data-lucide="clock" style="width:14px;height:14px"></i> ${stats.due_now || 0} due</span>
+                <span><i data-lucide="calendar" style="width:14px;height:14px"></i> ${stats.due_today || 0} later today</span>
+                <span><i data-lucide="trophy" style="width:14px;height:14px"></i> ${stats.mastered || 0} mastered</span>
+            `;
+            lucide.createIcons();
+
+            if (!cards || cards.length === 0) {
+                document.getElementById('review-area').innerHTML = `
+                    <div class="empty-review">
+                        <div style="font-size:2rem;margin-bottom:0.5rem;">✨</div>
+                        All caught up! No cards due for review.
+                        <p>Study some flash cards and they'll appear here for spaced review.</p>
+                        <a href="/" class="btn btn-primary" style="margin-top:1rem;">Start Studying</a>
+                    </div>`;
+                return;
+            }
+            showCard();
+        }
+
+        function showCard() {
+            if (currentIdx >= cards.length) {
+                document.getElementById('review-area').innerHTML = `
+                    <div class="review-complete">
+                        <h2>Review session complete!</h2>
+                        <p>You reviewed ${cards.length} card${cards.length !== 1 ? 's' : ''}. Great work.</p>
+                        <a href="/" class="btn btn-primary" style="margin-top:1rem;">Back to Home</a>
+                    </div>`;
+                return;
+            }
+            answered = false;
+            selectedChoice = null;
+            const card = cards[currentIdx];
+            const choices = typeof card.choices === 'string' ? JSON.parse(card.choices) : card.choices;
+            const letters = ['A','B','C','D'];
+            const correctIdx = choices.indexOf(card.correct_answer);
+
+            document.getElementById('review-area').innerHTML = `
+                <div class="review-card">
+                    <div class="review-topic">${card.page_title || 'Review'}</div>
+                    <div class="review-question">${card.question}</div>
+                    <div class="review-choices" id="choices">
+                        ${choices.map((c, i) => `
+                            <div class="review-choice" data-idx="${i}">
+                                <span class="review-choice-letter">${letters[i]}</span>
+                                <span>${c}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div id="feedback-area"></div>
+                    <div id="action-area" style="text-align:center;">
+                        <button class="btn btn-primary btn-lg btn-full" id="submit-review" disabled>Submit Answer</button>
+                    </div>
+                </div>
+            `;
+
+            document.querySelectorAll('.review-choice').forEach(el => {
+                el.addEventListener('click', () => {
+                    if (answered) return;
+                    document.querySelectorAll('.review-choice').forEach(c => c.classList.remove('selected'));
+                    el.classList.add('selected');
+                    selectedChoice = parseInt(el.dataset.idx);
+                    document.getElementById('submit-review').disabled = false;
+                });
+            });
+
+            document.getElementById('submit-review').addEventListener('click', () => {
+                if (answered || selectedChoice === null) return;
+                answered = true;
+                const isCorrect = selectedChoice === correctIdx;
+
+                document.querySelectorAll('.review-choice').forEach((el, i) => {
+                    el.classList.add('disabled');
+                    if (i === correctIdx) el.classList.add('correct');
+                    else if (i === selectedChoice) el.classList.add('wrong');
+                });
+
+                const fb = document.getElementById('feedback-area');
+                fb.innerHTML = `
+                    <div class="review-feedback ${isCorrect ? 'correct' : 'wrong'}">${isCorrect ? '✓ Correct!' : '✗ Incorrect'}</div>
+                    ${card.explanation ? `<div class="review-explanation">${card.explanation}</div>` : ''}
+                    <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem;">How well did you know this?</p>
+                    <div class="quality-buttons">
+                        <button class="quality-btn" data-q="1" ${isCorrect ? '' : ''}>Again<span class="quality-label">Forgot</span></button>
+                        <button class="quality-btn" data-q="3">Hard<span class="quality-label">Struggled</span></button>
+                        <button class="quality-btn" data-q="4">Good<span class="quality-label">Knew it</span></button>
+                    </div>
+                `;
+                document.getElementById('action-area').innerHTML = '';
+
+                document.querySelectorAll('.quality-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const quality = parseInt(btn.dataset.q);
+                        await Auth.apiFetch(`${API_BASE}/api/reviews/result`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cardId: card.id, quality }),
+                        });
+                        currentIdx++;
+                        showCard();
+                    });
+                });
+            });
+        }
+
+        init();
+    </script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

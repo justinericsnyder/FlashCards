@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "todo-list": {
+      "url": "http://localhost:8080/mcp",
+      "disabled": false,
+      "autoApprove": [
+        "add_todo_item",
+        "add_todo_item",
+        "add_todo_item",
+        "add_todo_item",
+        "add_todo_item",
+        "add_todo_item",
+        "add_todo_item",
+        "add_todo_item",
+        "add_todo_item",
+        "add_todo_item"
+      ]
+    }
+  }
+}

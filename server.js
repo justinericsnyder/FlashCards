@@ -359,8 +359,14 @@ app.post('/api/question-log', authMiddleware, async (req, res) => {
     return res.status(503).json({ error: 'Database not configured' });
   }
   try {
-    const { url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty } = req.body;
+    const { url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty, choices, explanation } = req.body;
     const log = await db.saveQuestionLog({ userId: req.userId, url, pageTitle, question, correctAnswer, userAnswer, isCorrect, difficulty });
+
+    // Also save to spaced repetition deck
+    try {
+      await db.upsertCardReview({ userId: req.userId, url, pageTitle, question, correctAnswer, choices, explanation, difficulty });
+    } catch (e) { console.warn('Could not upsert review card:', e.message); }
+
     res.json(log);
   } catch (err) {
     console.error('Save question log error:', err.message);
@@ -393,6 +399,42 @@ app.get('/api/topic-stats', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Get topic stats error:', err.message);
     res.status(500).json({ error: 'Failed to fetch topic stats' });
+  }
+});
+
+// ── Spaced Repetition endpoints ─────────────────────────
+// Get cards due for review
+app.get('/api/reviews/due', authMiddleware, async (req, res) => {
+  try {
+    const cards = await db.getCardsForReview(req.userId, parseInt(req.query.limit) || 10);
+    res.json(cards);
+  } catch (err) {
+    console.error('Get reviews error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch review cards' });
+  }
+});
+
+// Get review stats
+app.get('/api/reviews/stats', authMiddleware, async (req, res) => {
+  try {
+    const stats = await db.getReviewStats(req.userId);
+    res.json(stats);
+  } catch (err) {
+    console.error('Get review stats error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch review stats' });
+  }
+});
+
+// Submit a review result
+app.post('/api/reviews/result', authMiddleware, async (req, res) => {
+  try {
+    const { cardId, quality } = req.body;
+    const updated = await db.updateReviewResult(cardId, quality);
+    if (!updated) return res.status(404).json({ error: 'Card not found' });
+    res.json(updated);
+  } catch (err) {
+    console.error('Update review error:', err.message);
+    res.status(500).json({ error: 'Failed to update review' });
   }
 });
 

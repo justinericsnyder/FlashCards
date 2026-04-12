@@ -15,6 +15,7 @@ class FlashCardApp {
         this.initializeKeyboardNavigation();
         this.initializeAnimations();
         this.loadRecentTopics();
+        this.loadReviewBanner();
     }
 
     initializeEventListeners() {
@@ -112,6 +113,36 @@ class FlashCardApp {
             });
         } catch (err) {
             console.warn('Could not load recent topics:', err);
+        }
+    }
+
+    async loadReviewBanner() {
+        if (!Auth.isLoggedIn()) return;
+        const banner = document.getElementById('review-banner');
+        if (!banner) return;
+        try {
+            const res = await Auth.apiFetch(`${API_BASE}/api/reviews/stats`);
+            if (!res.ok) return;
+            const stats = await res.json();
+            const due = Number(stats.due_now || 0);
+            if (due === 0) return;
+
+            banner.classList.remove('hidden');
+            banner.innerHTML = `
+                <a href="/review.html" class="review-banner-link">
+                    <div class="review-banner-left">
+                        <i data-lucide="brain" class="review-banner-icon"></i>
+                        <div>
+                            <span class="review-banner-title">${due} card${due !== 1 ? 's' : ''} due for review</span>
+                            <span class="review-banner-sub">Spaced repetition keeps knowledge fresh</span>
+                        </div>
+                    </div>
+                    <span class="review-banner-action">Review now →</span>
+                </a>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (err) {
+            console.warn('Could not load review stats:', err);
         }
     }
 
@@ -698,6 +729,8 @@ class FlashCardApp {
                     userAnswer: card.choices[['A','B','C','D'].indexOf(this.selectedChoice)],
                     isCorrect,
                     difficulty,
+                    choices: card.choices,
+                    explanation: card.explanation,
                 }),
             }).catch(err => console.warn('Could not log question:', err));
         }

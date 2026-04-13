@@ -601,23 +601,61 @@ class FlashCardApp {
         flashcard.style.transform = 'translateY(8px) scale(0.98)';
 
         setTimeout(() => {
-            document.getElementById('question-text').textContent = card.question;
+            const card = this.flashCards[this.currentCardIndex];
+
+            // Normalize card into question + choices format
+            let questionText, choices, correctLetter;
+            const type = card.type || 'multiple_choice';
+
+            if (type === 'true_false') {
+                questionText = `True or False: ${card.statement}`;
+                choices = ['True', 'False', '', ''];
+                correctLetter = card.isTrue ? 'A' : 'B';
+                // Store normalized for submitAnswer
+                card._normalized = { question: questionText, choices: ['True', 'False'], correctAnswer: correctLetter };
+            } else if (type === 'fill_blank') {
+                questionText = `Fill in the blank: ${card.sentence}`;
+                choices = card.choices.slice(0, 4);
+                while (choices.length < 4) choices.push('');
+                const idx = choices.indexOf(card.correctAnswer);
+                correctLetter = ['A','B','C','D'][idx >= 0 ? idx : 0];
+                card._normalized = { question: questionText, choices, correctAnswer: correctLetter };
+            } else {
+                questionText = card.question;
+                choices = card.choices || [];
+                correctLetter = card.correctAnswer;
+                card._normalized = { question: questionText, choices, correctAnswer: correctLetter };
+            }
+
+            // Show card type badge
+            const typeLabels = { multiple_choice: 'Multiple Choice', true_false: 'True / False', fill_blank: 'Fill in the Blank' };
+            const h3 = document.querySelector('.card-content h3');
+            if (h3) h3.textContent = typeLabels[type] || 'Question';
+
+            document.getElementById('question-text').textContent = questionText;
 
             const letters = ['a', 'b', 'c', 'd'];
+            const visibleCount = type === 'true_false' ? 2 : 4;
 
             // Reset choices first
             document.querySelectorAll('.choice').forEach(el => {
                 el.classList.remove('selected', 'correct', 'incorrect', 'disabled');
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(10px)';
+                el.style.display = '';
             });
 
             // Populate and stagger choices in
             letters.forEach((letter, i) => {
                 const choiceEl = document.querySelector(`[data-choice="${letter.toUpperCase()}"]`);
                 const textEl = document.getElementById(`choice-${letter}`);
-                textEl.textContent = card.choices[i] || '';
 
+                if (i >= visibleCount || !choices[i]) {
+                    choiceEl.style.display = 'none';
+                    return;
+                }
+
+                textEl.textContent = choices[i];
                 setTimeout(() => {
                     choiceEl.style.transition = `opacity 0.25s ease ${i * 0.06}s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.06}s`;
                     choiceEl.style.opacity = '1';
@@ -689,7 +727,8 @@ class FlashCardApp {
         document.getElementById('submit-answer').classList.add('hidden');
 
         const card = this.flashCards[this.currentCardIndex];
-        const isCorrect = this.selectedChoice === card.correctAnswer;
+        const norm = card._normalized || { question: card.question, choices: card.choices, correctAnswer: card.correctAnswer };
+        const isCorrect = this.selectedChoice === norm.correctAnswer;
 
         if (isCorrect) {
             this.correctAnswers++;
@@ -715,7 +754,7 @@ class FlashCardApp {
 
         // Log the question answer (if functional cookies accepted)
         if (typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional')) {
-            const correctIndex = ['A', 'B', 'C', 'D'].indexOf(card.correctAnswer);
+            const correctIndex = ['A', 'B', 'C', 'D'].indexOf(norm.correctAnswer);
             const docUrl = document.getElementById('doc-url').value.trim();
             const difficulty = document.getElementById('difficulty').value;
             Auth.apiFetch(`${API_BASE}/api/question-log`, {
@@ -724,12 +763,12 @@ class FlashCardApp {
                 body: JSON.stringify({
                     url: docUrl,
                     pageTitle: this.currentPageTitle || docUrl,
-                    question: card.question,
-                    correctAnswer: card.choices[correctIndex],
-                    userAnswer: card.choices[['A','B','C','D'].indexOf(this.selectedChoice)],
+                    question: norm.question,
+                    correctAnswer: norm.choices[correctIndex] || '',
+                    userAnswer: norm.choices[['A','B','C','D'].indexOf(this.selectedChoice)] || '',
                     isCorrect,
                     difficulty,
-                    choices: card.choices,
+                    choices: norm.choices,
                     explanation: card.explanation,
                 }),
             }).catch(err => console.warn('Could not log question:', err));
@@ -738,18 +777,18 @@ class FlashCardApp {
         // Highlight correct / incorrect choices with animation
         document.querySelectorAll('.choice').forEach(el => {
             el.classList.add('disabled');
-            if (el.dataset.choice === card.correctAnswer) {
+            if (el.dataset.choice === norm.correctAnswer) {
                 setTimeout(() => el.classList.add('correct'), 300);
             } else if (el.dataset.choice === this.selectedChoice) {
                 setTimeout(() => el.classList.add('incorrect'), 300);
             }
         });
 
-        // Slide in the explanation (no flip)
+        // Slide in the explanation
         setTimeout(() => {
-            const correctIndex = ['A', 'B', 'C', 'D'].indexOf(card.correctAnswer);
+            const correctIndex = ['A', 'B', 'C', 'D'].indexOf(norm.correctAnswer);
             document.getElementById('correct-answer').textContent =
-                `${card.correctAnswer}. ${card.choices[correctIndex]}`;
+                `${norm.correctAnswer}. ${norm.choices[correctIndex] || ''}`;
             document.getElementById('explanation-text').textContent = card.explanation;
 
             const answerSide = document.querySelector('.answer-side');

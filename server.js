@@ -250,28 +250,33 @@ Generate NEW questions that test DIFFERENT concepts or facts from the content. O
 
   const prompt = `You are an expert educator creating flash cards from Microsoft documentation.
 
-Given the following documentation content, generate exactly ${count || 10} multiple-choice flash cards at a "${difficulty || 'intermediate'}" difficulty level.
+Given the following documentation content, generate exactly ${count || 10} flash cards at a "${difficulty || 'intermediate'}" difficulty level.
+
+QUESTION TYPE MIX — use a variety of these types:
+- "multiple_choice": 4 choices (A-D), 1 correct. Use for ~50% of cards.
+- "true_false": A statement that is either true or false based on the content. Use for ~25% of cards.
+- "fill_blank": A sentence with a key term blanked out (shown as ___). Provide 4 choices. Use for ~25% of cards.
 
 RULES:
 - Every question and answer MUST be directly based on facts stated in the content below. Do NOT invent or assume information.
 - Questions should test understanding of key concepts, not trivial details.
-- Each question must have exactly 4 choices (A, B, C, D) with exactly 1 correct answer.
 - Wrong answers should be plausible but clearly incorrect based on the content.
 - Explanations should reference the specific content that supports the correct answer.
-- Vary question styles: "What is...", "Which of the following...", "What is the purpose of...", "How does... work?", etc.
 ${avoidInstruction}
 DOCUMENTATION CONTENT:
 ${contentText}
 
-Respond with ONLY a JSON array (no markdown, no code fences) in this exact format:
-[
-  {
-    "question": "The question text",
-    "choices": ["Choice A text", "Choice B text", "Choice C text", "Choice D text"],
-    "correctAnswer": "A",
-    "explanation": "Explanation referencing the documentation content"
-  }
-]`;
+Respond with ONLY a JSON array (no markdown, no code fences). Each card MUST have a "type" field:
+
+For multiple_choice:
+{"type":"multiple_choice","question":"...","choices":["A","B","C","D"],"correctAnswer":"A","explanation":"..."}
+
+For true_false:
+{"type":"true_false","statement":"A factual statement...","isTrue":true,"explanation":"..."}
+
+For fill_blank:
+{"type":"fill_blank","sentence":"___ is used to manage...","choices":["correct","wrong1","wrong2","wrong3"],"correctAnswer":"correct","explanation":"..."}
+`;
 
   try {
     const message = await anthropic.messages.create({
@@ -297,10 +302,13 @@ Respond with ONLY a JSON array (no markdown, no code fences) in this exact forma
       return res.status(502).json({ error: 'AI returned empty or invalid cards' });
     }
 
-    const validCards = cards.filter(c =>
-      c.question && Array.isArray(c.choices) && c.choices.length === 4
-      && c.correctAnswer && c.explanation
-    );
+    const validCards = cards.filter(c => {
+      if (!c.type || !c.explanation) return false;
+      if (c.type === 'multiple_choice') return c.question && Array.isArray(c.choices) && c.choices.length === 4 && c.correctAnswer;
+      if (c.type === 'true_false') return c.statement && typeof c.isTrue === 'boolean';
+      if (c.type === 'fill_blank') return c.sentence && Array.isArray(c.choices) && c.correctAnswer;
+      return false;
+    });
 
     console.log(`✅ Generated ${validCards.length} valid cards`);
     res.json({ cards: validCards });

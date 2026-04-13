@@ -95,7 +95,7 @@
 
         // ── Themes ──────────────────────────────────────
         const THEMES = {
-            pittsburgh: { name: 'Pittsburgh', colors: ['#050505','#f5c518','#d4a80e','#1a1a1a'], primary: '#f5c518', primaryDark: '#d4a80e', bgBody: '#050505', bgCard: '#0e0e0e', border: '#1a1a1a', text: '#e5e5e5' },
+            pittsburgh: { name: 'Hoist the Cone', colors: ['#050505','#f5c518','#d4a80e','#1a1a1a'], primary: '#f5c518', primaryDark: '#d4a80e', bgBody: '#050505', bgCard: '#0e0e0e', border: '#1a1a1a', text: '#e5e5e5' },
             midnight: { name: 'Midnight Blue', colors: ['#0a0f1a','#60a5fa','#3b82f6','#1e293b'], primary: '#60a5fa', primaryDark: '#3b82f6', bgBody: '#0a0f1a', bgCard: '#111827', border: '#1e293b', text: '#e2e8f0' },
             emerald: { name: 'Emerald', colors: ['#051a0e','#34d399','#10b981','#14291e'], primary: '#34d399', primaryDark: '#10b981', bgBody: '#051a0e', bgCard: '#0a1f14', border: '#14291e', text: '#d1fae5' },
             crimson: { name: 'Crimson', colors: ['#1a0505','#f87171','#ef4444','#2d1010'], primary: '#f87171', primaryDark: '#ef4444', bgBody: '#1a0505', bgCard: '#1f0a0a', border: '#2d1010', text: '#fecaca' },
@@ -127,7 +127,7 @@
         }
 
         function renderThemeGrid() {
-            const current = localStorage.getItem('fc_theme') || 'pittsburgh';
+            const current = localStorage.getItem('fc_theme') || 'Hoist the Cone';
             document.getElementById('theme-grid').innerHTML = Object.entries(THEMES).map(([key, t]) => `
                 <div class="theme-card ${key === current ? 'active' : ''}" data-theme="${key}">
                     <div class="theme-preview">${t.colors.map(c => `<span style="background:${c}"></span>`).join('')}</div>
@@ -225,5 +225,6 @@
     <script src="nav.js"></script>
 </body>
 </html>
+
 
 

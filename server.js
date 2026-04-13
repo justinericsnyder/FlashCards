@@ -460,6 +460,63 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Curated Learning Paths ───────────────────────────────
+app.get('/api/learning-paths', async (req, res) => {
+  // Curated paths for popular Microsoft certifications
+  const paths = [
+    {
+      id: 'az-900',
+      name: 'Azure Fundamentals (AZ-900)',
+      description: 'Cloud concepts, Azure services, security, pricing',
+      difficulty: 'beginner',
+      urls: [
+        { title: 'Cloud Concepts', url: 'https://learn.microsoft.com/en-us/training/modules/describe-cloud-compute/' },
+        { title: 'Azure Architecture', url: 'https://learn.microsoft.com/en-us/training/modules/describe-core-architectural-components-of-azure/' },
+        { title: 'Azure Compute & Networking', url: 'https://learn.microsoft.com/en-us/training/modules/describe-azure-compute-networking-services/' },
+        { title: 'Azure Storage', url: 'https://learn.microsoft.com/en-us/training/modules/describe-azure-storage-services/' },
+        { title: 'Azure Identity & Security', url: 'https://learn.microsoft.com/en-us/training/modules/describe-azure-identity-access-security/' },
+      ],
+    },
+    {
+      id: 'ai-900',
+      name: 'Azure AI Fundamentals (AI-900)',
+      description: 'AI workloads, machine learning, computer vision, NLP',
+      difficulty: 'beginner',
+      urls: [
+        { title: 'AI Fundamentals', url: 'https://learn.microsoft.com/en-us/training/modules/get-started-ai-fundamentals/' },
+        { title: 'Machine Learning', url: 'https://learn.microsoft.com/en-us/training/modules/fundamentals-machine-learning/' },
+        { title: 'Computer Vision', url: 'https://learn.microsoft.com/en-us/training/modules/analyze-images-computer-vision/' },
+        { title: 'Natural Language Processing', url: 'https://learn.microsoft.com/en-us/training/modules/analyze-text-with-text-analytics-service/' },
+        { title: 'Generative AI', url: 'https://learn.microsoft.com/en-us/training/modules/fundamentals-generative-ai/' },
+      ],
+    },
+    {
+      id: 'sc-900',
+      name: 'Security Fundamentals (SC-900)',
+      description: 'Security, compliance, identity concepts',
+      difficulty: 'beginner',
+      urls: [
+        { title: 'Security & Compliance Concepts', url: 'https://learn.microsoft.com/en-us/training/modules/describe-security-concepts-methodologies/' },
+        { title: 'Microsoft Entra ID', url: 'https://learn.microsoft.com/en-us/training/modules/explore-basic-services-identity-types/' },
+        { title: 'Microsoft Security Solutions', url: 'https://learn.microsoft.com/en-us/training/modules/describe-threat-protection-with-microsoft-365-defender/' },
+        { title: 'Microsoft Compliance', url: 'https://learn.microsoft.com/en-us/training/modules/describe-compliance-management-capabilities-microsoft/' },
+      ],
+    },
+    {
+      id: 'ms-900',
+      name: 'Microsoft 365 Fundamentals (MS-900)',
+      description: 'Microsoft 365 services, security, licensing',
+      difficulty: 'beginner',
+      urls: [
+        { title: 'Microsoft 365 Productivity', url: 'https://learn.microsoft.com/en-us/training/modules/describe-productivity-solutions-microsoft-365/' },
+        { title: 'Microsoft 365 Collaboration', url: 'https://learn.microsoft.com/en-us/training/modules/describe-collaboration-solutions-microsoft-365/' },
+        { title: 'Microsoft 365 Security', url: 'https://learn.microsoft.com/en-us/training/modules/describe-endpoint-modernization-management-concepts-deployment-options/' },
+      ],
+    },
+  ];
+  res.json(paths);
+});
+
 // ── Socratic Mode (conversational AI coaching) ──────────
 app.post('/api/socratic', authMiddleware, async (req, res) => {
   if (!anthropic) return res.status(503).json({ error: 'AI not configured' });

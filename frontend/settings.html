@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .settings-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+        .settings-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; position: relative; overflow: hidden; }
+        .settings-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--primary-glow), rgba(245,197,24,0.2), var(--primary-glow), transparent); }
+        .settings-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+        .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.5rem; }
+        .theme-card { padding: 0.6rem; border: 2px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all var(--fast); text-align: center; }
+        .theme-card:hover { border-color: rgba(245,197,24,0.3); }
+        .theme-card.active { border-color: var(--primary); box-shadow: 0 0 12px rgba(245,197,24,0.15); }
+        .theme-preview { height: 40px; border-radius: 4px; margin-bottom: 0.4rem; display: flex; gap: 2px; overflow: hidden; }
+        .theme-preview span { flex: 1; }
+        .theme-name { font-size: 0.72rem; font-weight: 600; color: var(--text-dim); }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border-subtle); }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-size: 0.82rem; color: var(--text-dim); }
+        .setting-label small { display: block; font-size: 0.68rem; color: var(--text-muted); margin-top: 0.1rem; }
+        .setting-control select, .setting-control input { padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input); color: var(--text); font-family: inherit; font-size: 0.8rem; }
+        .goal-row { display: flex; gap: 0.75rem; align-items: center; }
+        .goal-input { width: 60px; text-align: center; font-family: var(--font-mono); }
+        .goal-label { font-size: 0.78rem; color: var(--text-dim); }
+        .goal-progress { margin-top: 0.5rem; }
+        .goal-bar-bg { height: 6px; background: var(--bg-body); border-radius: 3px; overflow: hidden; margin-top: 0.3rem; }
+        .goal-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+        .goal-text { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono); }
+        .export-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header>
+            <h1><i data-lucide="sliders-horizontal" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Settings</h1>
+            <p>Customize your learning experience</p>
+        </header>
+
+        <div class="settings-section">
+            <div class="settings-title">Theme</div>
+            <div class="theme-grid" id="theme-grid"></div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-title">Display</div>
+            <div class="setting-row">
+                <div class="setting-label">Font Size<small>Adjust text size across the app</small></div>
+                <div class="setting-control">
+                    <select id="font-size-select">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-title">Study Goals</div>
+            <div id="goals-area"></div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-title">Data Export</div>
+            <div class="export-btns">
+                <a class="btn btn-secondary" id="export-json">
+                    <i data-lucide="download" class="icon"></i> Export JSON
+                </a>
+                <a class="btn btn-secondary" id="export-csv">
+                    <i data-lucide="file-spreadsheet" class="icon"></i> Export CSV
+                </a>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-title">Daily Challenge</div>
+            <div id="daily-challenge"></div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="consent.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        const API_BASE = window.__API_BASE__ || '';
+
+        // ── Themes ──────────────────────────────────────
+        const THEMES = {
+            pittsburgh: { name: 'Pittsburgh', colors: ['#050505','#f5c518','#d4a80e','#1a1a1a'], primary: '#f5c518', primaryDark: '#d4a80e', bgBody: '#050505', bgCard: '#0e0e0e', border: '#1a1a1a', text: '#e5e5e5' },
+            midnight: { name: 'Midnight Blue', colors: ['#0a0f1a','#60a5fa','#3b82f6','#1e293b'], primary: '#60a5fa', primaryDark: '#3b82f6', bgBody: '#0a0f1a', bgCard: '#111827', border: '#1e293b', text: '#e2e8f0' },
+            emerald: { name: 'Emerald', colors: ['#051a0e','#34d399','#10b981','#14291e'], primary: '#34d399', primaryDark: '#10b981', bgBody: '#051a0e', bgCard: '#0a1f14', border: '#14291e', text: '#d1fae5' },
+            crimson: { name: 'Crimson', colors: ['#1a0505','#f87171','#ef4444','#2d1010'], primary: '#f87171', primaryDark: '#ef4444', bgBody: '#1a0505', bgCard: '#1f0a0a', border: '#2d1010', text: '#fecaca' },
+            violet: { name: 'Violet', colors: ['#0f0520','#a78bfa','#8b5cf6','#1e1035'], primary: '#a78bfa', primaryDark: '#8b5cf6', bgBody: '#0f0520', bgCard: '#150a2e', border: '#1e1035', text: '#ede9fe' },
+            arctic: { name: 'Arctic', colors: ['#f8fafc','#0ea5e9','#0284c7','#e2e8f0'], primary: '#0ea5e9', primaryDark: '#0284c7', bgBody: '#f8fafc', bgCard: '#ffffff', border: '#e2e8f0', text: '#1e293b' },
+            sunset: { name: 'Sunset', colors: ['#1a0a05','#fb923c','#f97316','#2d1a0a'], primary: '#fb923c', primaryDark: '#f97316', bgBody: '#1a0a05', bgCard: '#1f100a', border: '#2d1a0a', text: '#fed7aa' },
+            mono: { name: 'Monochrome', colors: ['#0a0a0a','#a3a3a3','#737373','#1a1a1a'], primary: '#a3a3a3', primaryDark: '#737373', bgBody: '#0a0a0a', bgCard: '#141414', border: '#1a1a1a', text: '#e5e5e5' },
+        };
+
+        function applyTheme(key) {
+            const t = THEMES[key];
+            if (!t) return;
+            const r = document.documentElement.style;
+            r.setProperty('--primary', t.primary);
+            r.setProperty('--primary-dark', t.primaryDark);
+            r.setProperty('--primary-glow', t.primary.replace(')', ',0.10)').replace('rgb', 'rgba').replace('#', ''));
+            r.setProperty('--bg-body', t.bgBody);
+            r.setProperty('--bg-card', t.bgCard);
+            r.setProperty('--bg-card-hover', t.bgCard);
+            r.setProperty('--bg-input', t.bgBody);
+            r.setProperty('--bg-choice', t.bgCard);
+            r.setProperty('--bg-elevated', t.bgCard);
+            r.setProperty('--border', t.border);
+            r.setProperty('--border-subtle', t.border);
+            r.setProperty('--text', t.text);
+            localStorage.setItem('fc_theme', key);
+            renderThemeGrid();
+        }
+
+        function renderThemeGrid() {
+            const current = localStorage.getItem('fc_theme') || 'pittsburgh';
+            document.getElementById('theme-grid').innerHTML = Object.entries(THEMES).map(([key, t]) => `
+                <div class="theme-card ${key === current ? 'active' : ''}" data-theme="${key}">
+                    <div class="theme-preview">${t.colors.map(c => `<span style="background:${c}"></span>`).join('')}</div>
+                    <div class="theme-name">${t.name}</div>
+                </div>
+            `).join('');
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.addEventListener('click', () => applyTheme(card.dataset.theme));
+            });
+        }
+
+        // Apply saved theme on load
+        const savedTheme = localStorage.getItem('fc_theme');
+        if (savedTheme && THEMES[savedTheme]) applyTheme(savedTheme);
+        renderThemeGrid();
+
+        // ── Font Size ───────────────────────────────────
+        const fontSizeSelect = document.getElementById('font-size-select');
+        const savedSize = localStorage.getItem('fc_font_size') || 'medium';
+        fontSizeSelect.value = savedSize;
+        document.documentElement.dataset.fontSize = savedSize;
+
+        fontSizeSelect.addEventListener('change', () => {
+            const size = fontSizeSelect.value;
+            localStorage.setItem('fc_font_size', size);
+            document.documentElement.dataset.fontSize = size;
+        });
+
+        // ── Study Goals ─────────────────────────────────
+        async function loadGoals() {
+            const area = document.getElementById('goals-area');
+            if (!Auth.isLoggedIn()) { area.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted)">Sign in to set study goals</div>'; return; }
+            try {
+                const res = await Auth.apiFetch(`${API_BASE}/api/goals`);
+                const g = await res.json();
+                area.innerHTML = `
+                    <div class="goal-row" style="margin-bottom:0.75rem;">
+                        <span class="goal-label">Weekly sessions:</span>
+                        <input type="number" class="goal-input" id="weekly-goal" value="${g.weekly_target}" min="1" max="50">
+                        <span class="goal-label">Monthly:</span>
+                        <input type="number" class="goal-input" id="monthly-goal" value="${g.monthly_target}" min="1" max="200">
+                        <button class="btn btn-primary" id="save-goals" style="padding:0.35rem 0.7rem;font-size:0.75rem;">Save</button>
+                    </div>
+                    <div class="goal-progress">
+                        <div class="goal-text">This week: ${g.weekly_progress}/${g.weekly_target} sessions</div>
+                        <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${Math.min(100, (g.weekly_progress/g.weekly_target)*100)}%;background:var(--primary)"></div></div>
+                    </div>
+                    <div class="goal-progress" style="margin-top:0.5rem;">
+                        <div class="goal-text">This month: ${g.monthly_progress}/${g.monthly_target} sessions</div>
+                        <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${Math.min(100, (g.monthly_progress/g.monthly_target)*100)}%;background:var(--primary)"></div></div>
+                    </div>
+                `;
+                document.getElementById('save-goals')?.addEventListener('click', async () => {
+                    await Auth.apiFetch(`${API_BASE}/api/goals`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ weeklyTarget: parseInt(document.getElementById('weekly-goal').value), monthlyTarget: parseInt(document.getElementById('monthly-goal').value) }),
+                    });
+                    loadGoals();
+                });
+            } catch { area.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted)">Could not load goals</div>'; }
+        }
+        loadGoals();
+
+        // ── Exports ─────────────────────────────────────
+        document.getElementById('export-json')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!Auth.isLoggedIn()) { Auth.requireAuth(() => {}); return; }
+            window.open(`${API_BASE}/api/export/json`, '_blank');
+        });
+        document.getElementById('export-csv')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!Auth.isLoggedIn()) { Auth.requireAuth(() => {}); return; }
+            window.open(`${API_BASE}/api/export/csv`, '_blank');
+        });
+
+        // ── Daily Challenge ─────────────────────────────
+        async function loadChallenge() {
+            try {
+                const res = await fetch(`${API_BASE}/api/daily-challenge`);
+                const c = await res.json();
+                document.getElementById('daily-challenge').innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+                        <div>
+                            <div style="font-size:0.85rem;font-weight:600;color:var(--text);">${c.theme}</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);">+${c.bonusXp} bonus XP today</div>
+                        </div>
+                        <a href="/?url=${encodeURIComponent(c.urls[0])}" class="btn btn-primary" style="font-size:0.78rem;padding:0.4rem 0.8rem;">Start Challenge</a>
+                    </div>
+                `;
+            } catch {}
+        }
+        loadChallenge();
+    </script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

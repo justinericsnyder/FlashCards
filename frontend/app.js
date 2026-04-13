@@ -186,6 +186,7 @@ class FlashCardApp {
 
         // Text-to-speech
         document.getElementById('tts-question')?.addEventListener('click', () => this.speakText());
+        document.getElementById('tts-explanation')?.addEventListener('click', () => this.speakText(document.getElementById('explanation-text')?.textContent));
 
         // Flag question
         document.getElementById('flag-question')?.addEventListener('click', () => this.flagQuestion());

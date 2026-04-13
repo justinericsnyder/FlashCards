@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard — Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .lb-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+        .lb-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.85rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.4rem; transition: all var(--fast); animation: badgeReveal 0.3s cubic-bezier(0.34,1.56,0.64,1) backwards; }
+        .lb-row:hover { border-color: rgba(245,197,24,0.2); }
+        .lb-rank { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; width: 28px; text-align: center; color: var(--text-muted); }
+        .lb-row:nth-child(1) .lb-rank { color: var(--primary); font-size: 1rem; }
+        .lb-row:nth-child(2) .lb-rank { color: #a3a3a3; }
+        .lb-row:nth-child(3) .lb-rank { color: #b87333; }
+        .lb-name { flex: 1; font-size: 0.82rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lb-tier { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.12rem 0.4rem; border-radius: 4px; }
+        .tier-Bronze { background: rgba(184,115,51,0.15); color: #b87333; }
+        .tier-Silver { background: rgba(163,163,163,0.15); color: #a3a3a3; }
+        .tier-Gold { background: rgba(245,197,24,0.15); color: var(--primary); }
+        .tier-Platinum { background: rgba(129,140,248,0.15); color: #818cf8; }
+        .lb-xp { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--primary); }
+        .lb-streak { font-size: 0.7rem; color: var(--text-muted); }
+        .lb-badges { font-size: 0.7rem; color: var(--text-muted); }
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+        @keyframes badgeReveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="lb-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header>
+            <h1><i data-lucide="crown" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Leaderboard</h1>
+            <p>Top learners ranked by XP</p>
+        </header>
+        <div id="lb-list"></div>
+    </div>
+    <script src="config.js"></script>
+    <script>
+        const API_BASE = window.__API_BASE__ || '';
+        async function load() {
+            try {
+                const res = await fetch(`${API_BASE}/api/leaderboard`);
+                const board = await res.json();
+                if (!board.length) { document.getElementById('lb-list').innerHTML = '<div class="empty-state">No data yet. Be the first!</div>'; return; }
+                document.getElementById('lb-list').innerHTML = board.map((u, i) => `
+                    <div class="lb-row" style="animation-delay:${i * 0.04}s">
+                        <span class="lb-rank">${i + 1}</span>
+                        <span class="lb-name">${u.display_name || u.email?.split('@')[0] || 'Anonymous'}</span>
+                        <span class="lb-tier tier-${u.tier}">${u.tier}</span>
+                        <span class="lb-xp">${u.total_xp} XP</span>
+                        <span class="lb-streak">🔥${u.current_streak}</span>
+                        <span class="lb-badges">🏅${u.badge_count}</span>
+                    </div>
+                `).join('');
+            } catch { document.getElementById('lb-list').innerHTML = '<div class="empty-state">Could not load leaderboard</div>'; }
+        }
+        load();
+    </script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

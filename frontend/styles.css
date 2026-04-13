@@ -877,3 +877,12 @@ kbd {
     border-radius: 4px; font-family: var(--font-mono); font-size: 0.7rem;
     color: var(--text); min-width: 22px; text-align: center;
 }
+
+/* ── Font Size Preferences ─────────────────────────────── */
+[data-font-size="small"] { font-size: 13px; }
+[data-font-size="medium"] { font-size: 15px; }
+[data-font-size="large"] { font-size: 17px; }
+[data-font-size="large"] .choice-text { font-size: 0.95rem; }
+[data-font-size="large"] .card-content p { font-size: 1rem; }
+[data-font-size="small"] .choice-text { font-size: 0.75rem; }
+[data-font-size="small"] .card-content p { font-size: 0.8rem; }

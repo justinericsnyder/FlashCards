@@ -64,18 +64,12 @@ header {
     position: relative;
 }
 
-.header-brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-}
-
 .header-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius);
-    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 0.6rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
 header h1 {

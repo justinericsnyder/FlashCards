@@ -46,6 +46,7 @@
             <p>AI-powered study cards from any Microsoft Learn page</p>
         </header>
 
+        <div class="app-layout">
         <main>
             <section id="setup-section" class="section" role="main" aria-labelledby="setup-heading">
                 <h2 id="setup-heading" class="sr-only">Setup Your Study Session</h2>
@@ -114,9 +115,6 @@
                         Generate Flash Cards
                     </button>
                 </form>
-
-                <div id="recent-topics" class="recent-topics"></div>
-                <div id="review-banner" class="review-banner hidden"></div>
             </section>
 
             <section id="loading-section" class="section hidden" role="status" aria-live="polite" aria-labelledby="loading-heading">
@@ -266,6 +264,12 @@
                 </div>
             </section>
         </main>
+
+        <aside class="sidebar">
+            <div id="review-banner" class="review-banner hidden"></div>
+            <div id="recent-topics" class="recent-topics"></div>
+        </aside>
+        </div><!-- /app-layout -->
 
         <nav class="side-nav" aria-label="App navigation">
             <a href="/" class="side-nav-item" title="Home">

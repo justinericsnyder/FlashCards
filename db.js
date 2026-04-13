@@ -266,6 +266,7 @@ module.exports = {
   shareDeck, getDeckByCode,
   getDetailedAnalytics,
   saveQuestionFeedback,
+  getWeaknessData,
 };
 
 // ── Spaced Repetition (SM-2) ───────────────────────────
@@ -504,4 +505,26 @@ async function saveQuestionFeedback({ userId, question, url, feedbackType }) {
     RETURNING *
   `;
   return row;
+}
+
+// ── Weakness Analysis ──────────────────────────────────
+async function getWeaknessData(userId) {
+  const db = getSql();
+  const wrongAnswers = await db`
+    SELECT page_title, question, correct_answer, user_answer, difficulty, created_at
+    FROM question_logs
+    WHERE user_id = ${userId} AND is_correct = false
+    ORDER BY created_at DESC LIMIT 50
+  `;
+  const topicAccuracy = await db`
+    SELECT page_title,
+      COUNT(*) as total,
+      SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct,
+      ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as accuracy
+    FROM question_logs
+    WHERE user_id = ${userId} AND page_title IS NOT NULL
+    GROUP BY page_title HAVING COUNT(*) >= 3
+    ORDER BY accuracy ASC LIMIT 10
+  `;
+  return { wrongAnswers, topicAccuracy };
 }

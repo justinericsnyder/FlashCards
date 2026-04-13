@@ -455,6 +455,44 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Personalized Weakness Report (AI-powered) ───────────
+app.get('/api/weakness-report', authMiddleware, async (req, res) => {
+  if (!anthropic) return res.status(503).json({ error: 'AI not configured' });
+  try {
+    const data = await db.getWeaknessData(req.userId);
+    if (!data.wrongAnswers.length && !data.topicAccuracy.length) {
+      return res.json({ report: 'Not enough data yet. Complete a few study sessions to get personalized recommendations.' });
+    }
+
+    const wrongSummary = data.wrongAnswers.slice(0, 20).map(w =>
+      `Topic: ${w.page_title} | Q: ${w.question} | Correct: ${w.correct_answer} | User answered: ${w.user_answer}`
+    ).join('\n');
+
+    const topicSummary = data.topicAccuracy.map(t =>
+      `${t.page_title}: ${t.accuracy}% accuracy (${t.correct}/${t.total})`
+    ).join('\n');
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: `You are a study coach analyzing a student's flash card performance. Based on their wrong answers and topic accuracy, write a brief, encouraging, actionable study report (3-5 paragraphs). Be specific about what concepts they should review.
+
+WRONG ANSWERS (recent):
+${wrongSummary}
+
+TOPIC ACCURACY (weakest topics):
+${topicSummary}
+
+Write the report in second person ("You should..."). Be warm but direct. Focus on patterns, not individual questions.` }],
+    });
+
+    res.json({ report: message.content[0].text.trim(), data });
+  } catch (err) {
+    console.error('Weakness report error:', err.message);
+    res.status(500).json({ error: 'Failed to generate report' });
+  }
+});
+
 // ── Question Feedback ────────────────────────────────────
 app.post('/api/question-feedback', optionalAuth, async (req, res) => {
   try {

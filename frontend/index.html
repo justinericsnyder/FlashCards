@@ -267,49 +267,75 @@
         </main>
 
         <nav class="side-nav" aria-label="App navigation">
-            <a href="/history.html" class="side-nav-item" title="Score History">
-                <i data-lucide="bar-chart-3" class="side-nav-icon"></i>
-                <span class="side-nav-label">History</span>
-            </a>
-            <a href="/topics.html" class="side-nav-item" title="Topic Progress">
-                <i data-lucide="layers" class="side-nav-icon"></i>
-                <span class="side-nav-label">Topics</span>
-            </a>
-            <a href="/compare.html" class="side-nav-item" title="Compare Performance">
-                <i data-lucide="git-compare-arrows" class="side-nav-icon"></i>
-                <span class="side-nav-label">Compare</span>
+            <a href="/" class="side-nav-item" title="Home">
+                <i data-lucide="home" class="side-nav-icon"></i>
+                <span class="side-nav-label">Home</span>
             </a>
             <a href="/review.html" class="side-nav-item" title="Spaced Review" id="review-nav-item">
                 <i data-lucide="brain" class="side-nav-icon"></i>
                 <span class="side-nav-label">Review</span>
             </a>
-            <a href="/socratic.html" class="side-nav-item" title="Socratic Mode">
-                <i data-lucide="message-circle" class="side-nav-icon"></i>
-                <span class="side-nav-label">Coach</span>
-            </a>
             <a href="/paths.html" class="side-nav-item" title="Learning Paths">
                 <i data-lucide="route" class="side-nav-icon"></i>
                 <span class="side-nav-label">Paths</span>
             </a>
-            <div class="side-nav-divider"></div>
             <a href="/profile.html" class="side-nav-item" title="Profile & Achievements">
                 <i data-lucide="trophy" class="side-nav-icon"></i>
                 <span class="side-nav-label">Profile</span>
             </a>
-            <a href="/leaderboard.html" class="side-nav-item" title="Leaderboard">
+            <div class="side-nav-divider desktop-only"></div>
+            <a href="/history.html" class="side-nav-item desktop-only" title="Score History">
+                <i data-lucide="bar-chart-3" class="side-nav-icon"></i>
+                <span class="side-nav-label">History</span>
+            </a>
+            <a href="/topics.html" class="side-nav-item desktop-only" title="Topic Progress">
+                <i data-lucide="layers" class="side-nav-icon"></i>
+                <span class="side-nav-label">Topics</span>
+            </a>
+            <a href="/compare.html" class="side-nav-item desktop-only" title="Compare Performance">
+                <i data-lucide="git-compare-arrows" class="side-nav-icon"></i>
+                <span class="side-nav-label">Compare</span>
+            </a>
+            <a href="/socratic.html" class="side-nav-item desktop-only" title="Socratic Mode">
+                <i data-lucide="message-circle" class="side-nav-icon"></i>
+                <span class="side-nav-label">Coach</span>
+            </a>
+            <a href="/leaderboard.html" class="side-nav-item desktop-only" title="Leaderboard">
                 <i data-lucide="crown" class="side-nav-icon"></i>
                 <span class="side-nav-label">Ranks</span>
             </a>
-            <a href="/settings.html" class="side-nav-item" title="Settings">
+            <a href="/settings.html" class="side-nav-item desktop-only" title="Settings">
                 <i data-lucide="sliders-horizontal" class="side-nav-icon"></i>
                 <span class="side-nav-label">Settings</span>
             </a>
-            <a href="/changelog.html" class="side-nav-item" title="Changelog">
+            <a href="/changelog.html" class="side-nav-item desktop-only" title="Changelog">
                 <i data-lucide="file-text" class="side-nav-icon"></i>
                 <span class="side-nav-label">Changes</span>
             </a>
-            <div id="user-info" class="side-nav-item side-nav-user" title="Account"></div>
+            <div class="side-nav-divider desktop-only"></div>
+            <div id="user-info" class="side-nav-item side-nav-user desktop-only" title="Account"></div>
+
+            <!-- Mobile "More" menu trigger -->
+            <button class="side-nav-item mobile-only" id="more-menu-btn" title="More">
+                <i data-lucide="menu" class="side-nav-icon"></i>
+                <span class="side-nav-label">More</span>
+            </button>
         </nav>
+
+        <!-- Mobile More Menu -->
+        <div id="more-menu" class="more-menu hidden">
+            <div class="more-menu-inner">
+                <a href="/history.html" class="more-menu-item"><i data-lucide="bar-chart-3" class="icon"></i> History</a>
+                <a href="/topics.html" class="more-menu-item"><i data-lucide="layers" class="icon"></i> Topics</a>
+                <a href="/compare.html" class="more-menu-item"><i data-lucide="git-compare-arrows" class="icon"></i> Compare</a>
+                <a href="/socratic.html" class="more-menu-item"><i data-lucide="message-circle" class="icon"></i> Coach</a>
+                <a href="/leaderboard.html" class="more-menu-item"><i data-lucide="crown" class="icon"></i> Leaderboard</a>
+                <a href="/settings.html" class="more-menu-item"><i data-lucide="sliders-horizontal" class="icon"></i> Settings</a>
+                <a href="/changelog.html" class="more-menu-item"><i data-lucide="file-text" class="icon"></i> Changelog</a>
+                <div class="more-menu-divider"></div>
+                <div id="more-menu-user" class="more-menu-item"></div>
+            </div>
+        </div>
 
         <footer class="footer">
             <div class="ai-disclaimer">
@@ -360,5 +386,39 @@
     <script src="auth.js"></script>
     <script src="app.js"></script>
     <script>lucide.createIcons();</script>
+    <script>
+        // Mobile More menu
+        document.getElementById('more-menu-btn')?.addEventListener('click', () => {
+            const menu = document.getElementById('more-menu');
+            menu.classList.toggle('hidden');
+            if (!menu.classList.contains('hidden')) {
+                requestAnimationFrame(() => menu.classList.add('visible'));
+                // Update user info in more menu
+                const user = typeof Auth !== 'undefined' && Auth.getUser ? Auth.getUser() : null;
+                const userEl = document.getElementById('more-menu-user');
+                if (userEl) {
+                    if (user) {
+                        userEl.innerHTML = `<i data-lucide="user" class="icon"></i> ${user.displayName || user.email} <span style="color:var(--text-muted);margin-left:auto;font-size:0.7rem;">Sign out</span>`;
+                        userEl.onclick = () => { if (confirm('Sign out?')) Auth.logout(); };
+                    } else {
+                        userEl.innerHTML = `<i data-lucide="log-in" class="icon"></i> Sign in`;
+                        userEl.onclick = () => Auth.showAuthModal(() => window.location.reload());
+                    }
+                    lucide.createIcons();
+                }
+            } else {
+                menu.classList.remove('visible');
+            }
+        });
+        // Close more menu on outside click
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('more-menu');
+            const btn = document.getElementById('more-menu-btn');
+            if (menu && !menu.contains(e.target) && !btn?.contains(e.target)) {
+                menu.classList.add('hidden');
+                menu.classList.remove('visible');
+            }
+        });
+    </script>
 </body>
 </html>

@@ -320,19 +320,7 @@
     <script src="auth.js"></script>
     <script src="app.js"></script>
     <script src="nav.js"></script>
-    <script>
-        lucide.createIcons();
-        // Align nav top with the setup section
-        function alignNav() {
-            const section = document.getElementById('setup-section') || document.querySelector('.section');
-            if (section && window.innerWidth > 900) {
-                const top = section.getBoundingClientRect().top + window.scrollY;
-                document.documentElement.style.setProperty('--nav-top', top + 'px');
-            }
-        }
-        alignNav();
-        window.addEventListener('resize', alignNav);
-    </script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
 

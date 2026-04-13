@@ -88,4 +88,36 @@
 
     // Auth UI in nav
     if (typeof Auth !== 'undefined') Auth.updateAuthUI();
+
+    // Align nav top with the first content block on the page
+    function alignNav() {
+        if (window.innerWidth <= 900) return;
+        const candidates = [
+            '.section',
+            '.profile-stats',
+            '.settings-section',
+            '.chart-card',
+            '.compare-card',
+            '.topic-card',
+            '.review-card',
+            '.lb-row',
+            '.changelog-summary',
+            '.path-card',
+            '.chat-area',
+            '[class*="-container"] > :not(header):not(.back-link):not(a)',
+        ];
+        for (const sel of candidates) {
+            const el = document.querySelector(sel);
+            if (el && el.getBoundingClientRect().top > 0) {
+                const top = el.getBoundingClientRect().top + window.scrollY;
+                document.documentElement.style.setProperty('--nav-top', top + 'px');
+                return;
+            }
+        }
+    }
+    alignNav();
+    window.addEventListener('resize', alignNav);
+    // Re-align after content loads (async pages)
+    setTimeout(alignNav, 500);
+    setTimeout(alignNav, 2000);
 })();

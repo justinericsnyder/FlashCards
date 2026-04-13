@@ -77,9 +77,16 @@
         let allCerts = [];
 
         async function load() {
-            const res = await fetch(`${API_BASE}/api/learning-paths`);
-            const data = await res.json();
-            allCerts = data.certifications || [];
+            try {
+                const res = await fetch(`${API_BASE}/api/learning-paths`);
+                if (!res.ok) throw new Error(`API returned ${res.status}`);
+                const data = await res.json();
+                allCerts = data.certifications || [];
+
+                if (!allCerts.length) {
+                    document.getElementById('cert-grid').innerHTML = '<div class="empty-state">No certifications loaded. The API may be starting up — try refreshing in a moment.</div>';
+                    return;
+                }
 
             // Populate filters
             const areaSelect = document.getElementById('area-filter');
@@ -93,6 +100,10 @@
             document.getElementById('search').addEventListener('input', render);
             areaSelect.addEventListener('change', render);
             levelSelect.addEventListener('change', render);
+            } catch (err) {
+                console.error('Failed to load certifications:', err);
+                document.getElementById('cert-grid').innerHTML = `<div class="empty-state">Failed to load certifications: ${err.message}</div>`;
+            }
         }
 
         function render() {

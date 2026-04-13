@@ -54,11 +54,16 @@
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
     // Mobile More menu toggle
-    document.getElementById('more-menu-btn')?.addEventListener('click', () => {
+    document.getElementById('more-menu-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
         const menu = document.getElementById('more-menu');
-        menu.classList.toggle('hidden');
-        if (!menu.classList.contains('hidden')) {
-            requestAnimationFrame(() => menu.classList.add('visible'));
+        const isOpen = menu.classList.contains('visible');
+        if (isOpen) {
+            menu.classList.remove('visible');
+        } else {
+            menu.classList.add('visible');
+            menu.classList.remove('hidden');
+            // Update user info in more menu
             const user = typeof Auth !== 'undefined' && Auth.getUser ? Auth.getUser() : null;
             const userEl = document.getElementById('more-menu-user');
             if (userEl) {
@@ -71,8 +76,6 @@
                 }
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
-        } else {
-            menu.classList.remove('visible');
         }
     });
 
@@ -80,8 +83,7 @@
     document.addEventListener('click', (e) => {
         const menu = document.getElementById('more-menu');
         const btn = document.getElementById('more-menu-btn');
-        if (menu && !menu.contains(e.target) && !btn?.contains(e.target)) {
-            menu.classList.add('hidden');
+        if (menu && menu.classList.contains('visible') && !menu.contains(e.target) && !btn?.contains(e.target)) {
             menu.classList.remove('visible');
         }
     });

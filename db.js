@@ -481,8 +481,16 @@ async function checkAndAwardBadges(userId) {
   for (const [condition, key] of checks) {
     if (condition) {
       try {
-        await db`INSERT INTO achievements (user_id, badge_key) VALUES (${userId}, ${key}) ON CONFLICT DO NOTHING`;
-        awarded.push(key);
+        // Only count as newly awarded if the INSERT actually created a row
+        const result = await db`
+          INSERT INTO achievements (user_id, badge_key) 
+          VALUES (${userId}, ${key}) 
+          ON CONFLICT DO NOTHING
+          RETURNING badge_key
+        `;
+        if (result.length > 0) {
+          awarded.push(key);
+        }
       } catch {}
     }
   }

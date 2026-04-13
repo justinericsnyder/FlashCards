@@ -25,7 +25,10 @@ function cached(key, ttlMs, fn) {
       const data = await fn(req);
       cache.set(k, { data, time: Date.now() });
       res.json(data);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+      cache.delete(k); // Don't cache errors
+      res.status(500).json({ error: err.message });
+    }
   };
 }
 

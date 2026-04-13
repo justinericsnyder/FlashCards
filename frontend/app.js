@@ -16,6 +16,78 @@ class FlashCardApp {
         this.initializeAnimations();
         this.loadRecentTopics();
         this.loadReviewBanner();
+        this.checkSavedSession();
+    }
+
+    saveSessionState() {
+        try {
+            const state = {
+                flashCards: this.flashCards,
+                currentCardIndex: this.currentCardIndex,
+                correctAnswers: this.correctAnswers,
+                incorrectAnswers: this.incorrectAnswers,
+                pageTitle: this.currentPageTitle,
+                url: document.getElementById('doc-url')?.value || '',
+                timestamp: Date.now(),
+            };
+            localStorage.setItem('fc_session', JSON.stringify(state));
+        } catch {}
+    }
+
+    clearSavedSession() {
+        localStorage.removeItem('fc_session');
+    }
+
+    checkSavedSession() {
+        try {
+            const raw = localStorage.getItem('fc_session');
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            // Only offer resume if session is less than 2 hours old and has cards
+            if (!state.flashCards?.length || Date.now() - state.timestamp > 7200000) {
+                this.clearSavedSession();
+                return;
+            }
+            // Show resume banner
+            const container = document.getElementById('recent-topics');
+            if (!container) return;
+            const banner = document.createElement('div');
+            banner.className = 'resume-banner';
+            banner.innerHTML = `
+                <div class="resume-banner-content">
+                    <strong>Resume your session?</strong>
+                    <span>${state.pageTitle || 'Previous session'} — Card ${state.currentCardIndex + 1} of ${state.flashCards.length}</span>
+                </div>
+                <div class="resume-banner-actions">
+                    <button class="btn btn-primary" id="resume-yes">Resume</button>
+                    <button class="btn btn-secondary" id="resume-no">Discard</button>
+                </div>
+            `;
+            container.parentElement.insertBefore(banner, container);
+
+            banner.querySelector('#resume-yes').addEventListener('click', () => {
+                this.flashCards = state.flashCards;
+                this.currentCardIndex = state.currentCardIndex;
+                this.correctAnswers = state.correctAnswers;
+                this.incorrectAnswers = state.incorrectAnswers;
+                this.currentPageTitle = state.pageTitle;
+                if (state.url) document.getElementById('doc-url').value = state.url;
+                banner.remove();
+                this.animateSectionTransition('flashcard-section');
+                this.displayCurrentCard();
+                this.updateProgress();
+                const rc = document.getElementById('running-correct');
+                const rw = document.getElementById('running-wrong');
+                if (rc) rc.textContent = `✓ ${this.correctAnswers}`;
+                if (rw) rw.textContent = `✗ ${this.incorrectAnswers}`;
+            });
+
+            banner.querySelector('#resume-no').addEventListener('click', () => {
+                this.clearSavedSession();
+                banner.style.opacity = '0';
+                setTimeout(() => banner.remove(), 200);
+            });
+        } catch { this.clearSavedSession(); }
     }
 
     initializeEventListeners() {
@@ -623,6 +695,9 @@ class FlashCardApp {
         this.selectedChoice = null;
         this.answered = false;
 
+        // Save session to localStorage for resume
+        this.saveSessionState();
+
         // Reset generate button
         const genBtn = document.getElementById('generate-cards');
         if (genBtn) { genBtn.classList.remove('is-loading'); genBtn.textContent = 'Generate Flash Cards'; }
@@ -869,9 +944,11 @@ class FlashCardApp {
     nextCard() {
         if (this.currentCardIndex < this.flashCards.length - 1) {
             this.currentCardIndex++;
+            this.saveSessionState();
             this.displayCurrentCard();
             this.updateProgress();
         } else {
+            this.clearSavedSession();
             this.showResults();
         }
     }

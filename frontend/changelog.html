@@ -8,50 +8,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="theme.js"></script><script src="https://unpkg.com/lucide@latest"></script>
+    <script src="theme.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .changelog-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
         .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
         .back-link:hover { opacity: 1; }
-
         .changelog-date-group { margin-bottom: 1.5rem; }
-        .changelog-date {
-            font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
-            text-transform: uppercase; letter-spacing: 0.08em;
-            margin-bottom: 0.5rem; padding-bottom: 0.35rem;
-            border-bottom: 1px solid var(--border-subtle);
-            font-family: var(--font-mono);
-        }
-
-        .changelog-entry {
-            display: flex; gap: 0.6rem; padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border-subtle);
-        }
+        .changelog-date { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border-subtle); font-family: var(--font-mono); }
+        .changelog-entry { display: flex; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border-subtle); }
         .changelog-entry:last-child { border-bottom: none; }
-
-        .changelog-tag {
-            font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.06em; padding: 0.15rem 0.45rem;
-            border-radius: 4px; flex-shrink: 0; height: fit-content;
-            margin-top: 0.15rem;
-        }
+        .changelog-tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.15rem 0.45rem; border-radius: 4px; flex-shrink: 0; height: fit-content; margin-top: 0.15rem; }
         .tag-feature { background: rgba(245,197,24,0.12); color: var(--primary); }
         .tag-fix { background: rgba(52,211,153,0.12); color: var(--success); }
         .tag-design { background: rgba(129,140,248,0.12); color: #818cf8; }
         .tag-infra { background: rgba(148,163,184,0.12); color: var(--text-dim); }
-
         .changelog-text { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
-        .changelog-hash {
-            font-family: var(--font-mono); font-size: 0.65rem;
-            color: var(--text-muted); margin-top: 0.15rem;
-        }
-
-        .changelog-summary {
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem; display: flex; gap: 1.5rem;
-            flex-wrap: wrap;
-        }
+        .changelog-summary { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
         .summary-stat { text-align: center; }
         .summary-stat .num { font-size: 1.25rem; font-weight: 800; color: var(--primary); font-family: var(--font-mono); }
         .summary-stat .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -59,7 +32,7 @@
 </head>
 <body>
     <div class="changelog-container">
-        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <a href="/" class="back-link">← Back</a>
         <header>
             <h1><i data-lucide="file-text" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Changelog</h1>
             <p>What's new and improved</p>
@@ -67,74 +40,96 @@
         <div id="changelog-content"></div>
     </div>
     <script>
-        // Changelog data — generated from git history, filtered for public-safe entries
         const entries = [
-            { date: '2026-04-12', tag: 'feature', text: 'Anonymous-first flow: study without signing in, optional account creation after first session to save progress', hash: '---' },
-            { date: '2026-04-12', tag: 'feature', text: 'Question quality feedback: flag confusing, wrong, or irrelevant questions to improve AI generation over time', hash: '---' },
-            { date: '2026-04-12', tag: 'feature', text: 'AI-powered personalized weakness reports: Claude analyzes your wrong-answer patterns and generates actionable study recommendations', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Certification readiness score: AI estimates your readiness for Microsoft certifications based on study performance', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Socratic Mode: conversational AI coaching where you explain concepts and Claude guides you with probing questions', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Scenario-based questions: realistic workplace scenarios where you apply documentation knowledge to solve problems', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Curated Learning Paths: structured study sequences for AZ-900, AI-900, SC-900, and MS-900 certifications', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Session persistence: interrupted sessions are saved and can be resumed within 2 hours', hash: '---' },
-            { date: '2026-04-13', tag: 'design', text: 'Achievement toast notifications: celebratory gold-glow animations when badges are earned', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Session summary: question-by-question breakdown on results page showing what you got right and wrong', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Profile page: achievements gallery with earned/locked badges, certification readiness score, AI-powered weakness reports, streak and XP tracking', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Microsoft Learn search: find documentation directly from the app', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Share decks: generate shareable links for your flash card sessions', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Export data: download your study history as JSON', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Adaptive learning: AI adjusts question difficulty based on your performance patterns', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Teach-Back Mode: explain concepts in your own words and get AI evaluation', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Cross-document synthesis: questions that test understanding across multiple pages', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Learning retention tracking: measure how well you retain knowledge over time', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Difficulty calibration: see which topics are universally hardest across all users', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Hint system: eliminate two wrong answers to narrow your choices', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Timed mode: optional 30/60/90 second timer per card for exam simulation', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Keyboard shortcuts modal: press ? to see all shortcuts', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Haptic feedback on mobile for correct/incorrect answers', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Daily challenges: themed study challenges with bonus XP', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Study goals: set weekly and monthly session targets', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Leaderboard tiers: Bronze, Silver, Gold, Platinum rankings', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Knowledge decay modeling: track estimated retention per topic', hash: '---' },
-            { date: '2026-04-13', tag: 'infra', text: 'API rate limiting on all endpoints, AI endpoints limited to 10/min', hash: '---' },
-            { date: '2026-04-13', tag: 'infra', text: 'Server-side response caching for leaderboard and stats', hash: '---' },
-            { date: '2026-04-13', tag: 'infra', text: 'Input sanitization on all user-submitted data', hash: '---' },
-            { date: '2026-04-13', tag: 'infra', text: 'CI/CD pipeline with GitHub Actions for automated testing', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Settings page: 8 color themes (Pittsburgh, Midnight, Emerald, Crimson, Violet, Arctic, Sunset, Mono), font size toggle, study goals, daily challenge, data export', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Leaderboard page: ranked users with Bronze/Silver/Gold/Platinum tiers, XP, streaks, and badge counts', hash: '---' },
-            { date: '2026-04-13', tag: 'feature', text: 'Explanation TTS: read explanations aloud after answering', hash: '---' },
-            { date: '2026-04-12', tag: 'feature', text: 'Comprehensive test suite with 12 automated tests covering health, auth, endpoints, and proxy validation', hash: '75d767c' },
-            { date: '2026-04-12', tag: 'feature', text: 'Search Microsoft Learn documentation directly from the app', hash: '6ac4ee0' },
-            { date: '2026-04-12', tag: 'feature', text: 'Advanced analytics dashboard with weekly trends, hardest/strongest topics, and activity heatmap', hash: '0044980' },
-            { date: '2026-04-12', tag: 'feature', text: 'Export your study data as JSON or CSV', hash: 'd9ef60b' },
-            { date: '2026-04-12', tag: 'feature', text: 'Text-to-speech for questions using the Web Speech API', hash: '40a3294' },
-            { date: '2026-04-12', tag: 'feature', text: 'Share flash card decks with unique shareable codes', hash: '80ebfa8' },
-            { date: '2026-04-12', tag: 'feature', text: 'Offline mode with service worker caching for studying without internet', hash: 'dc3336e' },
-            { date: '2026-04-12', tag: 'feature', text: 'Gamification system: streaks, XP, 9 achievement badges, and leaderboard', hash: '8f6e8f5' },
-            { date: '2026-04-12', tag: 'feature', text: 'Multiple question types: true/false, fill-in-the-blank, and multiple choice mix', hash: '4de29a1' },
-            { date: '2026-04-12', tag: 'feature', text: 'Spaced repetition with SM-2 algorithm, dedicated review page, and due cards banner', hash: '6a9cd4d' },
-            { date: '2026-04-10', tag: 'design', text: 'Replaced all emoji icons with Lucide SVG icons for professional iconography', hash: 'b09ffed' },
-            { date: '2026-04-10', tag: 'design', text: 'Major UX overhaul: feedback banners, running score tally, loading timer, keyboard hints, Enter key support', hash: '42d97b4' },
-            { date: '2026-04-10', tag: 'design', text: 'Design overhaul: noise texture, gold accent lines, deeper blacks, distinctive card treatments', hash: '5bb33a1' },
-            { date: '2026-04-10', tag: 'design', text: 'Pittsburgh black and gold dark theme', hash: 'a08a45e' },
-            { date: '2026-04-10', tag: 'design', text: 'Moved sign in/out to side navigation with avatar display', hash: '09633d4' },
-            { date: '2026-04-09', tag: 'feature', text: 'User authentication: sign up, sign in, JWT sessions, user-scoped data with global-only aggregates', hash: '296236b' },
-            { date: '2026-04-09', tag: 'feature', text: 'Recent topics quick-access cards on home page', hash: '5d3a651' },
-            { date: '2026-04-09', tag: 'design', text: 'Chart.js font improvements and filter pills for trend/difficulty charts on history page', hash: '68a02c4' },
-            { date: '2026-04-09', tag: 'fix', text: 'Prevent skipping questions — must answer before proceeding', hash: 'c39071a' },
-            { date: '2026-04-09', tag: 'feature', text: 'Added 3-card session option for quick study', hash: '5aa993a' },
-            { date: '2026-04-09', tag: 'design', text: 'Replaced card flip with slide animations, added floating side nav and mobile bottom bar', hash: '8bb2139' },
-            { date: '2026-04-09', tag: 'feature', text: 'AI model disclaimer in footer for transparency', hash: 'e16ceb9' },
-            { date: '2026-04-09', tag: 'feature', text: 'Compare page: your performance vs all users per topic', hash: 'ed7e050' },
-            { date: '2026-04-09', tag: 'feature', text: 'Smart question deduplication — avoids repeating previously asked questions', hash: '23fdfe2' },
-            { date: '2026-04-09', tag: 'design', text: 'Updated fonts to DM Sans + JetBrains Mono', hash: '65bf8fa' },
-            { date: '2026-04-09', tag: 'feature', text: 'Individual question answer logging with per-topic stats', hash: '2949973' },
-            { date: '2026-04-09', tag: 'design', text: 'Modern card-style score history link below main content', hash: '51082f1' },
-            { date: '2026-04-09', tag: 'feature', text: 'Cookie consent banner with granular category controls', hash: '32f8d3e' },
-            { date: '2026-04-09', tag: 'design', text: 'Dark theme with compact layout', hash: 'e29601f' },
-            { date: '2026-04-09', tag: 'feature', text: 'AI-powered flash card generation using Claude, score tracking, history page with charts', hash: '43f3188' },
-            { date: '2026-04-09', tag: 'fix', text: 'Fixed flash card generation: replaced unreliable CORS proxy with server-side fetch, fixed card navigation bug, removed duplicate HTML/CSS', hash: 'd7cd289' },
-            { date: '2026-04-09', tag: 'infra', text: 'Initial release: Flash card generation from Microsoft Learn documentation', hash: 'bbfa3b5' },
+            // ── April 13, 2026 ──────────────────────────
+            { date: '2026-04-13', tag: 'fix', text: 'Changelog accessible from desktop nav Data popover' },
+            { date: '2026-04-13', tag: 'fix', text: 'Footer spacing consistent with page layout' },
+            { date: '2026-04-13', tag: 'fix', text: 'Recent topics limited to 5 items' },
+            { date: '2026-04-13', tag: 'fix', text: 'Sidebar height constrained to main column — no scrolling' },
+            { date: '2026-04-13', tag: 'infra', text: 'Shared theme.js applies saved theme on all pages instantly' },
+            { date: '2026-04-13', tag: 'design', text: 'Renamed default theme to "Hoist the Cone"' },
+            { date: '2026-04-13', tag: 'feature', text: 'GoPackGo theme: Green Bay Packers-inspired green and gold' },
+            { date: '2026-04-13', tag: 'fix', text: 'Achievement toasts only show for newly earned badges, not all' },
+            { date: '2026-04-13', tag: 'fix', text: 'Mobile hamburger menu now opens correctly' },
+            { date: '2026-04-13', tag: 'design', text: 'Nav revamp: icon-only with hover popovers, grouped items, tooltips — never scrolls' },
+            { date: '2026-04-13', tag: 'infra', text: 'Shared nav.js component injected on all pages' },
+            { date: '2026-04-13', tag: 'design', text: 'Nav dynamically aligns top and left with first content block on each page' },
+            { date: '2026-04-13', tag: 'design', text: 'Two-column layout: main quiz + sidebar for recent topics on desktop' },
+            { date: '2026-04-13', tag: 'design', text: 'Rebranded to "Good Better Best" with custom logo and favicon' },
+            { date: '2026-04-13', tag: 'feature', text: 'Settings page: 9 color themes, font size toggle, study goals, daily challenge, data export' },
+            { date: '2026-04-13', tag: 'feature', text: 'Leaderboard page with Bronze/Silver/Gold/Platinum tiers' },
+            { date: '2026-04-13', tag: 'feature', text: 'Explanation text-to-speech button' },
+            { date: '2026-04-13', tag: 'feature', text: 'Hint system: eliminate two wrong answers' },
+            { date: '2026-04-13', tag: 'feature', text: 'Timed mode: 30/60/90 second timer per card for exam simulation' },
+            { date: '2026-04-13', tag: 'feature', text: 'Keyboard shortcuts modal (press ? to view)' },
+            { date: '2026-04-13', tag: 'feature', text: 'Haptic feedback on mobile for correct/incorrect answers' },
+            { date: '2026-04-13', tag: 'infra', text: 'API rate limiting, server-side response caching, input sanitization' },
+            { date: '2026-04-13', tag: 'infra', text: 'CI/CD pipeline with GitHub Actions' },
+            { date: '2026-04-13', tag: 'fix', text: 'Robust correct answer resolution for all question types from Claude' },
+            { date: '2026-04-13', tag: 'feature', text: 'Adaptive learning: AI adjusts question difficulty based on your performance' },
+            { date: '2026-04-13', tag: 'feature', text: 'Learning retention tracking: compare first vs latest attempts' },
+            { date: '2026-04-13', tag: 'feature', text: 'Teach-Back Mode: explain concepts in your own words, AI evaluates' },
+            { date: '2026-04-13', tag: 'feature', text: 'Cross-document synthesis questions from multiple pages' },
+            { date: '2026-04-13', tag: 'feature', text: 'Microsoft Learn search bar on home page' },
+            { date: '2026-04-13', tag: 'feature', text: 'Share Deck button with unique shareable links' },
+            { date: '2026-04-13', tag: 'feature', text: 'Export study data as JSON or CSV' },
+            { date: '2026-04-13', tag: 'feature', text: 'Daily challenges with themed topics and bonus XP' },
+            { date: '2026-04-13', tag: 'feature', text: 'Study goals: set and track weekly/monthly session targets' },
+            { date: '2026-04-13', tag: 'feature', text: 'Knowledge decay modeling: estimated retention per topic' },
+            { date: '2026-04-13', tag: 'fix', text: 'Service worker switched to network-first caching' },
+
+            // ── April 12, 2026 ──────────────────────────
+            { date: '2026-04-12', tag: 'feature', text: '29 unlockable achievement badges across 6 categories' },
+            { date: '2026-04-12', tag: 'feature', text: 'Profile page: achievements gallery, certification readiness, AI weakness reports' },
+            { date: '2026-04-12', tag: 'feature', text: 'Content quality scoring: warns when source page has limited content' },
+            { date: '2026-04-12', tag: 'fix', text: 'Learning path links auto-populate URL and start generating' },
+            { date: '2026-04-12', tag: 'feature', text: 'User friction telemetry: track hesitation, abandonment, answer timing' },
+            { date: '2026-04-12', tag: 'feature', text: 'Session summary: question-by-question breakdown on results page' },
+            { date: '2026-04-12', tag: 'feature', text: 'Achievement toast notifications with gold-glow animation' },
+            { date: '2026-04-12', tag: 'feature', text: 'Session persistence: save and resume interrupted sessions' },
+            { date: '2026-04-12', tag: 'feature', text: 'Curated learning paths for AZ-900, AI-900, SC-900, MS-900' },
+            { date: '2026-04-12', tag: 'feature', text: 'Scenario-based questions: realistic workplace problem-solving' },
+            { date: '2026-04-12', tag: 'feature', text: 'Socratic Mode: conversational AI coaching with Claude' },
+            { date: '2026-04-12', tag: 'feature', text: 'AI-powered certification readiness score' },
+            { date: '2026-04-12', tag: 'feature', text: 'AI-powered personalized weakness reports' },
+            { date: '2026-04-12', tag: 'feature', text: 'Question quality feedback: flag confusing or wrong questions' },
+            { date: '2026-04-12', tag: 'feature', text: 'Anonymous-first flow: study without signing in' },
+            { date: '2026-04-12', tag: 'feature', text: 'Public changelog page' },
+            { date: '2026-04-12', tag: 'infra', text: 'Jest test suite: 12 automated tests' },
+            { date: '2026-04-12', tag: 'feature', text: 'Microsoft Learn documentation search API' },
+            { date: '2026-04-12', tag: 'feature', text: 'Advanced analytics: weekly trends, hardest/strongest topics, activity heatmap' },
+            { date: '2026-04-12', tag: 'feature', text: 'Text-to-speech for questions using Web Speech API' },
+            { date: '2026-04-12', tag: 'feature', text: 'Shareable decks with unique codes' },
+            { date: '2026-04-12', tag: 'feature', text: 'Offline mode with service worker caching' },
+            { date: '2026-04-12', tag: 'feature', text: 'Gamification: streaks, XP, achievement badges, leaderboard' },
+            { date: '2026-04-12', tag: 'feature', text: 'Multiple question types: true/false, fill-in-the-blank, scenario, multiple choice' },
+            { date: '2026-04-12', tag: 'feature', text: 'Spaced repetition with SM-2 algorithm and dedicated review page' },
+
+            // ── April 10, 2026 ──────────────────────────
+            { date: '2026-04-10', tag: 'design', text: 'Lucide SVG icons replace all emoji for professional iconography' },
+            { date: '2026-04-10', tag: 'design', text: 'UX overhaul: feedback banners, running score, loading timer, keyboard hints' },
+            { date: '2026-04-10', tag: 'design', text: 'Design overhaul: noise texture, gold accents, deeper blacks, distinctive cards' },
+            { date: '2026-04-10', tag: 'design', text: 'Auth moved to side nav with avatar display' },
+
+            // ── April 9, 2026 ───────────────────────────
+            { date: '2026-04-09', tag: 'design', text: 'Pittsburgh black and gold dark theme' },
+            { date: '2026-04-09', tag: 'feature', text: 'User authentication: signup, login, JWT sessions, user-scoped data' },
+            { date: '2026-04-09', tag: 'feature', text: 'Recent topics quick-access cards on home page' },
+            { date: '2026-04-09', tag: 'design', text: 'Chart.js font improvements and filter pills on history page' },
+            { date: '2026-04-09', tag: 'fix', text: 'Must answer before proceeding — no skipping questions' },
+            { date: '2026-04-09', tag: 'design', text: 'Slide animations replace card flip, floating side nav, mobile bottom bar' },
+            { date: '2026-04-09', tag: 'feature', text: 'AI model disclaimer in footer for transparency' },
+            { date: '2026-04-09', tag: 'feature', text: 'Compare page: your performance vs all users per topic' },
+            { date: '2026-04-09', tag: 'feature', text: 'Smart question deduplication via Claude' },
+            { date: '2026-04-09', tag: 'design', text: 'DM Sans + JetBrains Mono fonts' },
+            { date: '2026-04-09', tag: 'feature', text: 'Individual question answer logging with per-topic stats' },
+            { date: '2026-04-09', tag: 'feature', text: 'Cookie consent banner with granular category controls' },
+            { date: '2026-04-09', tag: 'design', text: 'Dark theme with compact layout' },
+            { date: '2026-04-09', tag: 'feature', text: 'AI-powered flash card generation using Claude' },
+            { date: '2026-04-09', tag: 'feature', text: 'Score tracking and history page with charts' },
+            { date: '2026-04-09', tag: 'infra', text: 'Deployed to Vercel (frontend) + Railway (API + PostgreSQL)' },
+            { date: '2026-04-09', tag: 'fix', text: 'Replaced dead CORS proxy with server-side fetch, fixed card navigation' },
+            { date: '2026-04-09', tag: 'infra', text: 'Initial release: flash card generation from Microsoft Learn documentation' },
         ];
 
         function render() {
@@ -142,51 +137,37 @@
             const features = entries.filter(e => e.tag === 'feature').length;
             const fixes = entries.filter(e => e.tag === 'fix').length;
             const design = entries.filter(e => e.tag === 'design').length;
+            const infra = entries.filter(e => e.tag === 'infra').length;
 
-            let html = `
-                <div class="changelog-summary">
-                    <div class="summary-stat"><div class="num">${entries.length}</div><div class="label">Updates</div></div>
-                    <div class="summary-stat"><div class="num">${features}</div><div class="label">Features</div></div>
-                    <div class="summary-stat"><div class="num">${design}</div><div class="label">Design</div></div>
-                    <div class="summary-stat"><div class="num">${fixes}</div><div class="label">Fixes</div></div>
-                </div>
-            `;
+            let html = `<div class="changelog-summary">
+                <div class="summary-stat"><div class="num">${entries.length}</div><div class="label">Updates</div></div>
+                <div class="summary-stat"><div class="num">${features}</div><div class="label">Features</div></div>
+                <div class="summary-stat"><div class="num">${design}</div><div class="label">Design</div></div>
+                <div class="summary-stat"><div class="num">${fixes}</div><div class="label">Fixes</div></div>
+                <div class="summary-stat"><div class="num">${infra}</div><div class="label">Infra</div></div>
+            </div>`;
 
-            // Group by date
             const grouped = {};
-            entries.forEach(e => {
-                if (!grouped[e.date]) grouped[e.date] = [];
-                grouped[e.date].push(e);
-            });
-
-            const tagClasses = { feature: 'tag-feature', fix: 'tag-fix', design: 'tag-design', infra: 'tag-infra' };
+            entries.forEach(e => { if (!grouped[e.date]) grouped[e.date] = []; grouped[e.date].push(e); });
+            const tagCls = { feature: 'tag-feature', fix: 'tag-fix', design: 'tag-design', infra: 'tag-infra' };
 
             for (const [date, items] of Object.entries(grouped)) {
                 const d = new Date(date + 'T12:00:00');
-                const formatted = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                html += `<div class="changelog-date-group"><div class="changelog-date">${formatted}</div>`;
+                const fmt = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                html += `<div class="changelog-date-group"><div class="changelog-date">${fmt}</div>`;
                 for (const item of items) {
-                    html += `
-                        <div class="changelog-entry">
-                            <span class="changelog-tag ${tagClasses[item.tag] || 'tag-infra'}">${item.tag}</span>
-                            <div>
-                                <div class="changelog-text">${item.text}</div>
-                                <div class="changelog-hash">${item.hash}</div>
-                            </div>
-                        </div>
-                    `;
+                    html += `<div class="changelog-entry"><span class="changelog-tag ${tagCls[item.tag] || 'tag-infra'}">${item.tag}</span><div class="changelog-text">${item.text}</div></div>`;
                 }
                 html += '</div>';
             }
-
             container.innerHTML = html;
         }
-
         render();
     </script>
-    <script>lucide.createIcons();</script>
+    <script src="config.js"></script>
+    <script src="consent.js"></script>
+    <script src="auth.js"></script>
     <script src="nav.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
-
-

@@ -43,6 +43,20 @@ class FlashCardApp {
 
         // Keyboard navigation
         document.addEventListener('keydown', (e) => this.handleKeydown(e));
+
+        // Text-to-speech
+        document.getElementById('tts-question')?.addEventListener('click', () => this.speakText());
+    }
+
+    speakText() {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const text = document.getElementById('question-text')?.textContent;
+        if (!text) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        window.speechSynthesis.speak(utterance);
     }
 
     initializeKeyboardNavigation() {

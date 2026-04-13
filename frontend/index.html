@@ -128,7 +128,12 @@
                     <div id="answer-feedback" class="answer-feedback hidden"></div>
                     <div class="card-content">
                         <div class="question-side" aria-live="polite">
-                            <h3>Question</h3>
+                            <div class="question-header">
+                                <h3>Question</h3>
+                                <button class="tts-btn" id="tts-question" title="Read aloud" aria-label="Read question aloud">
+                                    <i data-lucide="volume-2" class="icon"></i>
+                                </button>
+                            </div>
                             <p id="question-text"></p>
 
                             <div class="choices-container" role="radiogroup" aria-labelledby="question-text">

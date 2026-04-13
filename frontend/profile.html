@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .profile-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+
+        /* Streak & XP bar */
+        .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-bottom: 1.25rem; }
+        .profile-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; text-align: center; position: relative; overflow: hidden; }
+        .profile-stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(245,197,24,0.15), transparent); }
+        .profile-stat .val { font-size: 1.5rem; font-weight: 800; color: var(--primary); font-family: var(--font-mono); }
+        .profile-stat .lbl { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.2rem; }
+
+        /* Cert readiness */
+        .cert-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; position: relative; overflow: hidden; }
+        .cert-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--primary), transparent); }
+        .cert-score { font-size: 2.5rem; font-weight: 800; font-family: var(--font-mono); color: var(--primary); text-align: center; margin: 0.5rem 0; }
+        .cert-name { text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+        .cert-assessment { font-size: 0.78rem; color: var(--text-dim); line-height: 1.6; text-align: center; }
+        .cert-loading { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem; }
+
+        /* Badges */
+        .badges-section { margin-bottom: 1.25rem; }
+        .badges-title { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+        .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
+        .badge-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 0.85rem; text-align: center; position: relative; overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .badge-card:hover { transform: translateY(-2px); border-color: rgba(245,197,24,0.2); }
+        .badge-card.earned { border-color: rgba(245,197,24,0.25); }
+        .badge-card.earned::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--primary), transparent); }
+        .badge-card.locked { opacity: 0.45; }
+        .badge-card.locked:hover { opacity: 0.6; }
+        .badge-icon { font-size: 1.5rem; margin-bottom: 0.3rem; display: block; }
+        .badge-card.locked .badge-icon { filter: grayscale(1); }
+        .badge-name { font-size: 0.75rem; font-weight: 700; color: var(--text); margin-bottom: 0.15rem; }
+        .badge-card.locked .badge-name { color: var(--text-muted); }
+        .badge-desc { font-size: 0.65rem; color: var(--text-muted); line-height: 1.4; }
+        .badge-earned-date { font-size: 0.6rem; color: var(--primary); font-family: var(--font-mono); margin-top: 0.3rem; }
+        .badge-lock-hint { font-size: 0.6rem; color: var(--text-muted); font-style: italic; margin-top: 0.3rem; }
+
+        .empty-state { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; }
+
+        /* Weakness report */
+        .weakness-report p { font-size: 0.8rem; color: var(--text-dim); line-height: 1.65; margin-bottom: 0.6rem; }
+        .weakness-report p:last-child { margin-bottom: 0; }
+        .weakness-topics { border-top: 1px solid var(--border-subtle); padding-top: 0.5rem; }
+        .weakness-topic-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; border-bottom: 1px solid var(--border-subtle); }
+        .weakness-topic-row:last-child { border-bottom: none; }
+        .weakness-topic-name { font-size: 0.75rem; color: var(--text-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .weakness-topic-acc { font-size: 0.75rem; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0; margin-left: 0.5rem; }
+
+        /* Animations */
+        @keyframes badgeReveal { from { opacity: 0; transform: scale(0.8) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .badge-card { animation: badgeReveal 0.4s cubic-bezier(0.34,1.56,0.64,1) backwards; }
+        .badge-card:nth-child(1) { animation-delay: 0.05s; }
+        .badge-card:nth-child(2) { animation-delay: 0.1s; }
+        .badge-card:nth-child(3) { animation-delay: 0.15s; }
+        .badge-card:nth-child(4) { animation-delay: 0.2s; }
+        .badge-card:nth-child(5) { animation-delay: 0.25s; }
+        .badge-card:nth-child(6) { animation-delay: 0.3s; }
+        .badge-card:nth-child(7) { animation-delay: 0.35s; }
+        .badge-card:nth-child(8) { animation-delay: 0.4s; }
+        .badge-card:nth-child(9) { animation-delay: 0.45s; }
+
+        @keyframes certPulse { 0%,100% { text-shadow: 0 0 0 transparent; } 50% { text-shadow: 0 0 20px rgba(245,197,24,0.3); } }
+        .cert-score { animation: certPulse 2s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header>
+            <h1><i data-lucide="trophy" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Your Profile</h1>
+            <p>Achievements, streaks, and certification readiness</p>
+        </header>
+        <div id="profile-stats" class="profile-stats"></div>
+        <div id="cert-section"></div>
+        <div id="weakness-section"></div>
+        <div id="badges-earned" class="badges-section"></div>
+        <div id="badges-locked" class="badges-section"></div>
+    </div>
+    <script src="config.js"></script>
+    <script src="consent.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        const API_BASE = window.__API_BASE__ || '';
+
+        const BADGE_ICONS = {
+            first_session: '🎯', streak_3: '🔥', streak_7: '⚡', streak_30: '👑',
+            perfect_score: '⭐', ten_sessions: '🎯', fifty_questions: '📖',
+            five_topics: '🧭', review_master: '🧠',
+        };
+
+        async function loadProfile() {
+            if (!Auth.isLoggedIn()) {
+                Auth.requireAuth(loadProfile);
+                return;
+            }
+
+            // Load gamification profile
+            try {
+                const res = await Auth.apiFetch(`${API_BASE}/api/gamification/profile`);
+                const data = await res.json();
+
+                // Stats
+                document.getElementById('profile-stats').innerHTML = `
+                    <div class="profile-stat"><div class="val">${data.streak?.current_streak || 0}</div><div class="lbl">Day Streak</div></div>
+                    <div class="profile-stat"><div class="val">${data.streak?.total_xp || 0}</div><div class="lbl">Total XP</div></div>
+                    <div class="profile-stat"><div class="val">${data.achievements?.length || 0}/${Object.keys(data.badges || {}).length}</div><div class="lbl">Badges</div></div>
+                `;
+
+                // Earned badges
+                const earned = data.achievements || [];
+                const allBadges = data.badges || {};
+                const earnedKeys = new Set(earned.map(a => a.key));
+
+                if (earned.length > 0) {
+                    document.getElementById('badges-earned').innerHTML = `
+                        <div class="badges-title">Earned Badges</div>
+                        <div class="badges-grid">
+                            ${earned.map(a => `
+                                <div class="badge-card earned">
+                                    <span class="badge-icon">${BADGE_ICONS[a.key] || '🏅'}</span>
+                                    <div class="badge-name">${a.name}</div>
+                                    <div class="badge-desc">${a.desc}</div>
+                                    <div class="badge-earned-date">${new Date(a.earnedAt).toLocaleDateString()}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                // Locked badges
+                const locked = Object.entries(allBadges).filter(([k]) => !earnedKeys.has(k));
+                if (locked.length > 0) {
+                    document.getElementById('badges-locked').innerHTML = `
+                        <div class="badges-title">Badges to Unlock</div>
+                        <div class="badges-grid">
+                            ${locked.map(([key, badge]) => `
+                                <div class="badge-card locked">
+                                    <span class="badge-icon">${BADGE_ICONS[key] || '🔒'}</span>
+                                    <div class="badge-name">${badge.name}</div>
+                                    <div class="badge-desc">${badge.desc}</div>
+                                    <div class="badge-lock-hint">How: ${badge.desc}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Profile load error:', err);
+            }
+
+            // Load certification readiness
+            const certSection = document.getElementById('cert-section');
+            certSection.innerHTML = '<div class="cert-loading">Analyzing your certification readiness...</div>';
+            try {
+                const certRes = await Auth.apiFetch(`${API_BASE}/api/certification-readiness`);
+                const cert = await certRes.json();
+
+                if (cert.score !== undefined) {
+                    const scoreColor = cert.score >= 70 ? 'var(--success)' : cert.score >= 40 ? 'var(--warning)' : 'var(--error)';
+                    certSection.innerHTML = `
+                        <div class="cert-card">
+                            <div class="badges-title" style="text-align:center;margin-bottom:0.5rem;">Certification Readiness</div>
+                            <div class="cert-score" style="color:${scoreColor}">${cert.score}%</div>
+                            ${cert.nearestCert ? `<div class="cert-name">${cert.nearestCert}</div>` : ''}
+                            <div class="cert-assessment">${cert.assessment || ''}</div>
+                        </div>
+                    `;
+                } else {
+                    certSection.innerHTML = `
+                        <div class="cert-card">
+                            <div class="cert-assessment">${cert.assessment || 'Complete more study sessions to get a readiness score.'}</div>
+                        </div>
+                    `;
+                }
+            } catch {
+                certSection.innerHTML = '';
+            }
+
+            // Load weakness report
+            const weakSection = document.getElementById('weakness-section');
+            weakSection.innerHTML = '<div class="cert-loading">Generating your personalized study recommendations...</div>';
+            try {
+                const weakRes = await Auth.apiFetch(`${API_BASE}/api/weakness-report`);
+                const weak = await weakRes.json();
+
+                if (weak.report) {
+                    const paragraphs = weak.report.split('\n\n').filter(p => p.trim());
+                    weakSection.innerHTML = `
+                        <div class="cert-card" style="margin-top:1rem;">
+                            <div class="badges-title" style="margin-bottom:0.6rem;">
+                                <i data-lucide="target" style="width:14px;height:14px;stroke:var(--primary);vertical-align:-2px"></i>
+                                Study Recommendations
+                            </div>
+                            <div class="weakness-report">
+                                ${paragraphs.map(p => `<p>${p}</p>`).join('')}
+                            </div>
+                            ${weak.data?.topicAccuracy?.length ? `
+                                <div class="weakness-topics">
+                                    <div class="badges-title" style="margin-top:0.75rem;margin-bottom:0.4rem;">Weakest Topics</div>
+                                    ${weak.data.topicAccuracy.map(t => `
+                                        <div class="weakness-topic-row">
+                                            <span class="weakness-topic-name">${t.page_title}</span>
+                                            <span class="weakness-topic-acc" style="color:${Number(t.accuracy) >= 60 ? 'var(--warning)' : 'var(--error)'}">${t.accuracy}%</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                } else {
+                    weakSection.innerHTML = '';
+                }
+            } catch {
+                weakSection.innerHTML = '';
+            }
+        }
+
+        loadProfile();
+    </script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -566,10 +566,42 @@ module.exports = {
   getWeaknessData,
   getCertificationReadiness,
   saveTelemetry,
+  getLearningProfile,
 };
 
 // ── Telemetry ──────────────────────────────────────────
 async function saveTelemetry({ userId, eventType, eventData, url }) {
   const db = getSql();
   await db`INSERT INTO telemetry (user_id, event_type, event_data, url) VALUES (${userId || null}, ${eventType}, ${JSON.stringify(eventData || {})}, ${url || null})`;
+}
+
+// ── Learning Profile ───────────────────────────────────
+async function getLearningProfile(userId) {
+  const db = getSql();
+  // Analyze user's performance patterns to build a learning profile
+  const [diffStats] = await db`
+    SELECT
+      ROUND(AVG(CASE WHEN difficulty='beginner' AND is_correct THEN 100 WHEN difficulty='beginner' THEN 0 END)) as beginner_acc,
+      ROUND(AVG(CASE WHEN difficulty='intermediate' AND is_correct THEN 100 WHEN difficulty='intermediate' THEN 0 END)) as intermediate_acc,
+      ROUND(AVG(CASE WHEN difficulty='advanced' AND is_correct THEN 100 WHEN difficulty='advanced' THEN 0 END)) as advanced_acc,
+      COUNT(*) as total_answers
+    FROM question_logs WHERE user_id = ${userId}
+  `;
+  const [speedStats] = await db`
+    SELECT COUNT(*) as total FROM telemetry
+    WHERE user_id = ${userId} AND event_type = 'answer_submitted'
+    AND (event_data->>'hesitationMs')::int < 5000
+  `;
+  const fastAnswerRatio = diffStats.total_answers > 0 ? Number(speedStats.total) / Number(diffStats.total_answers) : 0;
+
+  // Determine recommended difficulty
+  let recommended = 'intermediate';
+  const bAcc = Number(diffStats.beginner_acc || 0);
+  const iAcc = Number(diffStats.intermediate_acc || 0);
+  const aAcc = Number(diffStats.advanced_acc || 0);
+  if (bAcc >= 80 && iAcc >= 70) recommended = 'advanced';
+  else if (bAcc >= 80 && iAcc < 50) recommended = 'intermediate';
+  else if (bAcc < 60) recommended = 'beginner';
+
+  return { beginner_acc: bAcc, intermediate_acc: iAcc, advanced_acc: aAcc, total_answers: Number(diffStats.total_answers), fast_answer_ratio: fastAnswerRatio, recommended_difficulty: recommended };
 }

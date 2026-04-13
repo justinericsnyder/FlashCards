@@ -55,13 +55,23 @@
                         <input
                             type="url"
                             id="doc-url"
-                            placeholder="https://docs.microsoft.com/en-us/azure/..."
+                            placeholder="https://learn.microsoft.com/en-us/..."
                             aria-describedby="url-help"
                             required
                         >
                         <small id="url-help" class="help-text">
-                            Enter any Microsoft Learn or Microsoft Docs URL to generate flash cards from its content
+                            Paste a URL or search Microsoft Learn below
                         </small>
+                    </div>
+
+                    <div class="search-group" id="search-group">
+                        <div class="search-input-row">
+                            <input type="text" id="doc-search" placeholder="Search Microsoft Learn..." autocomplete="off">
+                            <button class="btn btn-secondary" id="search-btn" type="button">
+                                <i data-lucide="search" class="icon"></i>
+                            </button>
+                        </div>
+                        <div id="search-results" class="search-results hidden"></div>
                     </div>
 
                     <div class="controls">
@@ -220,13 +230,17 @@
                         <i data-lucide="plus" class="icon"></i>
                         New Session
                     </button>
-                    <a href="/history.html" class="btn btn-secondary">
-                        <i data-lucide="bar-chart-3" class="icon"></i>
-                        Score History
-                    </a>
+                    <button id="share-deck-btn" class="btn btn-secondary" aria-label="Share this deck">
+                        <i data-lucide="link" class="icon"></i>
+                        Share Deck
+                    </button>
+                    <button id="export-json-btn" class="btn btn-secondary" aria-label="Export as JSON">
+                        <i data-lucide="download" class="icon"></i>
+                        Export
+                    </button>
                     <button id="share-results" class="btn btn-secondary" aria-label="Share your results">
                         <i data-lucide="share-2" class="icon"></i>
-                        Share Results
+                        Share Score
                     </button>
                 </div>
             </section>

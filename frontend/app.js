@@ -24,16 +24,36 @@ class FlashCardApp {
     handleUrlParam() {
         const params = new URLSearchParams(window.location.search);
         const url = params.get('url');
+        const deckCode = params.get('deck');
+
+        if (deckCode) {
+            window.history.replaceState({}, '', '/');
+            this.loadSharedDeck(deckCode);
+            return;
+        }
+
         if (url) {
             const input = document.getElementById('doc-url');
             if (input) {
                 input.value = url;
-                // Auto-generate after a short delay so the page finishes loading
                 setTimeout(() => this.generateCards(), 500);
             }
-            // Clean the URL without reloading
             window.history.replaceState({}, '', '/');
         }
+    }
+
+    async loadSharedDeck(code) {
+        try {
+            const res = await fetch(`${API_BASE}/api/decks/${code}`);
+            if (!res.ok) { this.showError('Shared deck not found'); return; }
+            const deck = await res.json();
+            const cards = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
+            if (!cards?.length) { this.showError('Shared deck is empty'); return; }
+            this.flashCards = cards;
+            this.currentPageTitle = deck.page_title || 'Shared Deck';
+            if (deck.url) document.getElementById('doc-url').value = deck.url;
+            this.startFlashCardSession();
+        } catch { this.showError('Could not load shared deck'); }
     }
 
     initTelemetry() {
@@ -148,6 +168,10 @@ class FlashCardApp {
         document.getElementById('restart').addEventListener('click', () => this.restartSession());
         document.getElementById('new-session').addEventListener('click', () => this.newSession());
         document.getElementById('share-results').addEventListener('click', () => this.shareResults());
+        document.getElementById('share-deck-btn')?.addEventListener('click', () => this.shareDeck());
+        document.getElementById('export-json-btn')?.addEventListener('click', () => this.exportData());
+        document.getElementById('search-btn')?.addEventListener('click', () => this.searchDocs());
+        document.getElementById('doc-search')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.searchDocs(); } });
 
         // Choice selection
         document.addEventListener('click', (e) => {
@@ -1173,18 +1197,67 @@ class FlashCardApp {
     shareResults() {
         const total = this.flashCards.length;
         const score = Math.round((this.correctAnswers / total) * 100);
-        const text = `I just scored ${score}% on Microsoft Learn Flash Cards! 📚\n\nCorrect: ${this.correctAnswers}/${total}\n\nTry it yourself: [Your App URL]`;
-
+        const text = `I scored ${score}% on Learn Flash Cards!\nCorrect: ${this.correctAnswers}/${total}\n\nhttps://ms-learn-flashcards.vercel.app`;
         if (navigator.share) {
-            navigator.share({
-                title: 'My Flash Cards Score',
-                text: text,
-            });
+            navigator.share({ title: 'My Flash Cards Score', text });
         } else {
-            // Fallback: copy to clipboard
-            navigator.clipboard.writeText(text).then(() => {
-                this.showError('Results copied to clipboard!');
+            navigator.clipboard.writeText(text).then(() => this.showError('Results copied to clipboard!'));
+        }
+    }
+
+    async shareDeck() {
+        if (!Auth.isLoggedIn()) { Auth.requireAuth(() => this.shareDeck()); return; }
+        if (!this.flashCards.length) return;
+        const url = document.getElementById('doc-url').value.trim();
+        const difficulty = document.getElementById('difficulty').value;
+        try {
+            const res = await Auth.apiFetch(`${API_BASE}/api/decks/share`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, pageTitle: this.currentPageTitle, cards: this.flashCards, difficulty }),
             });
+            const data = await res.json();
+            const shareUrl = `${window.location.origin}/?deck=${data.share_code}`;
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(shareUrl);
+                this.showError('Share link copied to clipboard!');
+            }
+        } catch { this.showError('Could not share deck'); }
+    }
+
+    exportData() {
+        if (!Auth.isLoggedIn()) { Auth.requireAuth(() => this.exportData()); return; }
+        window.open(`${API_BASE}/api/export/json`, '_blank');
+    }
+
+    async searchDocs() {
+        const query = document.getElementById('doc-search')?.value?.trim();
+        if (!query || query.length < 2) return;
+        const resultsEl = document.getElementById('search-results');
+        resultsEl.classList.remove('hidden');
+        resultsEl.innerHTML = '<div style="padding:0.5rem;color:var(--text-muted);font-size:0.75rem;">Searching...</div>';
+        try {
+            const res = await fetch(`${API_BASE}/api/search-docs?q=${encodeURIComponent(query)}`);
+            const results = await res.json();
+            if (!results.length) {
+                resultsEl.innerHTML = '<div style="padding:0.5rem;color:var(--text-muted);font-size:0.75rem;">No results found</div>';
+                return;
+            }
+            resultsEl.innerHTML = results.slice(0, 6).map(r => `
+                <div class="search-result-item" data-url="${r.url}">
+                    <div class="search-result-title">${r.title}</div>
+                    <div class="search-result-desc">${(r.description || '').substring(0, 100)}</div>
+                </div>
+            `).join('');
+            resultsEl.querySelectorAll('.search-result-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.getElementById('doc-url').value = item.dataset.url;
+                    resultsEl.classList.add('hidden');
+                    document.getElementById('doc-search').value = '';
+                });
+            });
+        } catch {
+            resultsEl.innerHTML = '<div style="padding:0.5rem;color:var(--text-muted);font-size:0.75rem;">Search failed</div>';
         }
     }
 

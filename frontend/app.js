@@ -1031,6 +1031,12 @@ class FlashCardApp {
                         scorePct: score,
                         difficulty,
                     }),
+                }).then(res => res?.json()).then(data => {
+                    if (data?.newBadges?.length) {
+                        data.newBadges.forEach((badge, i) => {
+                            setTimeout(() => this.showAchievementToast(badge), i * 1500);
+                        });
+                    }
                 }).catch(err => console.warn('Could not save score:', err));
             }
         };
@@ -1097,6 +1103,26 @@ class FlashCardApp {
                 section.style.opacity = '';
             });
         document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    showAchievementToast(badge) {
+        const toast = document.createElement('div');
+        toast.className = 'achievement-toast';
+        toast.innerHTML = `
+            <div class="achievement-toast-inner">
+                <div class="achievement-toast-icon">🏆</div>
+                <div class="achievement-toast-text">
+                    <strong>${badge.name}</strong>
+                    <span>${badge.desc}</span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 4000);
     }
 
     showSignUpPrompt(onSignUp) {

@@ -21,6 +21,7 @@
                 <a href="/history.html" class="popover-item"><i data-lucide="bar-chart-3" class="pop-icon"></i> History</a>
                 <a href="/topics.html" class="popover-item"><i data-lucide="layers" class="pop-icon"></i> Topics</a>
                 <a href="/compare.html" class="popover-item"><i data-lucide="git-compare-arrows" class="pop-icon"></i> Compare</a>
+                <a href="/changelog.html" class="popover-item"><i data-lucide="file-text" class="pop-icon"></i> Changelog</a>
             </div></div>
         </div>
         <div class="side-nav-spacer"></div>

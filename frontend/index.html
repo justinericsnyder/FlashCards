@@ -272,69 +272,66 @@
         </div><!-- /app-layout -->
 
         <nav class="side-nav" aria-label="App navigation">
-            <a href="/" class="side-nav-item" title="Home">
+            <a href="/" class="side-nav-item" title="Home" data-active="home">
                 <i data-lucide="home" class="side-nav-icon"></i>
-                <span class="side-nav-label">Home</span>
             </a>
-            <a href="/review.html" class="side-nav-item" title="Spaced Review" id="review-nav-item">
+            <a href="/review.html" class="side-nav-item" title="Review" data-active="review">
                 <i data-lucide="brain" class="side-nav-icon"></i>
-                <span class="side-nav-label">Review</span>
             </a>
-            <a href="/paths.html" class="side-nav-item" title="Learning Paths">
-                <i data-lucide="route" class="side-nav-icon"></i>
-                <span class="side-nav-label">Paths</span>
-            </a>
-            <a href="/profile.html" class="side-nav-item" title="Profile & Achievements">
+            <a href="/profile.html" class="side-nav-item" title="Profile" data-active="profile">
                 <i data-lucide="trophy" class="side-nav-icon"></i>
-                <span class="side-nav-label">Profile</span>
             </a>
-            <div class="side-nav-divider desktop-only"></div>
-            <a href="/history.html" class="side-nav-item desktop-only" title="Score History">
-                <i data-lucide="bar-chart-3" class="side-nav-icon"></i>
-                <span class="side-nav-label">History</span>
-            </a>
-            <a href="/topics.html" class="side-nav-item desktop-only" title="Topic Progress">
-                <i data-lucide="layers" class="side-nav-icon"></i>
-                <span class="side-nav-label">Topics</span>
-            </a>
-            <a href="/compare.html" class="side-nav-item desktop-only" title="Compare Performance">
-                <i data-lucide="git-compare-arrows" class="side-nav-icon"></i>
-                <span class="side-nav-label">Compare</span>
-            </a>
-            <a href="/socratic.html" class="side-nav-item desktop-only" title="Socratic Mode">
-                <i data-lucide="message-circle" class="side-nav-icon"></i>
-                <span class="side-nav-label">Coach</span>
-            </a>
-            <a href="/leaderboard.html" class="side-nav-item desktop-only" title="Leaderboard">
-                <i data-lucide="crown" class="side-nav-icon"></i>
-                <span class="side-nav-label">Ranks</span>
-            </a>
-            <a href="/settings.html" class="side-nav-item desktop-only" title="Settings">
-                <i data-lucide="sliders-horizontal" class="side-nav-icon"></i>
-                <span class="side-nav-label">Settings</span>
-            </a>
-            <a href="/changelog.html" class="side-nav-item desktop-only" title="Changelog">
-                <i data-lucide="file-text" class="side-nav-icon"></i>
-                <span class="side-nav-label">Changes</span>
-            </a>
-            <div class="side-nav-divider desktop-only"></div>
-            <div id="user-info" class="side-nav-item side-nav-user desktop-only" title="Account"></div>
 
-            <!-- Mobile "More" menu trigger -->
+            <!-- Expandable group: Learn -->
+            <div class="side-nav-group">
+                <button class="side-nav-item side-nav-trigger" title="Learn" aria-expanded="false">
+                    <i data-lucide="book-open" class="side-nav-icon"></i>
+                </button>
+                <div class="side-nav-popover">
+                    <a href="/paths.html" class="popover-item"><i data-lucide="route" class="pop-icon"></i> Learning Paths</a>
+                    <a href="/socratic.html" class="popover-item"><i data-lucide="message-circle" class="pop-icon"></i> AI Coach</a>
+                    <a href="/leaderboard.html" class="popover-item"><i data-lucide="crown" class="pop-icon"></i> Leaderboard</a>
+                </div>
+            </div>
+
+            <!-- Expandable group: Data -->
+            <div class="side-nav-group">
+                <button class="side-nav-item side-nav-trigger" title="Data" aria-expanded="false">
+                    <i data-lucide="bar-chart-3" class="side-nav-icon"></i>
+                </button>
+                <div class="side-nav-popover">
+                    <a href="/history.html" class="popover-item"><i data-lucide="bar-chart-3" class="pop-icon"></i> History</a>
+                    <a href="/topics.html" class="popover-item"><i data-lucide="layers" class="pop-icon"></i> Topics</a>
+                    <a href="/compare.html" class="popover-item"><i data-lucide="git-compare-arrows" class="pop-icon"></i> Compare</a>
+                </div>
+            </div>
+
+            <div class="side-nav-spacer"></div>
+
+            <a href="/settings.html" class="side-nav-item" title="Settings">
+                <i data-lucide="sliders-horizontal" class="side-nav-icon"></i>
+            </a>
+            <div id="user-info" class="side-nav-item side-nav-user" title="Account"></div>
+
+            <!-- Mobile "More" trigger -->
             <button class="side-nav-item mobile-only" id="more-menu-btn" title="More">
                 <i data-lucide="menu" class="side-nav-icon"></i>
-                <span class="side-nav-label">More</span>
             </button>
         </nav>
 
         <!-- Mobile More Menu -->
         <div id="more-menu" class="more-menu hidden">
             <div class="more-menu-inner">
+                <a href="/review.html" class="more-menu-item"><i data-lucide="brain" class="icon"></i> Review</a>
+                <a href="/paths.html" class="more-menu-item"><i data-lucide="route" class="icon"></i> Paths</a>
+                <a href="/socratic.html" class="more-menu-item"><i data-lucide="message-circle" class="icon"></i> Coach</a>
+                <a href="/profile.html" class="more-menu-item"><i data-lucide="trophy" class="icon"></i> Profile</a>
+                <div class="more-menu-divider"></div>
                 <a href="/history.html" class="more-menu-item"><i data-lucide="bar-chart-3" class="icon"></i> History</a>
                 <a href="/topics.html" class="more-menu-item"><i data-lucide="layers" class="icon"></i> Topics</a>
                 <a href="/compare.html" class="more-menu-item"><i data-lucide="git-compare-arrows" class="icon"></i> Compare</a>
-                <a href="/socratic.html" class="more-menu-item"><i data-lucide="message-circle" class="icon"></i> Coach</a>
                 <a href="/leaderboard.html" class="more-menu-item"><i data-lucide="crown" class="icon"></i> Leaderboard</a>
+                <div class="more-menu-divider"></div>
                 <a href="/settings.html" class="more-menu-item"><i data-lucide="sliders-horizontal" class="icon"></i> Settings</a>
                 <a href="/changelog.html" class="more-menu-item"><i data-lucide="file-text" class="icon"></i> Changelog</a>
                 <div class="more-menu-divider"></div>

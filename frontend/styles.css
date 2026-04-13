@@ -710,3 +710,20 @@ header a:hover { opacity: 1; }
 }
 .tts-btn:hover { border-color: var(--primary); color: var(--primary); }
 .tts-btn .icon { width: 14px; height: 14px; }
+
+/* ── Sign-up Prompt ────────────────────────────────────── */
+.signup-prompt {
+    margin-top: 1rem; opacity: 0; transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.signup-prompt.visible { opacity: 1; transform: translateY(0); }
+.signup-prompt-content {
+    background: linear-gradient(135deg, rgba(245,197,24,0.06), rgba(245,197,24,0.02));
+    border: 1px solid rgba(245,197,24,0.15);
+    border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+}
+.signup-prompt-text { margin-bottom: 0.75rem; }
+.signup-prompt-text strong { display: block; font-size: 0.9rem; color: var(--text); margin-bottom: 0.2rem; }
+.signup-prompt-text span { font-size: 0.78rem; color: var(--text-dim); }
+.signup-prompt-actions { display: flex; gap: 0.5rem; }
+.signup-prompt-actions .btn { flex: 1; }

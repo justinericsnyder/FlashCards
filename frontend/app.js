@@ -93,6 +93,7 @@ class FlashCardApp {
     }
 
     async loadRecentTopics() {
+        if (!Auth.isLoggedIn()) return;
         const container = document.getElementById('recent-topics');
         if (!container) return;
         try {
@@ -449,12 +450,6 @@ class FlashCardApp {
     // ── Main Flow ───────────────────────────────────────────────────────
 
     async generateCards() {
-        // Require sign-in before generating
-        if (!Auth.isLoggedIn()) {
-            Auth.requireAuth(() => this.generateCards());
-            return;
-        }
-
         const url = document.getElementById('doc-url').value.trim();
         const cardCount = parseInt(document.getElementById('card-count').value);
         const difficulty = document.getElementById('difficulty').value;
@@ -766,8 +761,8 @@ class FlashCardApp {
         const hint = document.getElementById('keyboard-hint');
         if (hint) hint.textContent = 'Press Enter or → to continue';
 
-        // Log the question answer (if functional cookies accepted)
-        if (typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional')) {
+        // Log the question answer (if logged in and functional cookies accepted)
+        if (Auth.isLoggedIn() && typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional')) {
             const correctIndex = ['A', 'B', 'C', 'D'].indexOf(norm.correctAnswer);
             const docUrl = document.getElementById('doc-url').value.trim();
             const difficulty = document.getElementById('difficulty').value;
@@ -898,22 +893,31 @@ class FlashCardApp {
 
         this.animateSectionTransition('results-section');
 
-        // Save score to database (only if functional cookies accepted)
-        if (typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional')) {
-            const url = document.getElementById('doc-url').value.trim();
-            const difficulty = document.getElementById('difficulty').value;
-            Auth.apiFetch(`${API_BASE}/api/scores`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    url,
-                    pageTitle: this.currentPageTitle || url,
-                    correct: this.correctAnswers,
-                    total,
-                    scorePct: score,
-                    difficulty,
-                }),
-            }).catch(err => console.warn('Could not save score:', err));
+        // Save score — prompt sign-up if not logged in
+        const saveScore = () => {
+            if (typeof CookieConsent !== 'undefined' && CookieConsent.isAllowed('functional') && Auth.isLoggedIn()) {
+                const url = document.getElementById('doc-url').value.trim();
+                const difficulty = document.getElementById('difficulty').value;
+                Auth.apiFetch(`${API_BASE}/api/scores`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url,
+                        pageTitle: this.currentPageTitle || url,
+                        correct: this.correctAnswers,
+                        total,
+                        scorePct: score,
+                        difficulty,
+                    }),
+                }).catch(err => console.warn('Could not save score:', err));
+            }
+        };
+
+        if (Auth.isLoggedIn()) {
+            saveScore();
+        } else {
+            // Show a gentle prompt to save progress
+            this.showSignUpPrompt(saveScore);
         }
 
         // Announce results
@@ -971,6 +975,47 @@ class FlashCardApp {
                 section.style.opacity = '';
             });
         document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    showSignUpPrompt(onSignUp) {
+        const existing = document.getElementById('signup-prompt');
+        if (existing) existing.remove();
+
+        const prompt = document.createElement('div');
+        prompt.id = 'signup-prompt';
+        prompt.className = 'signup-prompt';
+        prompt.innerHTML = `
+            <div class="signup-prompt-content">
+                <div class="signup-prompt-text">
+                    <strong>Save your progress?</strong>
+                    <span>Create a free account to track scores, earn badges, and review with spaced repetition.</span>
+                </div>
+                <div class="signup-prompt-actions">
+                    <button class="btn btn-primary" id="signup-prompt-yes">Create Account</button>
+                    <button class="btn btn-secondary" id="signup-prompt-skip">Skip for now</button>
+                </div>
+            </div>
+        `;
+
+        // Insert after the results section
+        const results = document.getElementById('results-section');
+        if (results) results.appendChild(prompt);
+
+        prompt.querySelector('#signup-prompt-yes').addEventListener('click', () => {
+            prompt.remove();
+            Auth.showAuthModal(() => {
+                onSignUp();
+                Auth.updateAuthUI();
+            });
+        });
+
+        prompt.querySelector('#signup-prompt-skip').addEventListener('click', () => {
+            prompt.style.opacity = '0';
+            setTimeout(() => prompt.remove(), 200);
+        });
+
+        // Animate in
+        requestAnimationFrame(() => prompt.classList.add('visible'));
     }
 
     announceToScreenReader(message) {

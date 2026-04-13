@@ -455,6 +455,27 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Shared Decks ────────────────────────────────────────
+app.post('/api/decks/share', authMiddleware, async (req, res) => {
+  try {
+    const { url, pageTitle, cards, difficulty } = req.body;
+    const deck = await db.shareDeck({ userId: req.userId, url, pageTitle, cards, difficulty });
+    res.json(deck);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to share deck' });
+  }
+});
+
+app.get('/api/decks/:code', async (req, res) => {
+  try {
+    const deck = await db.getDeckByCode(req.params.code);
+    if (!deck) return res.status(404).json({ error: 'Deck not found' });
+    res.json(deck);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch deck' });
+  }
+});
+
 // ── Gamification endpoints ───────────────────────────────
 app.get('/api/gamification/profile', authMiddleware, async (req, res) => {
   try {

@@ -105,6 +105,19 @@ async function initialize() {
         )
       `;
 
+      // Shared decks
+      await db`
+        CREATE TABLE IF NOT EXISTS shared_decks (
+          id SERIAL PRIMARY KEY,
+          share_code TEXT UNIQUE NOT NULL,
+          user_id INTEGER REFERENCES users(id),
+          url TEXT, page_title TEXT,
+          cards JSONB NOT NULL,
+          difficulty TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
       console.log('✅ Database initialized');
       return;
     } catch (err) {
@@ -238,6 +251,7 @@ module.exports = {
   getRecentTopics, getGlobalTopicStats,
   upsertCardReview, getCardsForReview, updateReviewResult, getReviewStats,
   updateStreak, checkAndAwardBadges, getUserAchievements, getStreak, getLeaderboard, BADGES,
+  shareDeck, getDeckByCode,
 };
 
 // ── Spaced Repetition (SM-2) ───────────────────────────
@@ -407,4 +421,22 @@ async function getLeaderboard(limit = 10) {
     FROM user_streaks s JOIN users u ON u.id = s.user_id
     ORDER BY s.total_xp DESC LIMIT ${limit}
   `;
+}
+
+// ── Shared Decks ───────────────────────────────────────
+async function shareDeck({ userId, url, pageTitle, cards, difficulty }) {
+  const db = getSql();
+  const code = Math.random().toString(36).substring(2, 10);
+  const [row] = await db`
+    INSERT INTO shared_decks (share_code, user_id, url, page_title, cards, difficulty)
+    VALUES (${code}, ${userId}, ${url}, ${pageTitle}, ${JSON.stringify(cards)}, ${difficulty})
+    RETURNING share_code, page_title, created_at
+  `;
+  return row;
+}
+
+async function getDeckByCode(code) {
+  const db = getSql();
+  const [row] = await db`SELECT * FROM shared_decks WHERE share_code = ${code}`;
+  return row || null;
 }

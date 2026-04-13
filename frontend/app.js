@@ -694,6 +694,7 @@ class FlashCardApp {
         this.incorrectAnswers = 0;
         this.selectedChoice = null;
         this.answered = false;
+        this.questionResults = []; // Track each question result
 
         // Save session to localStorage for resume
         this.saveSessionState();
@@ -864,6 +865,14 @@ class FlashCardApp {
         } else {
             this.incorrectAnswers++;
         }
+
+        // Track result for session summary
+        this.questionResults.push({
+            question: norm.question,
+            userAnswer: norm.choices[['A','B','C','D'].indexOf(this.selectedChoice)] || '',
+            correctAnswer: norm.choices[['A','B','C','D'].indexOf(norm.correctAnswer)] || '',
+            isCorrect,
+        });
 
         // Show feedback banner
         const feedback = document.getElementById('answer-feedback');
@@ -1048,8 +1057,40 @@ class FlashCardApp {
             this.showSignUpPrompt(saveScore);
         }
 
+        // Render question-by-question summary
+        this.renderSessionSummary();
+
         // Announce results
         this.announceToScreenReader(`Session complete! You got ${this.correctAnswers} out of ${total} correct for a score of ${score} percent.`);
+    }
+
+    renderSessionSummary() {
+        const container = document.getElementById('results-section');
+        if (!container || !this.questionResults?.length) return;
+
+        let existing = document.getElementById('session-summary');
+        if (existing) existing.remove();
+
+        const summary = document.createElement('div');
+        summary.id = 'session-summary';
+        summary.className = 'session-summary';
+        summary.innerHTML = `
+            <div class="summary-header">Question Breakdown</div>
+            ${this.questionResults.map((r, i) => `
+                <div class="summary-item ${r.isCorrect ? 'correct' : 'wrong'}">
+                    <span class="summary-num">${i + 1}</span>
+                    <div class="summary-detail">
+                        <div class="summary-q">${r.question.length > 80 ? r.question.substring(0, 80) + '…' : r.question}</div>
+                        <div class="summary-answer">${r.isCorrect ? '✓ Correct' : `✗ You: ${r.userAnswer.substring(0, 50)} → ${r.correctAnswer.substring(0, 50)}`}</div>
+                    </div>
+                </div>
+            `).join('')}
+        `;
+
+        // Insert before the results-actions
+        const actions = container.querySelector('.results-actions');
+        if (actions) container.insertBefore(summary, actions);
+        else container.appendChild(summary);
     }
 
     animateCounter(elementId, targetValue, suffix = '') {

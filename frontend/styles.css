@@ -779,3 +779,26 @@ header a:hover { opacity: 1; }
 .achievement-toast-icon { font-size: 1.5rem; }
 .achievement-toast-text strong { display: block; font-size: 0.85rem; color: var(--primary); }
 .achievement-toast-text span { font-size: 0.72rem; color: var(--text-dim); }
+
+/* ── Session Summary ───────────────────────────────────── */
+.session-summary { margin: 1rem 0; }
+.summary-header {
+    font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 0.5rem; padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.summary-item {
+    display: flex; align-items: flex-start; gap: 0.5rem;
+    padding: 0.4rem 0; border-bottom: 1px solid var(--border-subtle);
+}
+.summary-item:last-child { border-bottom: none; }
+.summary-num {
+    font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+    color: var(--text-muted); width: 18px; flex-shrink: 0; padding-top: 0.1rem;
+}
+.summary-detail { flex: 1; min-width: 0; }
+.summary-q { font-size: 0.75rem; color: var(--text-dim); line-height: 1.4; }
+.summary-answer { font-size: 0.68rem; margin-top: 0.15rem; font-weight: 600; }
+.summary-item.correct .summary-answer { color: var(--success); }
+.summary-item.wrong .summary-answer { color: var(--error); }

@@ -64,6 +64,20 @@ header {
     position: relative;
 }
 
+.header-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.header-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+    flex-shrink: 0;
+}
+
 header h1 {
     font-size: 1.4rem;
     font-weight: 700;

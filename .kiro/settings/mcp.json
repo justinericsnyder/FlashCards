@@ -13,7 +13,8 @@
         "add_todo_item",
         "add_todo_item",
         "add_todo_item",
-        "add_todo_item"
+        "add_todo_item",
+        "complete_todo_item"
       ]
     }
   }

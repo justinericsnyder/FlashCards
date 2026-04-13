@@ -326,6 +326,15 @@ app.post('/api/scores', authMiddleware, async (req, res) => {
   try {
     const { url, pageTitle, correct, total, scorePct, difficulty } = req.body;
     const score = await db.saveScore({ userId: req.userId, url, pageTitle, correct, total, scorePct, difficulty });
+
+    // Gamification: update streak and check badges
+    try {
+      const streakResult = await db.updateStreak(req.userId);
+      const newBadges = await db.checkAndAwardBadges(req.userId);
+      score.streak = streakResult;
+      score.newBadges = newBadges.map(k => db.BADGES[k]).filter(Boolean);
+    } catch (e) { console.warn('Gamification error:', e.message); }
+
     res.json(score);
   } catch (err) {
     console.error('Save score error:', err.message);
@@ -443,6 +452,28 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Update review error:', err.message);
     res.status(500).json({ error: 'Failed to update review' });
+  }
+});
+
+// ── Gamification endpoints ───────────────────────────────
+app.get('/api/gamification/profile', authMiddleware, async (req, res) => {
+  try {
+    const [streak, achievements] = await Promise.all([
+      db.getStreak(req.userId),
+      db.getUserAchievements(req.userId),
+    ]);
+    res.json({ streak, achievements, badges: db.BADGES });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+app.get('/api/gamification/leaderboard', async (req, res) => {
+  try {
+    const board = await db.getLeaderboard(20);
+    res.json(board);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch leaderboard' });
   }
 });
 

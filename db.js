@@ -85,6 +85,26 @@ async function initialize() {
       `;
       await db`CREATE INDEX IF NOT EXISTS idx_reviews_user_next ON card_reviews (user_id, next_review)`;
 
+      // Gamification
+      await db`
+        CREATE TABLE IF NOT EXISTS user_streaks (
+          user_id INTEGER PRIMARY KEY REFERENCES users(id),
+          current_streak INTEGER DEFAULT 0,
+          longest_streak INTEGER DEFAULT 0,
+          last_activity_date DATE,
+          total_xp INTEGER DEFAULT 0
+        )
+      `;
+      await db`
+        CREATE TABLE IF NOT EXISTS achievements (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id),
+          badge_key TEXT NOT NULL,
+          earned_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(user_id, badge_key)
+        )
+      `;
+
       console.log('✅ Database initialized');
       return;
     } catch (err) {
@@ -217,6 +237,7 @@ module.exports = {
   saveQuestionLog, getTopicStats, getPastQuestions,
   getRecentTopics, getGlobalTopicStats,
   upsertCardReview, getCardsForReview, updateReviewResult, getReviewStats,
+  updateStreak, checkAndAwardBadges, getUserAchievements, getStreak, getLeaderboard, BADGES,
 };
 
 // ── Spaced Repetition (SM-2) ───────────────────────────
@@ -295,4 +316,95 @@ async function getReviewStats(userId) {
     FROM card_reviews WHERE user_id = ${userId}
   `;
   return stats;
+}
+
+// ── Gamification ───────────────────────────────────────
+const BADGES = {
+  first_session: { name: 'First Steps', desc: 'Complete your first session', icon: 'footprints' },
+  streak_3: { name: 'On Fire', desc: '3-day study streak', icon: 'flame' },
+  streak_7: { name: 'Week Warrior', desc: '7-day study streak', icon: 'zap' },
+  streak_30: { name: 'Monthly Master', desc: '30-day study streak', icon: 'crown' },
+  perfect_score: { name: 'Perfectionist', desc: 'Score 100% on a session', icon: 'star' },
+  ten_sessions: { name: 'Dedicated', desc: 'Complete 10 sessions', icon: 'target' },
+  fifty_questions: { name: 'Scholar', desc: 'Answer 50 questions', icon: 'book-open' },
+  five_topics: { name: 'Explorer', desc: 'Study 5 different topics', icon: 'compass' },
+  review_master: { name: 'Review Pro', desc: 'Complete 20 spaced reviews', icon: 'brain' },
+};
+
+async function updateStreak(userId) {
+  const db = getSql();
+  const today = new Date().toISOString().split('T')[0];
+  const [existing] = await db`SELECT * FROM user_streaks WHERE user_id = ${userId}`;
+
+  if (!existing) {
+    await db`INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_activity_date, total_xp) VALUES (${userId}, 1, 1, ${today}, 10)`;
+    return { current_streak: 1, longest_streak: 1, xp_earned: 10 };
+  }
+
+  const lastDate = existing.last_activity_date ? new Date(existing.last_activity_date).toISOString().split('T')[0] : null;
+  if (lastDate === today) return { current_streak: existing.current_streak, longest_streak: existing.longest_streak, xp_earned: 0 };
+
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  let newStreak = lastDate === yesterday ? existing.current_streak + 1 : 1;
+  let longest = Math.max(existing.longest_streak, newStreak);
+  let xp = 10 + (newStreak > 1 ? newStreak * 5 : 0); // bonus XP for streaks
+
+  await db`UPDATE user_streaks SET current_streak = ${newStreak}, longest_streak = ${longest}, last_activity_date = ${today}, total_xp = total_xp + ${xp} WHERE user_id = ${userId}`;
+  return { current_streak: newStreak, longest_streak: longest, xp_earned: xp };
+}
+
+async function checkAndAwardBadges(userId) {
+  const db = getSql();
+  const awarded = [];
+
+  const [streak] = await db`SELECT * FROM user_streaks WHERE user_id = ${userId}`;
+  const [sessionCount] = await db`SELECT COUNT(*) as c FROM scores WHERE user_id = ${userId}`;
+  const [questionCount] = await db`SELECT COUNT(*) as c FROM question_logs WHERE user_id = ${userId}`;
+  const [topicCount] = await db`SELECT COUNT(DISTINCT url) as c FROM scores WHERE user_id = ${userId}`;
+  const [perfectCount] = await db`SELECT COUNT(*) as c FROM scores WHERE user_id = ${userId} AND score_pct = 100`;
+  const [reviewCount] = await db`SELECT COUNT(*) as c FROM card_reviews WHERE user_id = ${userId} AND last_reviewed IS NOT NULL`;
+
+  const checks = [
+    [Number(sessionCount.c) >= 1, 'first_session'],
+    [streak && streak.current_streak >= 3, 'streak_3'],
+    [streak && streak.current_streak >= 7, 'streak_7'],
+    [streak && streak.longest_streak >= 30, 'streak_30'],
+    [Number(perfectCount.c) >= 1, 'perfect_score'],
+    [Number(sessionCount.c) >= 10, 'ten_sessions'],
+    [Number(questionCount.c) >= 50, 'fifty_questions'],
+    [Number(topicCount.c) >= 5, 'five_topics'],
+    [Number(reviewCount.c) >= 20, 'review_master'],
+  ];
+
+  for (const [condition, key] of checks) {
+    if (condition) {
+      try {
+        await db`INSERT INTO achievements (user_id, badge_key) VALUES (${userId}, ${key}) ON CONFLICT DO NOTHING`;
+        awarded.push(key);
+      } catch {}
+    }
+  }
+  return awarded;
+}
+
+async function getUserAchievements(userId) {
+  const db = getSql();
+  const rows = await db`SELECT badge_key, earned_at FROM achievements WHERE user_id = ${userId} ORDER BY earned_at DESC`;
+  return rows.map(r => ({ ...BADGES[r.badge_key], key: r.badge_key, earnedAt: r.earned_at }));
+}
+
+async function getStreak(userId) {
+  const db = getSql();
+  const [row] = await db`SELECT * FROM user_streaks WHERE user_id = ${userId}`;
+  return row || { current_streak: 0, longest_streak: 0, total_xp: 0 };
+}
+
+async function getLeaderboard(limit = 10) {
+  const db = getSql();
+  return await db`
+    SELECT u.display_name, u.email, s.total_xp, s.current_streak, s.longest_streak,
+      (SELECT COUNT(*) FROM achievements WHERE user_id = u.id) as badge_count
+    FROM user_streaks s JOIN users u ON u.id = s.user_id
+    ORDER BY s.total_xp DESC LIMIT ${limit}
+  `;
 }

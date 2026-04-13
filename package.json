@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "build": "echo 'No build step required - static files only'",
     "serve": "node server.js",
-    "deploy": "echo 'Ready for deployment to Heroku, DigitalOcean, AWS, etc.'"
+    "deploy": "echo 'Ready for deployment to Heroku, DigitalOcean, AWS, etc.'",
+    "test": "jest --forceExit --detectOpenHandles"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -37,7 +38,9 @@
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "jest": "^30.3.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^7.2.2"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog — Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .changelog-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+
+        .changelog-date-group { margin-bottom: 1.5rem; }
+        .changelog-date {
+            font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            margin-bottom: 0.5rem; padding-bottom: 0.35rem;
+            border-bottom: 1px solid var(--border-subtle);
+            font-family: var(--font-mono);
+        }
+
+        .changelog-entry {
+            display: flex; gap: 0.6rem; padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .changelog-entry:last-child { border-bottom: none; }
+
+        .changelog-tag {
+            font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; padding: 0.15rem 0.45rem;
+            border-radius: 4px; flex-shrink: 0; height: fit-content;
+            margin-top: 0.15rem;
+        }
+        .tag-feature { background: rgba(245,197,24,0.12); color: var(--primary); }
+        .tag-fix { background: rgba(52,211,153,0.12); color: var(--success); }
+        .tag-design { background: rgba(129,140,248,0.12); color: #818cf8; }
+        .tag-infra { background: rgba(148,163,184,0.12); color: var(--text-dim); }
+
+        .changelog-text { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
+        .changelog-hash {
+            font-family: var(--font-mono); font-size: 0.65rem;
+            color: var(--text-muted); margin-top: 0.15rem;
+        }
+
+        .changelog-summary {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem; display: flex; gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .summary-stat { text-align: center; }
+        .summary-stat .num { font-size: 1.25rem; font-weight: 800; color: var(--primary); font-family: var(--font-mono); }
+        .summary-stat .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    </style>
+</head>
+<body>
+    <div class="changelog-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header>
+            <h1><i data-lucide="file-text" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Changelog</h1>
+            <p>What's new and improved</p>
+        </header>
+        <div id="changelog-content"></div>
+    </div>
+    <script>
+        // Changelog data — generated from git history, filtered for public-safe entries
+        const entries = [
+            { date: '2026-04-12', tag: 'feature', text: 'Comprehensive test suite with 12 automated tests covering health, auth, endpoints, and proxy validation', hash: '75d767c' },
+            { date: '2026-04-12', tag: 'feature', text: 'Search Microsoft Learn documentation directly from the app', hash: '6ac4ee0' },
+            { date: '2026-04-12', tag: 'feature', text: 'Advanced analytics dashboard with weekly trends, hardest/strongest topics, and activity heatmap', hash: '0044980' },
+            { date: '2026-04-12', tag: 'feature', text: 'Export your study data as JSON or CSV', hash: 'd9ef60b' },
+            { date: '2026-04-12', tag: 'feature', text: 'Text-to-speech for questions using the Web Speech API', hash: '40a3294' },
+            { date: '2026-04-12', tag: 'feature', text: 'Share flash card decks with unique shareable codes', hash: '80ebfa8' },
+            { date: '2026-04-12', tag: 'feature', text: 'Offline mode with service worker caching for studying without internet', hash: 'dc3336e' },
+            { date: '2026-04-12', tag: 'feature', text: 'Gamification system: streaks, XP, 9 achievement badges, and leaderboard', hash: '8f6e8f5' },
+            { date: '2026-04-12', tag: 'feature', text: 'Multiple question types: true/false, fill-in-the-blank, and multiple choice mix', hash: '4de29a1' },
+            { date: '2026-04-12', tag: 'feature', text: 'Spaced repetition with SM-2 algorithm, dedicated review page, and due cards banner', hash: '6a9cd4d' },
+            { date: '2026-04-10', tag: 'design', text: 'Replaced all emoji icons with Lucide SVG icons for professional iconography', hash: 'b09ffed' },
+            { date: '2026-04-10', tag: 'design', text: 'Major UX overhaul: feedback banners, running score tally, loading timer, keyboard hints, Enter key support', hash: '42d97b4' },
+            { date: '2026-04-10', tag: 'design', text: 'Design overhaul: noise texture, gold accent lines, deeper blacks, distinctive card treatments', hash: '5bb33a1' },
+            { date: '2026-04-10', tag: 'design', text: 'Pittsburgh black and gold dark theme', hash: 'a08a45e' },
+            { date: '2026-04-10', tag: 'design', text: 'Moved sign in/out to side navigation with avatar display', hash: '09633d4' },
+            { date: '2026-04-09', tag: 'feature', text: 'User authentication: sign up, sign in, JWT sessions, user-scoped data with global-only aggregates', hash: '296236b' },
+            { date: '2026-04-09', tag: 'feature', text: 'Recent topics quick-access cards on home page', hash: '5d3a651' },
+            { date: '2026-04-09', tag: 'design', text: 'Chart.js font improvements and filter pills for trend/difficulty charts on history page', hash: '68a02c4' },
+            { date: '2026-04-09', tag: 'fix', text: 'Prevent skipping questions — must answer before proceeding', hash: 'c39071a' },
+            { date: '2026-04-09', tag: 'feature', text: 'Added 3-card session option for quick study', hash: '5aa993a' },
+            { date: '2026-04-09', tag: 'design', text: 'Replaced card flip with slide animations, added floating side nav and mobile bottom bar', hash: '8bb2139' },
+            { date: '2026-04-09', tag: 'feature', text: 'AI model disclaimer in footer for transparency', hash: 'e16ceb9' },
+            { date: '2026-04-09', tag: 'feature', text: 'Compare page: your performance vs all users per topic', hash: 'ed7e050' },
+            { date: '2026-04-09', tag: 'feature', text: 'Smart question deduplication — avoids repeating previously asked questions', hash: '23fdfe2' },
+            { date: '2026-04-09', tag: 'design', text: 'Updated fonts to DM Sans + JetBrains Mono', hash: '65bf8fa' },
+            { date: '2026-04-09', tag: 'feature', text: 'Individual question answer logging with per-topic stats', hash: '2949973' },
+            { date: '2026-04-09', tag: 'design', text: 'Modern card-style score history link below main content', hash: '51082f1' },
+            { date: '2026-04-09', tag: 'feature', text: 'Cookie consent banner with granular category controls', hash: '32f8d3e' },
+            { date: '2026-04-09', tag: 'design', text: 'Dark theme with compact layout', hash: 'e29601f' },
+            { date: '2026-04-09', tag: 'feature', text: 'AI-powered flash card generation using Claude, score tracking, history page with charts', hash: '43f3188' },
+            { date: '2026-04-09', tag: 'fix', text: 'Fixed flash card generation: replaced unreliable CORS proxy with server-side fetch, fixed card navigation bug, removed duplicate HTML/CSS', hash: 'd7cd289' },
+            { date: '2026-04-09', tag: 'infra', text: 'Initial release: Flash card generation from Microsoft Learn documentation', hash: 'bbfa3b5' },
+        ];
+
+        function render() {
+            const container = document.getElementById('changelog-content');
+            const features = entries.filter(e => e.tag === 'feature').length;
+            const fixes = entries.filter(e => e.tag === 'fix').length;
+            const design = entries.filter(e => e.tag === 'design').length;
+
+            let html = `
+                <div class="changelog-summary">
+                    <div class="summary-stat"><div class="num">${entries.length}</div><div class="label">Updates</div></div>
+                    <div class="summary-stat"><div class="num">${features}</div><div class="label">Features</div></div>
+                    <div class="summary-stat"><div class="num">${design}</div><div class="label">Design</div></div>
+                    <div class="summary-stat"><div class="num">${fixes}</div><div class="label">Fixes</div></div>
+                </div>
+            `;
+
+            // Group by date
+            const grouped = {};
+            entries.forEach(e => {
+                if (!grouped[e.date]) grouped[e.date] = [];
+                grouped[e.date].push(e);
+            });
+
+            const tagClasses = { feature: 'tag-feature', fix: 'tag-fix', design: 'tag-design', infra: 'tag-infra' };
+
+            for (const [date, items] of Object.entries(grouped)) {
+                const d = new Date(date + 'T12:00:00');
+                const formatted = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                html += `<div class="changelog-date-group"><div class="changelog-date">${formatted}</div>`;
+                for (const item of items) {
+                    html += `
+                        <div class="changelog-entry">
+                            <span class="changelog-tag ${tagClasses[item.tag] || 'tag-infra'}">${item.tag}</span>
+                            <div>
+                                <div class="changelog-text">${item.text}</div>
+                                <div class="changelog-hash">${item.hash}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        render();
+    </script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

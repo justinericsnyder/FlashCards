@@ -450,18 +450,20 @@ header a:hover { opacity: 1; }
 /* Nav group with hover popover */
 .side-nav-group { position: relative; }
 .side-nav-popover {
-    position: absolute; left: calc(100% + 6px); top: 0;
+    position: absolute; left: 100%; top: 0;
+    padding-left: 6px; /* invisible hover bridge */
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 101;
+}
+.popover-inner {
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: var(--radius-lg); padding: 0.25rem;
     min-width: 155px; box-shadow: var(--shadow-lg);
-    opacity: 0; pointer-events: none;
-    transform: translateX(-4px);
-    transition: opacity 0.12s ease, transform 0.12s ease;
-    z-index: 101;
 }
 .side-nav-group:hover .side-nav-popover,
 .side-nav-group:focus-within .side-nav-popover {
-    opacity: 1; pointer-events: auto; transform: translateX(0);
+    opacity: 1; pointer-events: auto;
 }
 .popover-item {
     display: flex; align-items: center; gap: 0.45rem;

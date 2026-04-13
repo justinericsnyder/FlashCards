@@ -9,19 +9,19 @@
         <a href="/profile.html" class="side-nav-item" title="Profile"><i data-lucide="trophy" class="side-nav-icon"></i></a>
         <div class="side-nav-group">
             <button class="side-nav-item side-nav-trigger" title="Learn" aria-expanded="false"><i data-lucide="book-open" class="side-nav-icon"></i></button>
-            <div class="side-nav-popover">
+            <div class="side-nav-popover"><div class="popover-inner">
                 <a href="/paths.html" class="popover-item"><i data-lucide="route" class="pop-icon"></i> Learning Paths</a>
                 <a href="/socratic.html" class="popover-item"><i data-lucide="message-circle" class="pop-icon"></i> AI Coach</a>
                 <a href="/leaderboard.html" class="popover-item"><i data-lucide="crown" class="pop-icon"></i> Leaderboard</a>
-            </div>
+            </div></div>
         </div>
         <div class="side-nav-group">
             <button class="side-nav-item side-nav-trigger" title="Data" aria-expanded="false"><i data-lucide="bar-chart-3" class="side-nav-icon"></i></button>
-            <div class="side-nav-popover">
+            <div class="side-nav-popover"><div class="popover-inner">
                 <a href="/history.html" class="popover-item"><i data-lucide="bar-chart-3" class="pop-icon"></i> History</a>
                 <a href="/topics.html" class="popover-item"><i data-lucide="layers" class="pop-icon"></i> Topics</a>
                 <a href="/compare.html" class="popover-item"><i data-lucide="git-compare-arrows" class="pop-icon"></i> Compare</a>
-            </div>
+            </div></div>
         </div>
         <div class="side-nav-spacer"></div>
         <a href="/settings.html" class="side-nav-item" title="Settings"><i data-lucide="sliders-horizontal" class="side-nav-icon"></i></a>

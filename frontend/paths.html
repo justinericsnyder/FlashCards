@@ -3,70 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learning Paths — Good Better Best</title>
+    <title>Certifications — Good Better Best</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="theme.js"></script><script src="https://unpkg.com/lucide@latest"></script>
+    <script src="theme.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .paths-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .paths-container { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem; }
         .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
         .back-link:hover { opacity: 1; }
-        .path-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 0.75rem; position: relative; overflow: hidden; }
-        .path-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--primary-glow), rgba(245,197,24,0.2), var(--primary-glow), transparent); }
-        .path-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-        .path-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
-        .path-badge { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.15rem 0.5rem; border-radius: 4px; background: var(--primary-glow); color: var(--primary); }
-        .path-desc { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem; }
-        .path-modules { display: flex; flex-direction: column; gap: 0.3rem; }
-        .path-module { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.6rem; background: var(--bg-body); border: 1px solid var(--border-subtle); border-radius: var(--radius); cursor: pointer; transition: all var(--fast); text-decoration: none; color: var(--text-dim); font-size: 0.78rem; }
-        .path-module:hover { border-color: rgba(245,197,24,0.25); color: var(--text); background: var(--primary-subtle); }
-        .path-module-num { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); width: 18px; flex-shrink: 0; }
-        .path-module-title { flex: 1; }
-        .path-module-arrow { color: var(--text-muted); font-size: 0.75rem; transition: transform var(--fast); }
-        .path-module:hover .path-module-arrow { transform: translateX(2px); color: var(--primary); }
+
+        .filter-bar { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+        .filter-bar input { flex: 1; min-width: 200px; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input); color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; }
+        .filter-bar input:focus { border-color: var(--primary); }
+        .filter-bar input::placeholder { color: var(--text-muted); }
+        .filter-bar select { padding: 0.5rem 0.6rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input); color: var(--text); font-family: inherit; font-size: 0.78rem; appearance: none; cursor: pointer; }
+
+        .cert-count { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; font-family: var(--font-mono); }
+
+        .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.6rem; }
+
+        .cert-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; transition: all var(--fast); cursor: pointer; text-decoration: none; display: block; position: relative; overflow: hidden; }
+        .cert-card:hover { border-color: rgba(245,197,24,0.25); transform: translateY(-1px); }
+        .cert-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--primary-glow), transparent); }
+
+        .cert-name { font-size: 0.82rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; line-height: 1.4; }
+        .cert-meta { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .cert-tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.12rem 0.4rem; border-radius: 4px; }
+        .tag-area { background: var(--primary-glow); color: var(--primary); }
+        .tag-level { background: rgba(52,211,153,0.12); color: var(--success); }
+        .tag-level-intermediate { background: rgba(129,140,248,0.12); color: #818cf8; }
+        .tag-level-advanced { background: rgba(248,113,113,0.12); color: var(--error); }
+
+        .cert-actions { display: flex; gap: 0.4rem; margin-top: 0.6rem; }
+        .cert-btn { font-size: 0.7rem; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: var(--radius); background: none; color: var(--text-dim); cursor: pointer; font-family: inherit; transition: all var(--fast); text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .cert-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .cert-btn-primary { background: var(--primary-dark); color: #000; border-color: var(--primary-dark); font-weight: 600; }
+        .cert-btn-primary:hover { background: var(--primary); }
+
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+
+        @media (max-width: 600px) {
+            .cert-grid { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; }
+            .filter-bar input { min-width: 0; }
+        }
     </style>
 </head>
 <body>
     <div class="paths-container">
-        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <a href="/" class="back-link">← Back</a>
         <header>
-            <h1><i data-lucide="route" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Learning Paths</h1>
-            <p>Structured study paths for Microsoft certifications</p>
+            <h1><i data-lucide="route" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Microsoft Certifications</h1>
+            <p>Browse all certifications, filter by area and level</p>
         </header>
-        <div id="paths-list"></div>
+
+        <div class="filter-bar">
+            <input type="text" id="search" placeholder="Search certifications..." autocomplete="off">
+            <select id="area-filter"><option value="">All Areas</option></select>
+            <select id="level-filter"><option value="">All Levels</option></select>
+        </div>
+        <div class="cert-count" id="cert-count"></div>
+        <div class="cert-grid" id="cert-grid"></div>
     </div>
+
     <script src="config.js"></script>
+    <script src="consent.js"></script>
+    <script src="auth.js"></script>
     <script>
         const API_BASE = window.__API_BASE__ || '';
+        let allCerts = [];
+
         async function load() {
             const res = await fetch(`${API_BASE}/api/learning-paths`);
-            const paths = await res.json();
-            document.getElementById('paths-list').innerHTML = paths.map(p => `
-                <div class="path-card">
-                    <div class="path-header">
-                        <span class="path-name">${p.name}</span>
-                        <span class="path-badge">${p.difficulty}</span>
-                    </div>
-                    <div class="path-desc">${p.description}</div>
-                    <div class="path-modules">
-                        ${p.urls.map((u, i) => `
-                            <a href="/?url=${encodeURIComponent(u.url)}" class="path-module">
-                                <span class="path-module-num">${i + 1}</span>
-                                <span class="path-module-title">${u.title}</span>
-                                <span class="path-module-arrow">→</span>
-                            </a>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
+            const data = await res.json();
+            allCerts = data.certifications || [];
+
+            // Populate filters
+            const areaSelect = document.getElementById('area-filter');
+            (data.areas || []).forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; areaSelect.appendChild(o); });
+
+            const levelSelect = document.getElementById('level-filter');
+            (data.levels || []).forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l.charAt(0).toUpperCase() + l.slice(1); levelSelect.appendChild(o); });
+
+            render();
+
+            document.getElementById('search').addEventListener('input', render);
+            areaSelect.addEventListener('change', render);
+            levelSelect.addEventListener('change', render);
         }
+
+        function render() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const area = document.getElementById('area-filter').value;
+            const level = document.getElementById('level-filter').value;
+
+            const filtered = allCerts.filter(c => {
+                if (query && !c.name.toLowerCase().includes(query)) return false;
+                if (area && c.area !== area) return false;
+                if (level && c.level !== level) return false;
+                return true;
+            });
+
+            document.getElementById('cert-count').textContent = `${filtered.length} of ${allCerts.length} certifications`;
+
+            const grid = document.getElementById('cert-grid');
+            if (!filtered.length) {
+                grid.innerHTML = '<div class="empty-state">No certifications match your filters</div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(c => {
+                const levelCls = c.level === 'advanced' ? 'tag-level-advanced' : c.level === 'intermediate' ? 'tag-level-intermediate' : 'tag-level';
+                return `
+                    <div class="cert-card">
+                        <div class="cert-name">${c.name}</div>
+                        <div class="cert-meta">
+                            <span class="cert-tag tag-area">${c.area}</span>
+                            <span class="cert-tag ${levelCls}">${c.level}</span>
+                        </div>
+                        <div class="cert-actions">
+                            <a href="${c.url}" target="_blank" class="cert-btn">View Details →</a>
+                            <a href="/?url=${encodeURIComponent(c.url)}" class="cert-btn cert-btn-primary">Study This</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         load();
     </script>
-    <script>lucide.createIcons();</script>
     <script src="nav.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
-
-

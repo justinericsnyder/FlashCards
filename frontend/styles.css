@@ -46,6 +46,7 @@ body {
     min-height: 100vh;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
     /* Subtle noise texture */
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
 }
@@ -55,6 +56,8 @@ body {
     max-width: 1100px;
     margin: 0 auto;
     padding: 1.5rem 1rem;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 .app-layout {
@@ -80,6 +83,16 @@ body {
         top: 1.5rem;
         max-height: var(--sidebar-max-h, auto);
         overflow: hidden;
+    }
+}
+
+@media (max-width: 900px) {
+    .container {
+        max-width: 100%;
+        padding: 1rem 0.75rem;
+    }
+    .app-layout {
+        grid-template-columns: 1fr;
     }
 }
 

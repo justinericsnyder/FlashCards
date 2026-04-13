@@ -731,62 +731,52 @@ app.get('/api/learning-profile', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Curated Learning Paths ───────────────────────────────
-app.get('/api/learning-paths', async (req, res) => {
-  // Curated paths for popular Microsoft certifications
-  const paths = [
-    {
-      id: 'az-900',
-      name: 'Azure Fundamentals (AZ-900)',
-      description: 'Cloud concepts, Azure services, security, pricing',
-      difficulty: 'beginner',
-      urls: [
-        { title: 'Cloud Concepts', url: 'https://learn.microsoft.com/en-us/training/modules/describe-cloud-compute/' },
-        { title: 'Azure Architecture', url: 'https://learn.microsoft.com/en-us/training/modules/describe-core-architectural-components-of-azure/' },
-        { title: 'Azure Compute & Networking', url: 'https://learn.microsoft.com/en-us/training/modules/describe-azure-compute-networking-services/' },
-        { title: 'Azure Storage', url: 'https://learn.microsoft.com/en-us/training/modules/describe-azure-storage-services/' },
-        { title: 'Azure Identity & Security', url: 'https://learn.microsoft.com/en-us/training/modules/describe-azure-identity-access-security/' },
-      ],
-    },
-    {
-      id: 'ai-900',
-      name: 'Azure AI Fundamentals (AI-900)',
-      description: 'AI workloads, machine learning, computer vision, NLP',
-      difficulty: 'beginner',
-      urls: [
-        { title: 'AI Fundamentals', url: 'https://learn.microsoft.com/en-us/training/modules/get-started-ai-fundamentals/' },
-        { title: 'Machine Learning', url: 'https://learn.microsoft.com/en-us/training/modules/fundamentals-machine-learning/' },
-        { title: 'Computer Vision', url: 'https://learn.microsoft.com/en-us/training/modules/analyze-images-computer-vision/' },
-        { title: 'Natural Language Processing', url: 'https://learn.microsoft.com/en-us/training/modules/analyze-text-with-text-analytics-service/' },
-        { title: 'Generative AI', url: 'https://learn.microsoft.com/en-us/training/modules/fundamentals-generative-ai/' },
-      ],
-    },
-    {
-      id: 'sc-900',
-      name: 'Security Fundamentals (SC-900)',
-      description: 'Security, compliance, identity concepts',
-      difficulty: 'beginner',
-      urls: [
-        { title: 'Security & Compliance Concepts', url: 'https://learn.microsoft.com/en-us/training/modules/describe-security-concepts-methodologies/' },
-        { title: 'Microsoft Entra ID', url: 'https://learn.microsoft.com/en-us/training/modules/explore-basic-services-identity-types/' },
-        { title: 'Microsoft Security Solutions', url: 'https://learn.microsoft.com/en-us/training/modules/describe-threat-protection-with-microsoft-365-defender/' },
-        { title: 'Microsoft Compliance', url: 'https://learn.microsoft.com/en-us/training/modules/describe-compliance-management-capabilities-microsoft/' },
-      ],
-    },
-    {
-      id: 'ms-900',
-      name: 'Microsoft 365 Fundamentals (MS-900)',
-      description: 'Microsoft 365 services, security, licensing',
-      difficulty: 'beginner',
-      urls: [
-        { title: 'Microsoft 365 Productivity', url: 'https://learn.microsoft.com/en-us/training/modules/describe-productivity-solutions-microsoft-365/' },
-        { title: 'Microsoft 365 Collaboration', url: 'https://learn.microsoft.com/en-us/training/modules/describe-collaboration-solutions-microsoft-365/' },
-        { title: 'Microsoft 365 Security', url: 'https://learn.microsoft.com/en-us/training/modules/describe-endpoint-modernization-management-concepts-deployment-options/' },
-      ],
-    },
-  ];
-  res.json(paths);
-});
+// ── Curated Learning Paths (dynamic from Microsoft Catalog API) ──
+app.get('/api/learning-paths', cached('learning-paths', 3600000, async () => {
+  // Fetch from Microsoft Learn Catalog API
+  const https = require('https');
+  const data = await new Promise((resolve, reject) => {
+    https.get('https://learn.microsoft.com/api/catalog/?type=certifications', { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ certifications: [] }); } });
+    }).on('error', () => resolve({ certifications: [] }));
+  });
+
+  const certs = (data.certifications || [])
+    .filter(c => !c.subtitle?.includes('retired') && !c.subtitle?.includes('no longer available'))
+    .map(c => {
+      // Categorize by solution area
+      const title = (c.title || '').toLowerCase();
+      const roles = (c.roles || '').toLowerCase();
+      let area = 'General';
+      if (title.includes('azure') || title.includes('az-')) area = 'Azure';
+      else if (title.includes('dynamics') || title.includes('d365') || title.includes('mb-')) area = 'Dynamics 365';
+      else if (title.includes('365') || title.includes('m365') || title.includes('ms-')) area = 'Microsoft 365';
+      else if (title.includes('power') || title.includes('pl-')) area = 'Power Platform';
+      else if (title.includes('security') || title.includes('sc-')) area = 'Security';
+      else if (title.includes('github')) area = 'GitHub';
+      else if (title.includes('fabric') || title.includes('data') || title.includes('dp-')) area = 'Data & AI';
+      else if (roles.includes('ai') || title.includes('ai')) area = 'Data & AI';
+
+      return {
+        id: c.uid,
+        name: c.title,
+        url: c.url?.replace('?WT.mc_id=api_CatalogApi', '') || '',
+        level: c.levels || 'intermediate',
+        type: c.certification_type || 'role-based',
+        roles: (c.roles || '').split(/\s+/).filter(Boolean),
+        area,
+        icon: c.icon_url || '',
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Get unique areas for filtering
+  const areas = [...new Set(certs.map(c => c.area))].sort();
+  const levels = [...new Set(certs.map(c => c.level))].sort();
+
+  return { certifications: certs, areas, levels, total: certs.length };
+}));
 
 // ── Socratic Mode (conversational AI coaching) ──────────
 app.post('/api/socratic', authMiddleware, async (req, res) => {
@@ -824,33 +814,86 @@ RULES:
   }
 });
 
-// ── Certification Readiness (AI-powered) ────────────────
+// ── Certification Goals ──────────────────────────────────
+const CERT_CATALOG = [
+  { id: 'az-900', name: 'Azure Fundamentals (AZ-900)', topics: ['cloud concepts', 'azure services', 'security', 'pricing', 'SLA'] },
+  { id: 'az-104', name: 'Azure Administrator (AZ-104)', topics: ['virtual machines', 'networking', 'storage', 'identity', 'governance', 'monitoring'] },
+  { id: 'az-204', name: 'Azure Developer (AZ-204)', topics: ['app service', 'functions', 'cosmos db', 'blob storage', 'authentication', 'API management'] },
+  { id: 'az-305', name: 'Azure Solutions Architect (AZ-305)', topics: ['governance', 'compute', 'networking', 'storage', 'data', 'authentication', 'monitoring'] },
+  { id: 'ai-900', name: 'Azure AI Fundamentals (AI-900)', topics: ['AI workloads', 'machine learning', 'computer vision', 'NLP', 'generative AI'] },
+  { id: 'ai-102', name: 'Azure AI Engineer (AI-102)', topics: ['cognitive services', 'knowledge mining', 'NLP', 'conversational AI', 'computer vision'] },
+  { id: 'dp-900', name: 'Azure Data Fundamentals (DP-900)', topics: ['data concepts', 'relational data', 'non-relational data', 'analytics'] },
+  { id: 'sc-900', name: 'Security Fundamentals (SC-900)', topics: ['security concepts', 'identity', 'Microsoft security', 'compliance'] },
+  { id: 'ms-900', name: 'Microsoft 365 Fundamentals (MS-900)', topics: ['Microsoft 365', 'collaboration', 'security', 'licensing'] },
+  { id: 'pl-900', name: 'Power Platform Fundamentals (PL-900)', topics: ['Power Apps', 'Power Automate', 'Power BI', 'Power Virtual Agents'] },
+];
+
+app.get('/api/cert-catalog', (req, res) => res.json(CERT_CATALOG));
+
+app.post('/api/cert-goal', authMiddleware, async (req, res) => {
+  const { certId } = req.body;
+  const cert = CERT_CATALOG.find(c => c.id === certId);
+  if (!cert) return res.status(400).json({ error: 'Invalid certification' });
+  try {
+    await db.setCertGoal(req.userId, certId, cert.name);
+    res.json({ ok: true, cert });
+  } catch (err) { res.status(500).json({ error: 'Failed to set goal' }); }
+});
+
+app.get('/api/cert-goal', authMiddleware, async (req, res) => {
+  try {
+    const goal = await db.getCertGoal(req.userId);
+    if (goal) {
+      const cert = CERT_CATALOG.find(c => c.id === goal.cert_id);
+      res.json({ ...goal, topics: cert?.topics || [] });
+    } else {
+      res.json(null);
+    }
+  } catch { res.json(null); }
+});
+
+// ── Certification Readiness (AI-powered, goal-aware) ────
 app.get('/api/certification-readiness', authMiddleware, async (req, res) => {
   if (!anthropic) return res.status(503).json({ error: 'AI not configured' });
   try {
     const data = await db.getCertificationReadiness(req.userId);
+    const goal = await db.getCertGoal(req.userId);
+    const targetCert = goal ? CERT_CATALOG.find(c => c.id === goal.cert_id) : null;
+
     if (!data.topics.length) {
-      return res.json({ score: 0, assessment: 'Not enough data yet. Study more topics to get a readiness assessment.', data });
+      return res.json({
+        score: 0,
+        targetCert: targetCert?.name || null,
+        assessment: goal
+          ? `You're targeting ${targetCert?.name}. Study more topics to get a readiness assessment.`
+          : 'Set a certification goal in your profile to get a targeted readiness assessment.',
+        data
+      });
     }
 
     const topicList = data.topics.map(t => `${t.page_title}: ${t.accuracy}% (${t.correct}/${t.total_questions} questions)`).join('\n');
+    const certContext = targetCert
+      ? `The student is specifically targeting: ${targetCert.name}. Key topics for this cert: ${targetCert.topics.join(', ')}. Evaluate readiness specifically for this certification.`
+      : 'Identify which Microsoft certification they are closest to being ready for.';
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 512,
-      messages: [{ role: 'user', content: `Based on this student's Microsoft Learn study performance, estimate their certification readiness on a 0-100 scale and identify which Microsoft certification(s) they're closest to being ready for.
+      messages: [{ role: 'user', content: `Based on this student's Microsoft Learn study performance, estimate their certification readiness on a 0-100 scale.
+
+${certContext}
 
 Overall: ${data.overall.accuracy}% accuracy across ${data.overall.topics_covered} topics, ${data.overall.total} questions answered.
 
 Topic breakdown:
 ${topicList}
 
-Respond with ONLY JSON (no markdown): {"score": 0-100, "nearestCert": "certification name", "assessment": "2-3 sentence assessment"}` }],
+Respond with ONLY JSON (no markdown): {"score": 0-100, "nearestCert": "certification name", "assessment": "2-3 sentence assessment", "gaps": ["topic gaps to study"]}` }],
     });
 
     const text = message.content[0].text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
     const result = JSON.parse(text);
-    res.json({ ...result, data });
+    res.json({ ...result, targetCert: targetCert?.name || result.nearestCert, data });
   } catch (err) {
     console.error('Cert readiness error:', err.message);
     res.status(500).json({ error: 'Failed to generate readiness score' });

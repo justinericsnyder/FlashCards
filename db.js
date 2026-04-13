@@ -142,6 +142,16 @@ async function initialize() {
         )
       `;
 
+      // Certification goals
+      await db`
+        CREATE TABLE IF NOT EXISTS cert_goals (
+          user_id INTEGER PRIMARY KEY REFERENCES users(id),
+          cert_id TEXT NOT NULL,
+          cert_name TEXT NOT NULL,
+          set_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
       console.log('✅ Database initialized');
       return;
     } catch (err) {
@@ -649,6 +659,8 @@ module.exports = {
   getLearningProfile,
   getRetentionData,
   getDifficultyCalibration,
+  setCertGoal,
+  getCertGoal,
 };
 
 // ── Telemetry ──────────────────────────────────────────
@@ -730,4 +742,20 @@ async function getDifficultyCalibration() {
     ORDER BY global_accuracy ASC
     LIMIT 20
   `;
+}
+
+// ── Certification Goals ────────────────────────────────
+async function setCertGoal(userId, certId, certName) {
+  const db = getSql();
+  await db`
+    INSERT INTO cert_goals (user_id, cert_id, cert_name)
+    VALUES (${userId}, ${certId}, ${certName})
+    ON CONFLICT (user_id) DO UPDATE SET cert_id = ${certId}, cert_name = ${certName}, set_at = NOW()
+  `;
+}
+
+async function getCertGoal(userId) {
+  const db = getSql();
+  const [row] = await db`SELECT * FROM cert_goals WHERE user_id = ${userId}`;
+  return row || null;
 }

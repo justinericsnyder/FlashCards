@@ -172,6 +172,7 @@ class FlashCardApp {
         document.getElementById('export-json-btn')?.addEventListener('click', () => this.exportData());
         document.getElementById('search-btn')?.addEventListener('click', () => this.searchDocs());
         document.getElementById('doc-search')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.searchDocs(); } });
+        document.getElementById('hint-btn')?.addEventListener('click', () => this.useHint());
 
         // Choice selection
         document.addEventListener('click', (e) => {
@@ -190,7 +191,116 @@ class FlashCardApp {
         document.getElementById('flag-question')?.addEventListener('click', () => this.flagQuestion());
     }
 
-    flagQuestion() {
+    // ── Hint System ─────────────────────────────────────────
+    useHint() {
+        if (this.answered || !this.flashCards.length) return;
+        const card = this.flashCards[this.currentCardIndex];
+        const norm = card._normalized;
+        if (!norm) return;
+
+        // Eliminate two wrong answers
+        const correctLetter = norm.correctAnswer;
+        const wrongChoices = document.querySelectorAll('.choice:not(.selected)');
+        let eliminated = 0;
+        wrongChoices.forEach(el => {
+            if (el.dataset.choice !== correctLetter && eliminated < 2 && !el.classList.contains('hint-eliminated')) {
+                el.classList.add('hint-eliminated');
+                el.style.opacity = '0.2';
+                el.style.pointerEvents = 'none';
+                eliminated++;
+            }
+        });
+
+        // Disable hint button after use
+        const btn = document.getElementById('hint-btn');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.3'; }
+        this.trackEvent('hint_used', { cardIndex: this.currentCardIndex });
+    }
+
+    // ── Timer System ────────────────────────────────────────
+    startTimer() {
+        const timerSec = parseInt(document.getElementById('timer-mode')?.value || '0');
+        if (timerSec <= 0) return;
+
+        this._timerRemaining = timerSec;
+        const timerEl = document.getElementById('session-timer');
+        if (timerEl) { timerEl.classList.remove('hidden'); timerEl.textContent = `${timerSec}s`; }
+
+        this._timerInterval = setInterval(() => {
+            this._timerRemaining--;
+            if (timerEl) {
+                timerEl.textContent = `${this._timerRemaining}s`;
+                if (this._timerRemaining <= 10) timerEl.style.color = 'var(--error)';
+                else timerEl.style.color = '';
+            }
+            if (this._timerRemaining <= 0) {
+                clearInterval(this._timerInterval);
+                if (!this.answered) {
+                    // Auto-submit if time runs out
+                    if (this.selectedChoice) this.submitAnswer();
+                    else this.nextCard(); // Skip if nothing selected
+                }
+            }
+        }, 1000);
+    }
+
+    stopTimer() {
+        if (this._timerInterval) clearInterval(this._timerInterval);
+        const timerEl = document.getElementById('session-timer');
+        if (timerEl) { timerEl.classList.add('hidden'); timerEl.style.color = ''; }
+    }
+
+    // ── Haptic Feedback ─────────────────────────────────────
+    haptic(type) {
+        if (!navigator.vibrate) return;
+        if (type === 'correct') navigator.vibrate(50);
+        else if (type === 'wrong') navigator.vibrate([50, 50, 50]);
+        else navigator.vibrate(20);
+    }
+
+    // ── Smart Retry ─────────────────────────────────────────
+    async fetchWithRetry(url, options, retries = 3) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                const res = await fetch(url, options);
+                if (res.ok || res.status < 500) return res;
+            } catch (err) {
+                if (i === retries - 1) throw err;
+            }
+            await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+        }
+    }
+
+    // ── Keyboard Shortcuts Modal ────────────────────────────
+    showKeyboardHelp() {
+        const existing = document.getElementById('kb-help-overlay');
+        if (existing) { existing.remove(); return; }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kb-help-overlay';
+        overlay.className = 'kb-help-overlay';
+        overlay.innerHTML = `
+            <div class="kb-help-modal">
+                <div class="kb-help-header">
+                    <h3>Keyboard Shortcuts</h3>
+                    <button class="kb-help-close">&times;</button>
+                </div>
+                <div class="kb-help-grid">
+                    <div class="kb-row"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd><span>Select answer</span></div>
+                    <div class="kb-row"><kbd>Enter</kbd><span>Submit / Next</span></div>
+                    <div class="kb-row"><kbd>→</kbd><span>Next card</span></div>
+                    <div class="kb-row"><kbd>H</kbd><span>Use hint</span></div>
+                    <div class="kb-row"><kbd>?</kbd><span>Toggle this help</span></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('visible'));
+        overlay.querySelector('.kb-help-close').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    }
+
+    initializeKeyboardNavigation() {
         const card = this.flashCards[this.currentCardIndex];
         if (!card) return;
         const norm = card._normalized || { question: card.question };
@@ -228,10 +338,10 @@ class FlashCardApp {
         setTimeout(() => document.addEventListener('click', close), 10);
     }
 
-    speakText() {
+    speakText(textOverride) {
         if (!('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel();
-        const text = document.getElementById('question-text')?.textContent;
+        const text = textOverride || document.getElementById('question-text')?.textContent;
         if (!text) return;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 0.9;
@@ -342,6 +452,8 @@ class FlashCardApp {
     }
 
     handleKeydown(e) {
+        if (e.key === '?' || (e.key === '/' && e.shiftKey)) { this.showKeyboardHelp(); return; }
+        if (e.key === 'h' || e.key === 'H') { if (!this.answered) this.useHint(); return; }
         if (e.key === 'Enter') {
             e.preventDefault();
             if (this.answered && !this.isAnimating) {
@@ -921,7 +1033,14 @@ class FlashCardApp {
             flashcard.style.opacity = '1';
             flashcard.style.transform = 'translateY(0) scale(1)';
 
-            setTimeout(() => { this.isAnimating = false; }, 400);
+            setTimeout(() => {
+                this.isAnimating = false;
+                this.stopTimer();
+                this.startTimer();
+                // Reset hint button
+                const hintBtn = document.getElementById('hint-btn');
+                if (hintBtn) { hintBtn.disabled = false; hintBtn.style.opacity = ''; }
+            }, 400);
         }, 220);
     }
 
@@ -985,6 +1104,8 @@ class FlashCardApp {
         feedback.className = `answer-feedback ${isCorrect ? 'correct' : 'wrong'}`;
         feedback.textContent = isCorrect ? '✓ Correct!' : '✗ Incorrect';
         feedback.classList.remove('hidden');
+        this.haptic(isCorrect ? 'correct' : 'wrong');
+        this.stopTimer();
 
         // Update running stats
         const runCorrect = document.getElementById('running-correct');

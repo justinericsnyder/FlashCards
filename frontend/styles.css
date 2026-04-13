@@ -834,3 +834,46 @@ header a:hover { opacity: 1; }
 .search-result-item:hover { background: var(--primary-subtle); }
 .search-result-title { font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 0.1rem; }
 .search-result-desc { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; }
+
+/* ── Timer ──────────────────────────────────────────────── */
+.session-timer {
+    font-family: var(--font-mono); font-weight: 700; font-size: 0.8rem;
+    padding: 0.15rem 0.5rem; border-radius: 4px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    transition: color 0.3s ease;
+}
+
+/* ── Hint Eliminated ───────────────────────────────────── */
+.choice.hint-eliminated {
+    opacity: 0.15 !important;
+    pointer-events: none;
+    text-decoration: line-through;
+    transition: opacity 0.4s ease;
+}
+
+/* ── Keyboard Shortcuts Modal ──────────────────────────── */
+.kb-help-overlay {
+    position: fixed; inset: 0; z-index: 10001;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0); transition: background 0.25s ease; padding: 1rem;
+}
+.kb-help-overlay.visible { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+.kb-help-modal {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.25rem; max-width: 340px; width: 100%;
+    transform: translateY(12px) scale(0.97); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.kb-help-overlay.visible .kb-help-modal { transform: translateY(0) scale(1); opacity: 1; }
+.kb-help-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.kb-help-header h3 { font-size: 0.9rem; color: var(--text); }
+.kb-help-close { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+.kb-help-grid { display: flex; flex-direction: column; gap: 0.4rem; }
+.kb-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--text-dim); }
+.kb-row span { margin-left: auto; }
+kbd {
+    display: inline-block; padding: 0.15rem 0.4rem;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 4px; font-family: var(--font-mono); font-size: 0.7rem;
+    color: var(--text); min-width: 22px; text-align: center;
+}

@@ -96,6 +96,17 @@
                             </select>
                             <small id="difficulty-help" class="help-text">Adjust question complexity</small>
                         </div>
+
+                        <div class="control-group">
+                            <label for="timer-mode">Timer</label>
+                            <select id="timer-mode">
+                                <option value="0" selected>No Timer</option>
+                                <option value="30">30 seconds</option>
+                                <option value="60">60 seconds</option>
+                                <option value="90">90 seconds</option>
+                            </select>
+                            <small class="help-text">Optional exam simulation</small>
+                        </div>
                     </div>
 
                     <button id="generate-cards" class="btn btn-primary btn-lg btn-full" type="submit">
@@ -132,6 +143,7 @@
                 <div class="session-stats">
                     <span class="stat-correct" id="running-correct">✓ 0</span>
                     <span class="stat-wrong" id="running-wrong">✗ 0</span>
+                    <span class="session-timer hidden" id="session-timer">0:00</span>
                 </div>
 
                 <div class="flashcard" role="region" aria-labelledby="question-text">
@@ -182,6 +194,9 @@
                     </div>
 
                     <div class="card-actions">
+                        <button id="hint-btn" class="btn btn-secondary" title="Get a hint" type="button">
+                            <i data-lucide="lightbulb" class="icon"></i> Hint
+                        </button>
                         <button id="submit-answer" class="btn btn-primary btn-lg" disabled aria-describedby="submit-help">
                             Submit Answer
                         </button>

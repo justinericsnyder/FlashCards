@@ -455,6 +455,33 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Export/Import ────────────────────────────────────────
+app.get('/api/export/json', authMiddleware, async (req, res) => {
+  try {
+    const scores = await db.getScores({ userId: req.userId, limit: 1000 });
+    const topics = await db.getTopicStats(req.userId);
+    res.setHeader('Content-Disposition', 'attachment; filename=flashcards-export.json');
+    res.json({ exportedAt: new Date().toISOString(), scores, topics });
+  } catch (err) {
+    res.status(500).json({ error: 'Export failed' });
+  }
+});
+
+app.get('/api/export/csv', authMiddleware, async (req, res) => {
+  try {
+    const scores = await db.getScores({ userId: req.userId, limit: 1000 });
+    const header = 'Date,Topic,URL,Correct,Total,Score%,Difficulty\n';
+    const rows = scores.map(s =>
+      `"${s.created_at}","${(s.page_title||'').replace(/"/g,'""')}","${s.url}",${s.correct},${s.total},${s.score_pct},"${s.difficulty}"`
+    ).join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=flashcards-export.csv');
+    res.send(header + rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Export failed' });
+  }
+});
+
 // ── Shared Decks ────────────────────────────────────────
 app.post('/api/decks/share', authMiddleware, async (req, res) => {
   try {

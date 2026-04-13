@@ -9,7 +9,7 @@
     "build": "echo 'No build step required - static files only'",
     "serve": "node server.js",
     "deploy": "echo 'Ready for deployment to Heroku, DigitalOcean, AWS, etc.'",
-    "test": "jest --forceExit --detectOpenHandles"
+    "test": "NODE_ENV=test jest --forceExit --detectOpenHandles"
   },
   "engines": {
     "node": ">=14.0.0"

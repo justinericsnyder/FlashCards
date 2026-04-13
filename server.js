@@ -1095,17 +1095,19 @@ app.use((req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Microsoft Learn Flash Cards server running on port ${PORT}`);
-  console.log(`📱 Local: http://localhost:${PORT}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-  console.log(`📊 API info: http://localhost:${PORT}/api/info`);
+// Start server (skip in test mode)
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Microsoft Learn Flash Cards server running on port ${PORT}`);
+    console.log(`📱 Local: http://localhost:${PORT}`);
+    console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    console.log(`📊 API info: http://localhost:${PORT}/api/info`);
 
-  if (process.env.NODE_ENV === 'production') {
-    console.log('🌐 Production mode enabled');
-  }
-});
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🌐 Production mode enabled');
+    }
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

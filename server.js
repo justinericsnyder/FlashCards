@@ -455,6 +455,39 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Certification Readiness (AI-powered) ────────────────
+app.get('/api/certification-readiness', authMiddleware, async (req, res) => {
+  if (!anthropic) return res.status(503).json({ error: 'AI not configured' });
+  try {
+    const data = await db.getCertificationReadiness(req.userId);
+    if (!data.topics.length) {
+      return res.json({ score: 0, assessment: 'Not enough data yet. Study more topics to get a readiness assessment.', data });
+    }
+
+    const topicList = data.topics.map(t => `${t.page_title}: ${t.accuracy}% (${t.correct}/${t.total_questions} questions)`).join('\n');
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 512,
+      messages: [{ role: 'user', content: `Based on this student's Microsoft Learn study performance, estimate their certification readiness on a 0-100 scale and identify which Microsoft certification(s) they're closest to being ready for.
+
+Overall: ${data.overall.accuracy}% accuracy across ${data.overall.topics_covered} topics, ${data.overall.total} questions answered.
+
+Topic breakdown:
+${topicList}
+
+Respond with ONLY JSON (no markdown): {"score": 0-100, "nearestCert": "certification name", "assessment": "2-3 sentence assessment"}` }],
+    });
+
+    const text = message.content[0].text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    const result = JSON.parse(text);
+    res.json({ ...result, data });
+  } catch (err) {
+    console.error('Cert readiness error:', err.message);
+    res.status(500).json({ error: 'Failed to generate readiness score' });
+  }
+});
+
 // ── Personalized Weakness Report (AI-powered) ───────────
 app.get('/api/weakness-report', authMiddleware, async (req, res) => {
   if (!anthropic) return res.status(503).json({ error: 'AI not configured' });

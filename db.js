@@ -256,18 +256,7 @@ async function getGlobalTopicStats() {
   `;
 }
 
-module.exports = {
-  initialize, createUser, getUserByEmail, getUserById,
-  saveScore, getScores, getStats,
-  saveQuestionLog, getTopicStats, getPastQuestions,
-  getRecentTopics, getGlobalTopicStats,
-  upsertCardReview, getCardsForReview, updateReviewResult, getReviewStats,
-  updateStreak, checkAndAwardBadges, getUserAchievements, getStreak, getLeaderboard, BADGES,
-  shareDeck, getDeckByCode,
-  getDetailedAnalytics,
-  saveQuestionFeedback,
-  getWeaknessData,
-};
+// module.exports moved to end of file
 
 // ── Spaced Repetition (SM-2) ───────────────────────────
 async function upsertCardReview({ userId, url, pageTitle, question, correctAnswer, choices, explanation, difficulty }) {
@@ -528,3 +517,40 @@ async function getWeaknessData(userId) {
   `;
   return { wrongAnswers, topicAccuracy };
 }
+
+// ── Certification Readiness ────────────────────────────
+async function getCertificationReadiness(userId) {
+  const db = getSql();
+  const topics = await db`
+    SELECT page_title, url,
+      COUNT(*) as total_questions,
+      SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct,
+      ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as accuracy,
+      MAX(created_at) as last_studied
+    FROM question_logs
+    WHERE user_id = ${userId} AND page_title IS NOT NULL
+    GROUP BY page_title, url
+    ORDER BY accuracy ASC
+  `;
+  const [overall] = await db`
+    SELECT COUNT(*) as total, SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct,
+      ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / NULLIF(COUNT(*),0)) as accuracy,
+      COUNT(DISTINCT url) as topics_covered
+    FROM question_logs WHERE user_id = ${userId}
+  `;
+  return { topics, overall };
+}
+
+module.exports = {
+  initialize, createUser, getUserByEmail, getUserById,
+  saveScore, getScores, getStats,
+  saveQuestionLog, getTopicStats, getPastQuestions,
+  getRecentTopics, getGlobalTopicStats,
+  upsertCardReview, getCardsForReview, updateReviewResult, getReviewStats,
+  updateStreak, checkAndAwardBadges, getUserAchievements, getStreak, getLeaderboard, BADGES,
+  shareDeck, getDeckByCode,
+  getDetailedAnalytics,
+  saveQuestionFeedback,
+  getWeaknessData,
+  getCertificationReadiness,
+};

@@ -1,15 +1,21 @@
 {
-  "name": "Microsoft Learn Flash Cards",
-  "short_name": "MS Learn Cards",
-  "description": "Interactive flash cards for Microsoft Learn documentation",
+  "name": "Good Better Best",
+  "short_name": "GBB",
+  "description": "AI-powered flash cards for Microsoft Learn documentation",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#667eea",
-  "theme_color": "#6366f1",
+  "background_color": "#050505",
+  "theme_color": "#f5c518",
   "orientation": "portrait-primary",
   "categories": ["education", "productivity"],
   "lang": "en-US",
   "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
@@ -21,20 +27,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "screenshot-desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
     }
   ]
 }

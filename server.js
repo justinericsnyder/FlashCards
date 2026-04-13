@@ -1051,9 +1051,9 @@ app.get('/health', (req, res) => {
 // API endpoint for app info
 app.get('/api/info', (req, res) => {
   res.json({
-    name: 'Microsoft Learn Flash Cards',
-    version: '1.0.0',
-    description: 'Interactive flash cards for Microsoft Learn documentation - powered by Claude AI',
+    name: 'Good Better Best',
+    version: '2.0.0',
+    description: 'AI-powered flash cards for Microsoft Learn documentation - powered by Claude AI',
     features: [
       'Smart content generation',
       'Customizable difficulty levels',

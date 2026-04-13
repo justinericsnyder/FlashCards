@@ -322,11 +322,11 @@
     <script src="nav.js"></script>
     <script>
         lucide.createIcons();
-        // Align nav top with the Documentation URL label
+        // Align nav top with the setup section
         function alignNav() {
-            const label = document.querySelector('label[for="doc-url"]');
-            if (label && window.innerWidth > 900) {
-                const top = label.getBoundingClientRect().top + window.scrollY;
+            const section = document.getElementById('setup-section') || document.querySelector('.section');
+            if (section && window.innerWidth > 900) {
+                const top = section.getBoundingClientRect().top + window.scrollY;
                 document.documentElement.style.setProperty('--nav-top', top + 'px');
             }
         }

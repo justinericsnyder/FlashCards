@@ -17,6 +17,33 @@ class FlashCardApp {
         this.loadRecentTopics();
         this.loadReviewBanner();
         this.checkSavedSession();
+        this.initTelemetry();
+    }
+
+    initTelemetry() {
+        this._choiceShownAt = null;
+        this._clickTimes = [];
+
+        // Track page unload during active session
+        window.addEventListener('beforeunload', () => {
+            if (this.flashCards.length > 0 && this.currentCardIndex < this.flashCards.length - 1) {
+                this.trackEvent('session_abandon', {
+                    cardIndex: this.currentCardIndex,
+                    totalCards: this.flashCards.length,
+                    correct: this.correctAnswers,
+                    incorrect: this.incorrectAnswers,
+                });
+            }
+        });
+    }
+
+    trackEvent(eventType, eventData) {
+        const url = document.getElementById('doc-url')?.value?.trim();
+        const headers = { 'Content-Type': 'application/json', ...(Auth.isLoggedIn() ? Auth.authHeaders() : {}) };
+        fetch(`${API_BASE}/api/telemetry`, {
+            method: 'POST', headers,
+            body: JSON.stringify({ eventType, eventData, url }),
+        }).catch(() => {});
     }
 
     saveSessionState() {
@@ -814,6 +841,7 @@ class FlashCardApp {
             this.updateNavigation();
 
             // Slide card back in with a subtle bounce
+            this._choiceShownAt = Date.now();
             flashcard.style.transition = 'opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
             flashcard.style.opacity = '1';
             flashcard.style.transform = 'translateY(0) scale(1)';
@@ -867,6 +895,9 @@ class FlashCardApp {
         }
 
         // Track result for session summary
+        const hesitationMs = this._choiceShownAt ? Date.now() - this._choiceShownAt : 0;
+        this.trackEvent('answer_submitted', { isCorrect, hesitationMs, cardIndex: this.currentCardIndex });
+
         this.questionResults.push({
             question: norm.question,
             userAnswer: norm.choices[['A','B','C','D'].indexOf(this.selectedChoice)] || '',

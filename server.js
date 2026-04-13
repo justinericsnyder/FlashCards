@@ -624,6 +624,16 @@ Write the report in second person ("You should..."). Be warm but direct. Focus o
   }
 });
 
+// ── Telemetry ────────────────────────────────────────────
+app.post('/api/telemetry', optionalAuth, async (req, res) => {
+  try {
+    const { eventType, eventData, url } = req.body;
+    if (!eventType) return res.status(400).json({ error: 'eventType required' });
+    await db.saveTelemetry({ userId: req.userId || null, eventType, eventData, url });
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Failed' }); }
+});
+
 // ── Question Feedback ────────────────────────────────────
 app.post('/api/question-feedback', optionalAuth, async (req, res) => {
   try {

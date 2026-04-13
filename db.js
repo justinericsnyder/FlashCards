@@ -97,6 +97,18 @@ async function initialize() {
         )
       `;
 
+      // Telemetry events
+      await db`
+        CREATE TABLE IF NOT EXISTS telemetry (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER,
+          event_type TEXT NOT NULL,
+          event_data JSONB,
+          url TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
       // Gamification
       await db`
         CREATE TABLE IF NOT EXISTS user_streaks (
@@ -553,4 +565,11 @@ module.exports = {
   saveQuestionFeedback,
   getWeaknessData,
   getCertificationReadiness,
+  saveTelemetry,
 };
+
+// ── Telemetry ──────────────────────────────────────────
+async function saveTelemetry({ userId, eventType, eventData, url }) {
+  const db = getSql();
+  await db`INSERT INTO telemetry (user_id, event_type, event_data, url) VALUES (${userId || null}, ${eventType}, ${JSON.stringify(eventData || {})}, ${url || null})`;
+}

@@ -253,11 +253,14 @@
 
     <!-- Load font as fallback -->
     <script>
-        // Fallback for font loading
         if ('fonts' in document) {
             document.fonts.load('1em "DM Sans"').then(() => {
                 document.documentElement.classList.add('fonts-loaded');
             });
+        }
+        // Register service worker for offline support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
         }
     </script>
 

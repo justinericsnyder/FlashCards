@@ -130,9 +130,14 @@
                         <div class="question-side" aria-live="polite">
                             <div class="question-header">
                                 <h3>Question</h3>
-                                <button class="tts-btn" id="tts-question" title="Read aloud" aria-label="Read question aloud">
-                                    <i data-lucide="volume-2" class="icon"></i>
-                                </button>
+                                <div class="question-actions">
+                                    <button class="tts-btn" id="tts-question" title="Read aloud" aria-label="Read question aloud">
+                                        <i data-lucide="volume-2" class="icon"></i>
+                                    </button>
+                                    <button class="tts-btn" id="flag-question" title="Flag this question" aria-label="Flag question as problematic">
+                                        <i data-lucide="flag" class="icon"></i>
+                                    </button>
+                                </div>
                             </div>
                             <p id="question-text"></p>
 

@@ -46,6 +46,47 @@ class FlashCardApp {
 
         // Text-to-speech
         document.getElementById('tts-question')?.addEventListener('click', () => this.speakText());
+
+        // Flag question
+        document.getElementById('flag-question')?.addEventListener('click', () => this.flagQuestion());
+    }
+
+    flagQuestion() {
+        const card = this.flashCards[this.currentCardIndex];
+        if (!card) return;
+        const norm = card._normalized || { question: card.question };
+        const url = document.getElementById('doc-url').value.trim();
+
+        // Show flag options
+        const btn = document.getElementById('flag-question');
+        if (btn.classList.contains('flagged')) return;
+
+        const types = ['Confusing wording', 'Wrong answer', 'Not relevant', 'Too easy', 'Too hard'];
+        const menu = document.createElement('div');
+        menu.className = 'flag-menu';
+        menu.innerHTML = types.map(t => `<button class="flag-option">${t}</button>`).join('');
+        btn.parentElement.appendChild(menu);
+        requestAnimationFrame(() => menu.classList.add('visible'));
+
+        menu.addEventListener('click', async (e) => {
+            const opt = e.target.closest('.flag-option');
+            if (!opt) return;
+            menu.remove();
+            btn.classList.add('flagged');
+            btn.style.color = 'var(--warning)';
+
+            try {
+                await (Auth.isLoggedIn() ? Auth.apiFetch : fetch)(`${API_BASE}/api/question-feedback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...Auth.authHeaders() },
+                    body: JSON.stringify({ question: norm.question, url, feedbackType: opt.textContent }),
+                });
+            } catch {}
+        });
+
+        // Close on outside click
+        const close = (e) => { if (!menu.contains(e.target) && e.target !== btn) { menu.remove(); document.removeEventListener('click', close); } };
+        setTimeout(() => document.addEventListener('click', close), 10);
     }
 
     speakText() {

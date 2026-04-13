@@ -703,6 +703,7 @@ header a:hover { opacity: 1; }
 
 /* ── TTS Button ────────────────────────────────────────── */
 .question-header { display: flex; align-items: center; justify-content: space-between; }
+.question-actions { display: flex; gap: 0.3rem; }
 .tts-btn {
     background: none; border: 1px solid var(--border); border-radius: var(--radius);
     padding: 0.3rem; cursor: pointer; color: var(--text-muted);
@@ -727,3 +728,23 @@ header a:hover { opacity: 1; }
 .signup-prompt-text span { font-size: 0.78rem; color: var(--text-dim); }
 .signup-prompt-actions { display: flex; gap: 0.5rem; }
 .signup-prompt-actions .btn { flex: 1; }
+
+/* ── Flag Menu ─────────────────────────────────────────── */
+.flag-menu {
+    position: absolute; right: 0; top: 100%; margin-top: 0.3rem;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 0.25rem;
+    z-index: 50; min-width: 160px;
+    opacity: 0; transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    box-shadow: var(--shadow-lg);
+}
+.flag-menu.visible { opacity: 1; transform: translateY(0); }
+.flag-option {
+    display: block; width: 100%; text-align: left;
+    padding: 0.4rem 0.6rem; border: none; background: none;
+    color: var(--text-dim); font-size: 0.75rem; font-family: inherit;
+    cursor: pointer; border-radius: 4px; transition: all var(--fast);
+}
+.flag-option:hover { background: var(--primary-subtle); color: var(--text); }
+.tts-btn.flagged { border-color: var(--warning); }

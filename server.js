@@ -455,6 +455,18 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Question Feedback ────────────────────────────────────
+app.post('/api/question-feedback', optionalAuth, async (req, res) => {
+  try {
+    const { question, url, feedbackType } = req.body;
+    if (!question || !feedbackType) return res.status(400).json({ error: 'Missing fields' });
+    const fb = await db.saveQuestionFeedback({ userId: req.userId || null, question, url, feedbackType });
+    res.json(fb);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save feedback' });
+  }
+});
+
 // ── Documentation Search ─────────────────────────────────
 app.get('/api/search-docs', async (req, res) => {
   const query = req.query.q;

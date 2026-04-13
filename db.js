@@ -85,6 +85,18 @@ async function initialize() {
       `;
       await db`CREATE INDEX IF NOT EXISTS idx_reviews_user_next ON card_reviews (user_id, next_review)`;
 
+      // Question feedback
+      await db`
+        CREATE TABLE IF NOT EXISTS question_feedback (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id),
+          question TEXT NOT NULL,
+          url TEXT,
+          feedback_type TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
       // Gamification
       await db`
         CREATE TABLE IF NOT EXISTS user_streaks (
@@ -253,6 +265,7 @@ module.exports = {
   updateStreak, checkAndAwardBadges, getUserAchievements, getStreak, getLeaderboard, BADGES,
   shareDeck, getDeckByCode,
   getDetailedAnalytics,
+  saveQuestionFeedback,
 };
 
 // ── Spaced Repetition (SM-2) ───────────────────────────
@@ -480,4 +493,15 @@ async function getDetailedAnalytics(userId) {
   `;
 
   return { overall, weeklyTrend, hardestTopics, strongestTopics, activityHeatmap };
+}
+
+// ── Question Feedback ──────────────────────────────────
+async function saveQuestionFeedback({ userId, question, url, feedbackType }) {
+  const db = getSql();
+  const [row] = await db`
+    INSERT INTO question_feedback (user_id, question, url, feedback_type)
+    VALUES (${userId}, ${question}, ${url}, ${feedbackType})
+    RETURNING *
+  `;
+  return row;
 }

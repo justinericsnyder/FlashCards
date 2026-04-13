@@ -8,10 +8,32 @@ const Anthropic = require('@anthropic-ai/sdk');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'flashcards-secret-change-in-production';
+
+// Simple in-memory cache
+const cache = new Map();
+function cached(key, ttlMs, fn) {
+  return async (req, res) => {
+    const k = typeof key === 'function' ? key(req) : key;
+    const entry = cache.get(k);
+    if (entry && Date.now() - entry.time < ttlMs) return res.json(entry.data);
+    try {
+      const data = await fn(req);
+      cache.set(k, { data, time: Date.now() });
+      res.json(data);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+  };
+}
+
+// Input sanitization helper
+function sanitize(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/[<>]/g, '').trim().substring(0, 5000);
+}
 
 // JSON body parsing for POST requests
 app.use(express.json({ limit: '1mb' }));
@@ -63,6 +85,16 @@ app.use(cors({
 
 // Compression middleware
 app.use(compression());
+
+// Rate limiting
+const apiLimiter = rateLimit({ windowMs: 60000, max: 60, message: { error: 'Too many requests, slow down' } });
+const aiLimiter = rateLimit({ windowMs: 60000, max: 10, message: { error: 'AI generation rate limited. Wait a moment.' } });
+app.use('/api/', apiLimiter);
+app.use('/api/generate-cards', aiLimiter);
+app.use('/api/socratic', aiLimiter);
+app.use('/api/teach-back', aiLimiter);
+app.use('/api/weakness-report', aiLimiter);
+app.use('/api/certification-readiness', aiLimiter);
 
 // Static files served by Vercel in production
 if (process.env.NODE_ENV !== 'production') {
@@ -468,6 +500,126 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Failed to update review' });
   }
 });
+
+// ── Daily Challenges ─────────────────────────────────────
+app.get('/api/daily-challenge', async (req, res) => {
+  const themes = [
+    { theme: 'Azure Security', topic: 'security', urls: ['https://learn.microsoft.com/en-us/training/modules/describe-azure-identity-access-security/'] },
+    { theme: 'Cloud Fundamentals', topic: 'cloud', urls: ['https://learn.microsoft.com/en-us/training/modules/describe-cloud-compute/'] },
+    { theme: 'AI & Machine Learning', topic: 'ai', urls: ['https://learn.microsoft.com/en-us/training/modules/get-started-ai-fundamentals/'] },
+    { theme: 'Microsoft 365', topic: 'm365', urls: ['https://learn.microsoft.com/en-us/training/modules/describe-productivity-solutions-microsoft-365/'] },
+    { theme: 'Azure Networking', topic: 'networking', urls: ['https://learn.microsoft.com/en-us/training/modules/describe-azure-compute-networking-services/'] },
+    { theme: 'Data & Storage', topic: 'storage', urls: ['https://learn.microsoft.com/en-us/training/modules/describe-azure-storage-services/'] },
+    { theme: 'Compliance & Governance', topic: 'compliance', urls: ['https://learn.microsoft.com/en-us/training/modules/describe-compliance-management-capabilities-microsoft/'] },
+  ];
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  const challenge = themes[dayOfYear % themes.length];
+  res.json({ ...challenge, bonusXp: 25, date: new Date().toISOString().split('T')[0] });
+});
+
+// ── Study Goals ─────────────────────────────────────────
+app.post('/api/goals', authMiddleware, async (req, res) => {
+  try {
+    const { weeklyTarget, monthlyTarget } = req.body;
+    const d = db.getSql ? require('./db') : db;
+    const sql = d.getSql ? d.getSql() : null;
+    if (!sql) return res.status(503).json({ error: 'DB not configured' });
+    await sql`CREATE TABLE IF NOT EXISTS study_goals (user_id INTEGER PRIMARY KEY REFERENCES users(id), weekly_target INTEGER DEFAULT 5, monthly_target INTEGER DEFAULT 20)`;
+    await sql`INSERT INTO study_goals (user_id, weekly_target, monthly_target) VALUES (${req.userId}, ${weeklyTarget || 5}, ${monthlyTarget || 20}) ON CONFLICT (user_id) DO UPDATE SET weekly_target = ${weeklyTarget || 5}, monthly_target = ${monthlyTarget || 20}`;
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: 'Failed to save goals' }); }
+});
+
+app.get('/api/goals', authMiddleware, async (req, res) => {
+  try {
+    const sql = require('./db');
+    const dbConn = sql.getSql ? sql.getSql() : null;
+    if (!dbConn) return res.json({ weekly_target: 5, monthly_target: 20, weekly_progress: 0, monthly_progress: 0 });
+    await dbConn`CREATE TABLE IF NOT EXISTS study_goals (user_id INTEGER PRIMARY KEY REFERENCES users(id), weekly_target INTEGER DEFAULT 5, monthly_target INTEGER DEFAULT 20)`;
+    const [goal] = await dbConn`SELECT * FROM study_goals WHERE user_id = ${req.userId}`;
+    const [weeklyProgress] = await dbConn`SELECT COUNT(*) as c FROM scores WHERE user_id = ${req.userId} AND created_at > NOW() - INTERVAL '7 days'`;
+    const [monthlyProgress] = await dbConn`SELECT COUNT(*) as c FROM scores WHERE user_id = ${req.userId} AND created_at > NOW() - INTERVAL '30 days'`;
+    res.json({
+      weekly_target: goal?.weekly_target || 5,
+      monthly_target: goal?.monthly_target || 20,
+      weekly_progress: Number(weeklyProgress.c),
+      monthly_progress: Number(monthlyProgress.c),
+    });
+  } catch (err) { res.json({ weekly_target: 5, monthly_target: 20, weekly_progress: 0, monthly_progress: 0 }); }
+});
+
+// ── Leaderboard with Tiers ──────────────────────────────
+app.get('/api/leaderboard', cached('leaderboard', 300000, async () => {
+  const board = await db.getLeaderboard(50);
+  return board.map(u => {
+    const xp = Number(u.total_xp || 0);
+    let tier = 'Bronze';
+    if (xp >= 1000) tier = 'Platinum';
+    else if (xp >= 500) tier = 'Gold';
+    else if (xp >= 200) tier = 'Silver';
+    return { ...u, tier };
+  });
+}));
+
+// ── Cognitive Load Detection ────────────────────────────
+app.get('/api/cognitive-load', authMiddleware, async (req, res) => {
+  try {
+    const sql = require('./db').getSql ? require('./db').getSql() : null;
+    if (!sql) return res.json([]);
+    const data = await sql`
+      SELECT event_data->>'hesitationMs' as hesitation, event_data->>'isCorrect' as correct
+      FROM telemetry WHERE user_id = ${req.userId} AND event_type = 'answer_submitted'
+      ORDER BY created_at DESC LIMIT 100
+    `;
+    const avg = data.reduce((s, d) => s + Number(d.hesitation || 0), 0) / (data.length || 1);
+    const confusing = data.filter(d => Number(d.hesitation) > 15000).length;
+    res.json({ avgHesitationMs: Math.round(avg), confusingQuestions: confusing, totalTracked: data.length });
+  } catch { res.json({ avgHesitationMs: 0, confusingQuestions: 0, totalTracked: 0 }); }
+});
+
+// ── Distractor Plausibility ─────────────────────────────
+app.get('/api/distractor-stats', cached('distractors', 600000, async () => {
+  const sql = require('./db').getSql ? require('./db').getSql() : null;
+  if (!sql) return [];
+  return await sql`
+    SELECT user_answer, COUNT(*) as times_selected
+    FROM question_logs WHERE is_correct = false
+    GROUP BY user_answer ORDER BY times_selected DESC LIMIT 20
+  `;
+}));
+
+// ── Knowledge Decay Modeling ────────────────────────────
+app.get('/api/knowledge-decay', authMiddleware, async (req, res) => {
+  try {
+    const sql = require('./db').getSql ? require('./db').getSql() : null;
+    if (!sql) return res.json([]);
+    const decay = await sql`
+      SELECT page_title,
+        MAX(created_at) as last_studied,
+        EXTRACT(DAY FROM NOW() - MAX(created_at)) as days_since,
+        ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as accuracy,
+        GREATEST(0, ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*) - EXTRACT(DAY FROM NOW() - MAX(created_at)) * 2)) as estimated_retention
+      FROM question_logs WHERE user_id = ${req.userId} AND page_title IS NOT NULL
+      GROUP BY page_title ORDER BY estimated_retention ASC
+    `;
+    res.json(decay);
+  } catch { res.json([]); }
+});
+
+// ── Documentation Gap Detection ─────────────────────────
+app.get('/api/doc-gaps', cached('doc-gaps', 600000, async () => {
+  const sql = require('./db').getSql ? require('./db').getSql() : null;
+  if (!sql) return [];
+  return await sql`
+    SELECT page_title, url,
+      COUNT(*) as total_answers,
+      ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as accuracy
+    FROM question_logs WHERE page_title IS NOT NULL
+    GROUP BY page_title, url HAVING COUNT(*) >= 10 AND
+      ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) < 40
+    ORDER BY accuracy ASC
+  `;
+}));
 
 // ── Teach-Back Mode ──────────────────────────────────────
 app.post('/api/teach-back', authMiddleware, async (req, res) => {

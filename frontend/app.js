@@ -607,6 +607,26 @@ class FlashCardApp {
 
     // ── Helpers ─────────────────────────────────────────────────────────
 
+    resolveCorrectLetter(answer, choices) {
+        // If it's already a letter (A, B, C, D), use it
+        const letters = ['A', 'B', 'C', 'D'];
+        if (letters.includes(answer)) return answer;
+
+        // If it's the text of a choice, find the matching letter
+        const idx = choices.findIndex(c => c === answer || c.trim().toLowerCase() === String(answer).trim().toLowerCase());
+        if (idx >= 0) return letters[idx];
+
+        // If it's a number (0-3), convert to letter
+        const num = parseInt(answer);
+        if (num >= 0 && num <= 3) return letters[num];
+
+        // Fallback: try partial match
+        const partial = choices.findIndex(c => c && String(answer) && c.toLowerCase().includes(String(answer).toLowerCase().substring(0, 20)));
+        if (partial >= 0) return letters[partial];
+
+        return 'A'; // Last resort fallback
+    }
+
     extractSentences(text) {
         return text
             .split(/(?<=[.!?])\s+/)
@@ -825,18 +845,17 @@ class FlashCardApp {
                 questionText = `Fill in the blank: ${card.sentence}`;
                 choices = card.choices.slice(0, 4);
                 while (choices.length < 4) choices.push('');
-                const idx = choices.indexOf(card.correctAnswer);
-                correctLetter = ['A','B','C','D'][idx >= 0 ? idx : 0];
+                correctLetter = this.resolveCorrectLetter(card.correctAnswer, choices);
                 card._normalized = { question: questionText, choices, correctAnswer: correctLetter };
             } else if (type === 'scenario') {
                 questionText = `${card.scenario}\n\n${card.question}`;
                 choices = card.choices.slice(0, 4);
-                correctLetter = card.correctAnswer;
+                correctLetter = this.resolveCorrectLetter(card.correctAnswer, choices);
                 card._normalized = { question: questionText, choices, correctAnswer: correctLetter };
             } else {
                 questionText = card.question;
                 choices = card.choices || [];
-                correctLetter = card.correctAnswer;
+                correctLetter = this.resolveCorrectLetter(card.correctAnswer, choices);
                 card._normalized = { question: questionText, choices, correctAnswer: correctLetter };
             }
 

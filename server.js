@@ -455,6 +455,33 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Documentation Search ─────────────────────────────────
+app.get('/api/search-docs', async (req, res) => {
+  const query = req.query.q;
+  if (!query || query.length < 2) return res.status(400).json({ error: 'Query too short' });
+
+  try {
+    const searchUrl = `https://learn.microsoft.com/api/search?search=${encodeURIComponent(query)}&locale=en-us&$top=10`;
+    const mod = require('https');
+    const data = await new Promise((resolve, reject) => {
+      mod.get(searchUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, resp => {
+        let d = ''; resp.on('data', c => d += c);
+        resp.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ results: [] }); } });
+      }).on('error', reject);
+    });
+
+    const results = (data.results || []).map(r => ({
+      title: r.title,
+      url: r.url,
+      description: r.description,
+    }));
+    res.json(results);
+  } catch (err) {
+    console.error('Search error:', err.message);
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
 // ── Advanced Analytics ───────────────────────────────────
 app.get('/api/analytics', authMiddleware, async (req, res) => {
   try {

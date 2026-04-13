@@ -91,9 +91,14 @@
     // Auth UI in nav
     if (typeof Auth !== 'undefined') Auth.updateAuthUI();
 
-    // Align nav top with the first content block on the page
+    // Align nav top and left with the first content block on the page
     function alignNav() {
         if (window.innerWidth <= 900) return;
+        const nav = document.querySelector('.side-nav');
+        if (!nav) return;
+        const navWidth = nav.offsetWidth || 44;
+        const gap = 10;
+
         const candidates = [
             '.section',
             '.profile-stats',
@@ -111,8 +116,11 @@
         for (const sel of candidates) {
             const el = document.querySelector(sel);
             if (el && el.getBoundingClientRect().top > 0) {
-                const top = el.getBoundingClientRect().top + window.scrollY;
+                const rect = el.getBoundingClientRect();
+                const top = rect.top + window.scrollY;
+                const left = rect.left + window.scrollX - navWidth - gap;
                 document.documentElement.style.setProperty('--nav-top', top + 'px');
+                document.documentElement.style.setProperty('--nav-left', Math.max(4, left) + 'px');
                 return;
             }
         }

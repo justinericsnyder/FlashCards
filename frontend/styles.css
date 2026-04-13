@@ -411,7 +411,7 @@ header a:hover { opacity: 1; }
 /* Floating Side Nav — icon-only with hover popovers, never scrolls */
 .side-nav {
     position: fixed;
-    left: max(0.5rem, calc(50% - 550px - 56px));
+    left: var(--nav-left, max(0.5rem, calc(50% - 550px - 56px)));
     top: var(--nav-top, 220px);
     display: flex; flex-direction: column; gap: 2px;
     z-index: 100;

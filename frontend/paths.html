@@ -93,7 +93,7 @@
             (data.areas || []).forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; areaSelect.appendChild(o); });
 
             const levelSelect = document.getElementById('level-filter');
-            (data.levels || []).forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l.charAt(0).toUpperCase() + l.slice(1); levelSelect.appendChild(o); });
+            (data.levels || []).forEach(l => { const s = String(l); const o = document.createElement('option'); o.value = s; o.textContent = s.charAt(0).toUpperCase() + s.slice(1); levelSelect.appendChild(o); });
 
             render();
 

@@ -768,7 +768,7 @@ app.get('/api/learning-paths', cached('learning-paths', 3600000, async () => {
         id: c.uid,
         name: c.title,
         url: c.url?.replace('?WT.mc_id=api_CatalogApi', '') || '',
-        level: c.levels || 'intermediate',
+        level: String(c.levels || 'intermediate'),
         type: c.certification_type || 'role-based',
         roles: Array.isArray(c.roles) ? c.roles : String(c.roles || '').split(/\s+/).filter(Boolean),
         area,

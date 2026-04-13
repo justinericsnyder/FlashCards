@@ -743,11 +743,14 @@ app.get('/api/learning-paths', cached('learning-paths', 3600000, async () => {
   });
 
   const certs = (data.certifications || [])
-    .filter(c => !c.subtitle?.includes('retired') && !c.subtitle?.includes('no longer available'))
+    .filter(c => {
+      const sub = String(c.subtitle || '').toLowerCase();
+      return !sub.includes('retired') && !sub.includes('no longer available') && !sub.includes('has been retired');
+    })
     .map(c => {
       // Categorize by solution area
       const title = (c.title || '').toLowerCase();
-      const roles = (c.roles || '').toLowerCase();
+      const roles = Array.isArray(c.roles) ? c.roles.join(' ').toLowerCase() : String(c.roles || '').toLowerCase();
       let area = 'General';
       if (title.includes('azure') || title.includes('az-')) area = 'Azure';
       else if (title.includes('dynamics') || title.includes('d365') || title.includes('mb-')) area = 'Dynamics 365';
@@ -764,7 +767,7 @@ app.get('/api/learning-paths', cached('learning-paths', 3600000, async () => {
         url: c.url?.replace('?WT.mc_id=api_CatalogApi', '') || '',
         level: c.levels || 'intermediate',
         type: c.certification_type || 'role-based',
-        roles: (c.roles || '').split(/\s+/).filter(Boolean),
+        roles: Array.isArray(c.roles) ? c.roles : String(c.roles || '').split(/\s+/).filter(Boolean),
         area,
         icon: c.icon_url || '',
       };

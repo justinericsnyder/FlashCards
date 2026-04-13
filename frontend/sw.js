@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flashcards-v3';
+const CACHE_NAME = 'flashcards-v4';
 
 // Install — skip waiting to activate immediately
 self.addEventListener('install', () => self.skipWaiting());

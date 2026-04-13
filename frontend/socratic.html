@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socratic Mode — Learn Flash Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .socratic-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+        .topic-input-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .topic-input-row input { flex: 1; }
+        .chat-area { min-height: 300px; max-height: 500px; overflow-y: auto; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem 0; }
+        .chat-msg { max-width: 85%; padding: 0.65rem 0.85rem; border-radius: var(--radius-lg); font-size: 0.82rem; line-height: 1.6; animation: msgIn 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-msg.ai { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-msg.user { background: var(--primary-dark); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
+        .chat-input-row { display: flex; gap: 0.5rem; }
+        .chat-input-row input { flex: 1; padding: 0.65rem 0.85rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input); color: var(--text); font-family: inherit; font-size: 0.85rem; outline: none; }
+        .chat-input-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+        .chat-input-row input::placeholder { color: var(--text-muted); }
+        .chat-typing { color: var(--text-muted); font-size: 0.75rem; padding: 0.3rem 0; font-style: italic; }
+        .start-prompt { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <div class="socratic-container">
+        <a href="/" class="back-link">← Back to Flash Cards</a>
+        <header>
+            <h1><i data-lucide="message-circle" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Socratic Mode</h1>
+            <p>Explain concepts and get coached by AI</p>
+        </header>
+        <div class="topic-input-row">
+            <input type="text" id="topic-input" placeholder="Enter a topic (e.g., Azure Virtual Machines)" class="chat-topic-input">
+            <button class="btn btn-primary" id="start-btn">Start</button>
+        </div>
+        <div id="chat-area" class="chat-area">
+            <div class="start-prompt">Enter a topic above to begin a Socratic dialogue. The AI will ask you questions and coach you through the concepts.</div>
+        </div>
+        <div class="chat-input-row" id="input-row" style="display:none;">
+            <input type="text" id="chat-input" placeholder="Type your response..." autocomplete="off">
+            <button class="btn btn-primary" id="send-btn">Send</button>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="consent.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        const API_BASE = window.__API_BASE__ || '';
+        let topic = '';
+        let history = [];
+
+        function addMsg(role, text) {
+            const area = document.getElementById('chat-area');
+            const div = document.createElement('div');
+            div.className = `chat-msg ${role}`;
+            div.textContent = text;
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function showTyping() {
+            const area = document.getElementById('chat-area');
+            const div = document.createElement('div');
+            div.className = 'chat-typing';
+            div.id = 'typing-indicator';
+            div.textContent = 'AI is thinking...';
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typing-indicator')?.remove();
+        }
+
+        async function sendMessage(text) {
+            addMsg('user', text);
+            history.push({ role: 'user', content: text });
+            showTyping();
+
+            try {
+                const res = await Auth.apiFetch(`${API_BASE}/api/socratic`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, userMessage: text, history }),
+                });
+                hideTyping();
+                const data = await res.json();
+                if (data.reply) {
+                    addMsg('ai', data.reply);
+                    history.push({ role: 'assistant', content: data.reply });
+                }
+            } catch {
+                hideTyping();
+                addMsg('ai', 'Sorry, I had trouble responding. Try again.');
+            }
+        }
+
+        document.getElementById('start-btn').addEventListener('click', async () => {
+            topic = document.getElementById('topic-input').value.trim();
+            if (!topic) return;
+            if (!Auth.isLoggedIn()) { Auth.requireAuth(() => document.getElementById('start-btn').click()); return; }
+
+            document.getElementById('chat-area').innerHTML = '';
+            document.getElementById('input-row').style.display = 'flex';
+            document.getElementById('topic-input').disabled = true;
+            document.getElementById('start-btn').disabled = true;
+            history = [];
+
+            showTyping();
+            try {
+                const res = await Auth.apiFetch(`${API_BASE}/api/socratic`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, userMessage: `I want to learn about ${topic}. Can you start by asking me what I already know?`, history: [] }),
+                });
+                hideTyping();
+                const data = await res.json();
+                if (data.reply) {
+                    addMsg('ai', data.reply);
+                    history.push({ role: 'user', content: `I want to learn about ${topic}.` });
+                    history.push({ role: 'assistant', content: data.reply });
+                }
+            } catch {
+                hideTyping();
+                addMsg('ai', 'Could not start the session. Please try again.');
+            }
+            document.getElementById('chat-input').focus();
+        });
+
+        const sendHandler = () => {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            sendMessage(text);
+        };
+
+        document.getElementById('send-btn').addEventListener('click', sendHandler);
+        document.getElementById('chat-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); sendHandler(); }
+        });
+    </script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

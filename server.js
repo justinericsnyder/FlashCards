@@ -455,6 +455,42 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Socratic Mode (conversational AI coaching) ──────────
+app.post('/api/socratic', authMiddleware, async (req, res) => {
+  if (!anthropic) return res.status(503).json({ error: 'AI not configured' });
+  try {
+    const { topic, userMessage, history } = req.body;
+    if (!topic || !userMessage) return res.status(400).json({ error: 'Topic and message required' });
+
+    const conversationHistory = (history || []).map(h => ({
+      role: h.role, content: h.content,
+    }));
+
+    conversationHistory.push({ role: 'user', content: userMessage });
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: `You are a Socratic tutor helping a student learn about "${topic}" from Microsoft documentation. 
+
+RULES:
+- Ask probing questions rather than giving direct answers
+- When the student explains something correctly, acknowledge it and go deeper
+- When they're wrong, guide them with hints rather than correcting directly
+- Keep responses concise (2-4 sentences)
+- Use encouraging language
+- After 3-4 exchanges, summarize what they've demonstrated understanding of
+- If they say "I don't know", give a small hint and rephrase the question`,
+      messages: conversationHistory,
+    });
+
+    res.json({ reply: message.content[0].text.trim() });
+  } catch (err) {
+    console.error('Socratic error:', err.message);
+    res.status(500).json({ error: 'Failed to generate response' });
+  }
+});
+
 // ── Certification Readiness (AI-powered) ────────────────
 app.get('/api/certification-readiness', authMiddleware, async (req, res) => {
   if (!anthropic) return res.status(503).json({ error: 'AI not configured' });

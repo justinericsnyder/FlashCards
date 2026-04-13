@@ -411,12 +411,13 @@ class FlashCardApp {
             const topics = await res.json();
             if (!topics || topics.length === 0) return;
 
+            const limited = topics.slice(0, 5);
             const scoreClass = pct => pct >= 80 ? 'color:var(--success)' : pct >= 50 ? 'color:var(--warning)' : 'color:var(--error)';
 
             container.innerHTML = `
                 <div class="recent-topics-title">Recent Topics</div>
                 <div class="recent-topics-grid">
-                    ${topics.map(t => `
+                    ${limited.map(t => `
                         <div class="recent-topic-card" data-url="${t.url}" title="${t.page_title}">
                             <div class="recent-topic-info">
                                 <span class="recent-topic-name">${t.page_title}</span>

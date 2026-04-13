@@ -221,13 +221,21 @@ app.post('/api/generate-cards', optionalAuth, async (req, res) => {
 
   // Fetch previously asked questions for this URL to avoid repeats
   let pastQuestions = [];
+  let learningProfile = null;
   if (pageUrl && process.env.DATABASE_URL && req.userId) {
     try {
       pastQuestions = await db.getPastQuestions(pageUrl, req.userId);
-      console.log(`📋 Found ${pastQuestions.length} previously asked questions for this URL`);
+      learningProfile = await db.getLearningProfile(req.userId);
+      console.log(`📋 Found ${pastQuestions.length} past questions, profile: ${learningProfile?.recommended_difficulty || 'none'}`);
     } catch (err) {
-      console.warn('Could not fetch past questions:', err.message);
+      console.warn('Could not fetch past questions/profile:', err.message);
     }
+  }
+
+  // Adaptive difficulty hint
+  let adaptiveHint = '';
+  if (learningProfile && learningProfile.total_answers >= 10) {
+    adaptiveHint = `\nADAPTIVE HINT: This user has ${learningProfile.total_answers} answers. Their accuracy: beginner=${learningProfile.beginner_acc}%, intermediate=${learningProfile.intermediate_acc}%, advanced=${learningProfile.advanced_acc}%. Recommended difficulty: ${learningProfile.recommended_difficulty}. Adjust question complexity accordingly — make questions slightly harder if they're acing the current level, or slightly easier if they're struggling.\n`;
   }
 
   // Build a condensed version of the page content for the prompt
@@ -264,6 +272,7 @@ RULES:
 - Wrong answers should be plausible but clearly incorrect based on the content.
 - Explanations should reference the specific content that supports the correct answer.
 ${avoidInstruction}
+${adaptiveHint}
 DOCUMENTATION CONTENT:
 ${contentText}
 
@@ -457,6 +466,116 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Update review error:', err.message);
     res.status(500).json({ error: 'Failed to update review' });
+  }
+});
+
+// ── Teach-Back Mode ──────────────────────────────────────
+app.post('/api/teach-back', authMiddleware, async (req, res) => {
+  if (!anthropic) return res.status(503).json({ error: 'AI not configured' });
+  const { topic, userExplanation } = req.body;
+  if (!topic || !userExplanation) return res.status(400).json({ error: 'Topic and explanation required' });
+
+  try {
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 512,
+      messages: [{ role: 'user', content: `A student is trying to explain "${topic}" in their own words. Evaluate their understanding.
+
+Student's explanation: "${userExplanation}"
+
+Respond with ONLY JSON: {"score": 0-100, "feedback": "2-3 sentences of specific feedback", "misconceptions": ["list any misconceptions"], "strengths": ["list what they got right"]}` }],
+    });
+    const text = message.content[0].text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    res.json(JSON.parse(text));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to evaluate explanation' });
+  }
+});
+
+// ── Batch URL / Cross-Document Generation ───────────────
+app.post('/api/generate-cards-batch', optionalAuth, async (req, res) => {
+  if (!anthropic) return res.status(503).json({ error: 'AI not configured' });
+  const { urls, count, difficulty } = req.body;
+  if (!urls || !Array.isArray(urls) || urls.length < 2) return res.status(400).json({ error: 'Provide at least 2 URLs' });
+
+  try {
+    // Fetch and parse all URLs
+    const allSections = [];
+    for (const url of urls.slice(0, 5)) {
+      try {
+        const fetchPage = require('./server-utils').fetchPage || (() => Promise.reject());
+        // Use the proxy internally — simplified inline fetch
+        const mod = require('https');
+        const html = await new Promise((resolve, reject) => {
+          const u = new URL(url);
+          mod.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, resp => {
+            if ([301,302,303,307,308].includes(resp.statusCode) && resp.headers.location) {
+              const next = new URL(resp.headers.location, url).href;
+              mod.get(next, { headers: { 'User-Agent': 'Mozilla/5.0' } }, r2 => {
+                let d=''; r2.on('data',c=>d+=c); r2.on('end',()=>resolve(d));
+              }).on('error', reject);
+              return;
+            }
+            let d=''; resp.on('data',c=>d+=c); resp.on('end',()=>resolve(d));
+          }).on('error', reject);
+        });
+        // Basic section extraction
+        const titleMatch = html.match(/<h1[^>]*>(.*?)<\/h1>/s);
+        const title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : url;
+        allSections.push({ heading: title, content: [html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').substring(0, 3000)] });
+      } catch {}
+    }
+
+    if (allSections.length < 2) return res.status(400).json({ error: 'Could not fetch enough pages' });
+
+    const contentText = allSections.map(s => `## ${s.heading}\n${s.content.join('\n')}`).join('\n\n').substring(0, 15000);
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: `Generate ${count || 5} cross-document synthesis questions that require understanding concepts from MULTIPLE documents below. Questions should test how concepts from different pages relate to each other.
+
+${contentText}
+
+Respond with ONLY a JSON array. Each card: {"type":"multiple_choice","question":"...","choices":["A","B","C","D"],"correctAnswer":"A","explanation":"..."}` }],
+    });
+
+    const text = message.content[0].text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    const cards = JSON.parse(text);
+    res.json({ cards: cards.filter(c => c.question && c.choices) });
+  } catch (err) {
+    console.error('Batch generation error:', err.message);
+    res.status(500).json({ error: 'Failed to generate cross-document cards' });
+  }
+});
+
+// ── Difficulty Calibration (global) ──────────────────────
+app.get('/api/difficulty-calibration', async (req, res) => {
+  try {
+    const data = await db.getDifficultyCalibration();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+// ── Learning Outcome Validation ──────────────────────────
+app.get('/api/retention', authMiddleware, async (req, res) => {
+  try {
+    const data = await db.getRetentionData(req.userId);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch retention data' });
+  }
+});
+
+// ── Adaptive Learning Profile ────────────────────────────
+app.get('/api/learning-profile', authMiddleware, async (req, res) => {
+  try {
+    const profile = await db.getLearningProfile(req.userId);
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch learning profile' });
   }
 });
 

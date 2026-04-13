@@ -639,6 +639,8 @@ module.exports = {
   getCertificationReadiness,
   saveTelemetry,
   getLearningProfile,
+  getRetentionData,
+  getDifficultyCalibration,
 };
 
 // ── Telemetry ──────────────────────────────────────────
@@ -676,4 +678,48 @@ async function getLearningProfile(userId) {
   else if (bAcc < 60) recommended = 'beginner';
 
   return { beginner_acc: bAcc, intermediate_acc: iAcc, advanced_acc: aAcc, total_answers: Number(diffStats.total_answers), fast_answer_ratio: fastAnswerRatio, recommended_difficulty: recommended };
+}
+
+// ── Learning Outcome Validation ────────────────────────
+async function getRetentionData(userId) {
+  const db = getSql();
+  // Compare first attempt vs latest attempt on same questions
+  const retention = await db`
+    WITH first_attempts AS (
+      SELECT DISTINCT ON (question) question, is_correct as first_correct, created_at as first_at
+      FROM question_logs WHERE user_id = ${userId}
+      ORDER BY question, created_at ASC
+    ),
+    latest_attempts AS (
+      SELECT DISTINCT ON (question) question, is_correct as latest_correct, created_at as latest_at
+      FROM question_logs WHERE user_id = ${userId}
+      ORDER BY question, created_at DESC
+    )
+    SELECT
+      COUNT(*) as total_questions,
+      SUM(CASE WHEN f.first_correct THEN 1 ELSE 0 END) as first_time_correct,
+      SUM(CASE WHEN l.latest_correct THEN 1 ELSE 0 END) as latest_correct,
+      SUM(CASE WHEN NOT f.first_correct AND l.latest_correct THEN 1 ELSE 0 END) as improved,
+      SUM(CASE WHEN f.first_correct AND NOT l.latest_correct THEN 1 ELSE 0 END) as regressed
+    FROM first_attempts f
+    JOIN latest_attempts l ON f.question = l.question
+    WHERE f.first_at != l.latest_at
+  `;
+  return retention[0] || { total_questions: 0 };
+}
+
+// ── Difficulty Calibration ─────────────────────────────
+async function getDifficultyCalibration() {
+  const db = getSql();
+  return await db`
+    SELECT page_title, difficulty,
+      COUNT(*) as total_answers,
+      ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as global_accuracy
+    FROM question_logs
+    WHERE page_title IS NOT NULL
+    GROUP BY page_title, difficulty
+    HAVING COUNT(*) >= 5
+    ORDER BY global_accuracy ASC
+    LIMIT 20
+  `;
 }

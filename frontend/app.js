@@ -654,6 +654,13 @@ class FlashCardApp {
                 throw new Error('Could not extract content from the page. Try a different URL.');
             }
 
+            // Content quality scoring
+            const totalContent = sections.reduce((sum, s) => sum + s.content.join(' ').length, 0);
+            const qualityScore = Math.min(100, Math.round((sections.length * 15) + (totalContent / 50)));
+            if (qualityScore < 30) {
+                this.showContentWarning('This page has limited content. Questions may be less varied.');
+            }
+
             this.updateLoadingSteps(3);
 
             const response = await Auth.apiFetch(`${API_BASE}/api/generate-cards`, {
@@ -697,6 +704,15 @@ class FlashCardApp {
                 stepEl.classList.remove('active');
             }
         });
+    }
+
+    showContentWarning(message) {
+        const toast = document.createElement('div');
+        toast.className = 'content-warning';
+        toast.innerHTML = `<i data-lucide="alert-triangle" style="width:14px;height:14px;stroke:var(--warning);flex-shrink:0"></i> <span>${message}</span>`;
+        const loading = document.querySelector('.loading');
+        if (loading) loading.appendChild(toast);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     showError(message) {

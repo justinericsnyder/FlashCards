@@ -802,3 +802,11 @@ header a:hover { opacity: 1; }
 .summary-answer { font-size: 0.68rem; margin-top: 0.15rem; font-weight: 600; }
 .summary-item.correct .summary-answer { color: var(--success); }
 .summary-item.wrong .summary-answer { color: var(--error); }
+
+/* ── Content Warning ───────────────────────────────────── */
+.content-warning {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 0.75rem; margin-top: 0.75rem;
+    background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.15);
+    border-radius: var(--radius); font-size: 0.75rem; color: var(--warning);
+}

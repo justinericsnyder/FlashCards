@@ -661,7 +661,6 @@ class FlashCardApp {
                 questionText = `True or False: ${card.statement}`;
                 choices = ['True', 'False', '', ''];
                 correctLetter = card.isTrue ? 'A' : 'B';
-                // Store normalized for submitAnswer
                 card._normalized = { question: questionText, choices: ['True', 'False'], correctAnswer: correctLetter };
             } else if (type === 'fill_blank') {
                 questionText = `Fill in the blank: ${card.sentence}`;
@@ -669,6 +668,11 @@ class FlashCardApp {
                 while (choices.length < 4) choices.push('');
                 const idx = choices.indexOf(card.correctAnswer);
                 correctLetter = ['A','B','C','D'][idx >= 0 ? idx : 0];
+                card._normalized = { question: questionText, choices, correctAnswer: correctLetter };
+            } else if (type === 'scenario') {
+                questionText = `${card.scenario}\n\n${card.question}`;
+                choices = card.choices.slice(0, 4);
+                correctLetter = card.correctAnswer;
                 card._normalized = { question: questionText, choices, correctAnswer: correctLetter };
             } else {
                 questionText = card.question;
@@ -678,7 +682,7 @@ class FlashCardApp {
             }
 
             // Show card type badge
-            const typeLabels = { multiple_choice: 'Multiple Choice', true_false: 'True / False', fill_blank: 'Fill in the Blank' };
+            const typeLabels = { multiple_choice: 'Multiple Choice', true_false: 'True / False', fill_blank: 'Fill in the Blank', scenario: 'Scenario' };
             const h3 = document.querySelector('.card-content h3');
             if (h3) h3.textContent = typeLabels[type] || 'Question';
 

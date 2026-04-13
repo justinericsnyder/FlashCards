@@ -253,9 +253,10 @@ Generate NEW questions that test DIFFERENT concepts or facts from the content. O
 Given the following documentation content, generate exactly ${count || 10} flash cards at a "${difficulty || 'intermediate'}" difficulty level.
 
 QUESTION TYPE MIX — use a variety of these types:
-- "multiple_choice": 4 choices (A-D), 1 correct. Use for ~50% of cards.
-- "true_false": A statement that is either true or false based on the content. Use for ~25% of cards.
-- "fill_blank": A sentence with a key term blanked out (shown as ___). Provide 4 choices. Use for ~25% of cards.
+- "multiple_choice": 4 choices (A-D), 1 correct. Use for ~40% of cards.
+- "true_false": A statement that is either true or false based on the content. Use for ~20% of cards.
+- "fill_blank": A sentence with a key term blanked out (shown as ___). Provide 4 choices. Use for ~20% of cards.
+- "scenario": A realistic workplace scenario where the user must apply knowledge. 4 choices. Use for ~20% of cards.
 
 RULES:
 - Every question and answer MUST be directly based on facts stated in the content below. Do NOT invent or assume information.
@@ -276,6 +277,9 @@ For true_false:
 
 For fill_blank:
 {"type":"fill_blank","sentence":"___ is used to manage...","choices":["correct","wrong1","wrong2","wrong3"],"correctAnswer":"correct","explanation":"..."}
+
+For scenario:
+{"type":"scenario","scenario":"You are an IT admin at Contoso. A user reports...","question":"What should you do first?","choices":["Action A","Action B","Action C","Action D"],"correctAnswer":"A","explanation":"..."}
 `;
 
   try {
@@ -307,6 +311,7 @@ For fill_blank:
       if (c.type === 'multiple_choice') return c.question && Array.isArray(c.choices) && c.choices.length === 4 && c.correctAnswer;
       if (c.type === 'true_false') return c.statement && typeof c.isTrue === 'boolean';
       if (c.type === 'fill_blank') return c.sentence && Array.isArray(c.choices) && c.correctAnswer;
+      if (c.type === 'scenario') return c.scenario && c.question && Array.isArray(c.choices) && c.choices.length === 4 && c.correctAnswer;
       return false;
     });
 

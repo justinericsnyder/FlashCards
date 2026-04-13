@@ -18,6 +18,22 @@ class FlashCardApp {
         this.loadReviewBanner();
         this.checkSavedSession();
         this.initTelemetry();
+        this.handleUrlParam();
+    }
+
+    handleUrlParam() {
+        const params = new URLSearchParams(window.location.search);
+        const url = params.get('url');
+        if (url) {
+            const input = document.getElementById('doc-url');
+            if (input) {
+                input.value = url;
+                // Auto-generate after a short delay so the page finishes loading
+                setTimeout(() => this.generateCards(), 500);
+            }
+            // Clean the URL without reloading
+            window.history.replaceState({}, '', '/');
+        }
     }
 
     initTelemetry() {

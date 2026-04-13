@@ -390,7 +390,19 @@
     <script src="consent.js"></script>
     <script src="auth.js"></script>
     <script src="app.js"></script>
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+        // Align nav top with the Documentation URL label
+        function alignNav() {
+            const label = document.querySelector('label[for="doc-url"]');
+            if (label && window.innerWidth > 900) {
+                const top = label.getBoundingClientRect().top + window.scrollY;
+                document.documentElement.style.setProperty('--nav-top', top + 'px');
+            }
+        }
+        alignNav();
+        window.addEventListener('resize', alignNav);
+    </script>
     <script>
         // Mobile More menu
         document.getElementById('more-menu-btn')?.addEventListener('click', () => {

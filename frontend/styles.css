@@ -408,17 +408,17 @@ header a:hover { opacity: 1; }
 .recent-topic-meta { display: block; font-size: 0.6rem; color: var(--text-muted); margin-top: 0.1rem; }
 .recent-topic-score { font-size: 0.72rem; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0; }
 
-/* Floating Side Nav — pinned to left of content area, top-aligned with main */
+/* Floating Side Nav — top aligned with Documentation URL label */
 .side-nav {
     position: fixed;
     left: max(0.5rem, calc(50% - 550px - 68px));
-    top: 1.5rem;
+    top: var(--nav-top, 220px);
     display: flex; flex-direction: column; gap: 0.15rem;
     z-index: 100;
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: var(--radius-lg); padding: 0.35rem;
     box-shadow: var(--shadow-lg);
-    max-height: calc(100vh - 3rem);
+    max-height: calc(100vh - var(--nav-top, 220px) - 1rem);
     overflow-y: auto;
 }
 .side-nav-item {

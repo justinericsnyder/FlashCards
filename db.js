@@ -251,7 +251,7 @@ async function getRecentTopics(userId) {
     SELECT url, page_title, MAX(created_at) as last_used,
       ROUND(AVG(score_pct)) as avg_score, COUNT(*) as sessions
     FROM scores WHERE user_id = ${userId} AND url IS NOT NULL AND page_title IS NOT NULL
-    GROUP BY url, page_title ORDER BY MAX(created_at) DESC LIMIT 6
+    GROUP BY url, page_title ORDER BY MAX(created_at) DESC LIMIT 5
   `;
 }
 

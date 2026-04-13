@@ -79,7 +79,7 @@ body {
         position: sticky;
         top: 1.5rem;
         max-height: var(--sidebar-max-h, auto);
-        overflow-y: auto;
+        overflow: hidden;
     }
 }
 

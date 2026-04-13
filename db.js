@@ -350,15 +350,48 @@ async function getReviewStats(userId) {
 
 // ── Gamification ───────────────────────────────────────
 const BADGES = {
+  // Milestones
   first_session: { name: 'First Steps', desc: 'Complete your first session', icon: 'footprints' },
+  ten_sessions: { name: 'Dedicated', desc: 'Complete 10 sessions', icon: 'target' },
+  twenty_five_sessions: { name: 'Committed', desc: 'Complete 25 sessions', icon: 'calendar-check' },
+  fifty_sessions: { name: 'Veteran', desc: 'Complete 50 sessions', icon: 'award' },
+  hundred_sessions: { name: 'Centurion', desc: 'Complete 100 sessions', icon: 'shield' },
+
+  // Streaks
   streak_3: { name: 'On Fire', desc: '3-day study streak', icon: 'flame' },
   streak_7: { name: 'Week Warrior', desc: '7-day study streak', icon: 'zap' },
+  streak_14: { name: 'Fortnight Force', desc: '14-day study streak', icon: 'trending-up' },
   streak_30: { name: 'Monthly Master', desc: '30-day study streak', icon: 'crown' },
+  streak_100: { name: 'Unstoppable', desc: '100-day study streak', icon: 'infinity' },
+
+  // Performance
   perfect_score: { name: 'Perfectionist', desc: 'Score 100% on a session', icon: 'star' },
-  ten_sessions: { name: 'Dedicated', desc: 'Complete 10 sessions', icon: 'target' },
-  fifty_questions: { name: 'Scholar', desc: 'Answer 50 questions', icon: 'book-open' },
+  three_perfects: { name: 'Flawless', desc: 'Score 100% on 3 different sessions', icon: 'sparkles' },
+  speed_demon: { name: 'Speed Demon', desc: 'Answer 10 questions in under 5 seconds each', icon: 'timer' },
+  comeback_kid: { name: 'Comeback Kid', desc: 'Score 90%+ after previously scoring below 40%', icon: 'arrow-up-circle' },
+  no_hints: { name: 'Unaided', desc: 'Complete 5 sessions without using any hints', icon: 'eye-off' },
+
+  // Knowledge breadth
   five_topics: { name: 'Explorer', desc: 'Study 5 different topics', icon: 'compass' },
+  ten_topics: { name: 'Cartographer', desc: 'Study 10 different topics', icon: 'map' },
+  twenty_topics: { name: 'Polymath', desc: 'Study 20 different topics', icon: 'globe' },
+  fifty_questions: { name: 'Scholar', desc: 'Answer 50 questions', icon: 'book-open' },
+  two_hundred_questions: { name: 'Professor', desc: 'Answer 200 questions', icon: 'graduation-cap' },
+  five_hundred_questions: { name: 'Sage', desc: 'Answer 500 questions', icon: 'scroll' },
+
+  // Features
   review_master: { name: 'Review Pro', desc: 'Complete 20 spaced reviews', icon: 'brain' },
+  socratic_learner: { name: 'Socratic Learner', desc: 'Complete 5 Socratic coaching sessions', icon: 'message-circle' },
+  deck_sharer: { name: 'Generous Mind', desc: 'Share a deck with others', icon: 'share-2' },
+  path_completer: { name: 'Path Finder', desc: 'Complete all modules in a learning path', icon: 'route' },
+  night_owl: { name: 'Night Owl', desc: 'Study after midnight', icon: 'moon' },
+  early_bird: { name: 'Early Bird', desc: 'Study before 7 AM', icon: 'sunrise' },
+  weekend_warrior: { name: 'Weekend Warrior', desc: 'Study on both Saturday and Sunday', icon: 'calendar' },
+
+  // XP milestones
+  xp_100: { name: 'Rising Star', desc: 'Earn 100 XP', icon: 'trending-up' },
+  xp_500: { name: 'Power Player', desc: 'Earn 500 XP', icon: 'battery-charging' },
+  xp_1000: { name: 'Elite', desc: 'Earn 1,000 XP', icon: 'diamond' },
 };
 
 async function updateStreak(userId) {
@@ -393,17 +426,56 @@ async function checkAndAwardBadges(userId) {
   const [topicCount] = await db`SELECT COUNT(DISTINCT url) as c FROM scores WHERE user_id = ${userId}`;
   const [perfectCount] = await db`SELECT COUNT(*) as c FROM scores WHERE user_id = ${userId} AND score_pct = 100`;
   const [reviewCount] = await db`SELECT COUNT(*) as c FROM card_reviews WHERE user_id = ${userId} AND last_reviewed IS NOT NULL`;
+  const [sharedCount] = await db`SELECT COUNT(*) as c FROM shared_decks WHERE user_id = ${userId}`;
+
+  const sessions = Number(sessionCount.c);
+  const questions = Number(questionCount.c);
+  const topics = Number(topicCount.c);
+  const perfects = Number(perfectCount.c);
+  const reviews = Number(reviewCount.c);
+  const shares = Number(sharedCount.c);
+  const currentStreak = streak ? Number(streak.current_streak) : 0;
+  const longestStreak = streak ? Number(streak.longest_streak) : 0;
+  const totalXp = streak ? Number(streak.total_xp) : 0;
+  const hour = new Date().getHours();
 
   const checks = [
-    [Number(sessionCount.c) >= 1, 'first_session'],
-    [streak && streak.current_streak >= 3, 'streak_3'],
-    [streak && streak.current_streak >= 7, 'streak_7'],
-    [streak && streak.longest_streak >= 30, 'streak_30'],
-    [Number(perfectCount.c) >= 1, 'perfect_score'],
-    [Number(sessionCount.c) >= 10, 'ten_sessions'],
-    [Number(questionCount.c) >= 50, 'fifty_questions'],
-    [Number(topicCount.c) >= 5, 'five_topics'],
-    [Number(reviewCount.c) >= 20, 'review_master'],
+    // Milestones
+    [sessions >= 1, 'first_session'],
+    [sessions >= 10, 'ten_sessions'],
+    [sessions >= 25, 'twenty_five_sessions'],
+    [sessions >= 50, 'fifty_sessions'],
+    [sessions >= 100, 'hundred_sessions'],
+
+    // Streaks
+    [currentStreak >= 3, 'streak_3'],
+    [currentStreak >= 7, 'streak_7'],
+    [currentStreak >= 14, 'streak_14'],
+    [longestStreak >= 30, 'streak_30'],
+    [longestStreak >= 100, 'streak_100'],
+
+    // Performance
+    [perfects >= 1, 'perfect_score'],
+    [perfects >= 3, 'three_perfects'],
+
+    // Knowledge breadth
+    [topics >= 5, 'five_topics'],
+    [topics >= 10, 'ten_topics'],
+    [topics >= 20, 'twenty_topics'],
+    [questions >= 50, 'fifty_questions'],
+    [questions >= 200, 'two_hundred_questions'],
+    [questions >= 500, 'five_hundred_questions'],
+
+    // Features
+    [reviews >= 20, 'review_master'],
+    [shares >= 1, 'deck_sharer'],
+    [hour >= 0 && hour < 5, 'night_owl'],
+    [hour >= 5 && hour < 7, 'early_bird'],
+
+    // XP milestones
+    [totalXp >= 100, 'xp_100'],
+    [totalXp >= 500, 'xp_500'],
+    [totalXp >= 1000, 'xp_1000'],
   ];
 
   for (const [condition, key] of checks) {

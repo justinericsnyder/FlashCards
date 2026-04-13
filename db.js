@@ -252,6 +252,7 @@ module.exports = {
   upsertCardReview, getCardsForReview, updateReviewResult, getReviewStats,
   updateStreak, checkAndAwardBadges, getUserAchievements, getStreak, getLeaderboard, BADGES,
   shareDeck, getDeckByCode,
+  getDetailedAnalytics,
 };
 
 // ── Spaced Repetition (SM-2) ───────────────────────────
@@ -439,4 +440,44 @@ async function getDeckByCode(code) {
   const db = getSql();
   const [row] = await db`SELECT * FROM shared_decks WHERE share_code = ${code}`;
   return row || null;
+}
+
+// ── Advanced Analytics ─────────────────────────────────
+async function getDetailedAnalytics(userId) {
+  const db = getSql();
+
+  const [overall] = await db`
+    SELECT COUNT(*) as sessions, COALESCE(AVG(score_pct),0) as avg_score,
+      COALESCE(MAX(score_pct),0) as best, COALESCE(MIN(score_pct),0) as worst,
+      COALESCE(SUM(correct),0) as correct, COALESCE(SUM(total),0) as total
+    FROM scores WHERE user_id = ${userId}
+  `;
+
+  const weeklyTrend = await db`
+    SELECT DATE_TRUNC('week', created_at) as week, ROUND(AVG(score_pct)) as avg_score, COUNT(*) as sessions
+    FROM scores WHERE user_id = ${userId} AND created_at > NOW() - INTERVAL '12 weeks'
+    GROUP BY week ORDER BY week
+  `;
+
+  const hardestTopics = await db`
+    SELECT page_title, ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as accuracy, COUNT(*) as questions
+    FROM question_logs WHERE user_id = ${userId} AND page_title IS NOT NULL
+    GROUP BY page_title HAVING COUNT(*) >= 3
+    ORDER BY accuracy ASC LIMIT 5
+  `;
+
+  const strongestTopics = await db`
+    SELECT page_title, ROUND(100.0 * SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) / COUNT(*)) as accuracy, COUNT(*) as questions
+    FROM question_logs WHERE user_id = ${userId} AND page_title IS NOT NULL
+    GROUP BY page_title HAVING COUNT(*) >= 3
+    ORDER BY accuracy DESC LIMIT 5
+  `;
+
+  const activityHeatmap = await db`
+    SELECT DATE(created_at) as day, COUNT(*) as sessions
+    FROM scores WHERE user_id = ${userId} AND created_at > NOW() - INTERVAL '90 days'
+    GROUP BY day ORDER BY day
+  `;
+
+  return { overall, weeklyTrend, hardestTopics, strongestTopics, activityHeatmap };
 }

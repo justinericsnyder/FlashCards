@@ -455,6 +455,17 @@ app.post('/api/reviews/result', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Advanced Analytics ───────────────────────────────────
+app.get('/api/analytics', authMiddleware, async (req, res) => {
+  try {
+    const data = await db.getDetailedAnalytics(req.userId);
+    res.json(data);
+  } catch (err) {
+    console.error('Analytics error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
 // ── Export/Import ────────────────────────────────────────
 app.get('/api/export/json', authMiddleware, async (req, res) => {
   try {

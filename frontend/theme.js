@@ -14,8 +14,11 @@
         mono: { primary: '#a3a3a3', primaryDark: '#737373', bgBody: '#0a0a0a', bgCard: '#141414', border: '#1a1a1a', text: '#e5e5e5', textDim: '#a3a3a3', textMuted: '#737373' },
         gopackgo: { primary: '#ffb612', primaryDark: '#d49a00', bgBody: '#0a1208', bgCard: '#132010', border: '#1d3a1a', text: '#e8f0e4', textDim: '#b8d4a8', textMuted: '#6b8f5b' },
         clippysrevenge: { primary: '#00a4ef', primaryDark: '#0078d4', bgBody: '#0a0a12', bgCard: '#10101e', border: '#1a1a2e', text: '#e8eaf0', textDim: '#a0a8c0', textMuted: '#5c6480' },
+        clippyslight: { primary: '#0078d4', primaryDark: '#005a9e', bgBody: '#f3f6fc', bgCard: '#ffffff', border: '#d0daea', text: '#1b2a4a', textDim: '#4a5a7a', textMuted: '#8090b0' },
         bezossmile: { primary: '#ff9900', primaryDark: '#ec7211', bgBody: '#0a0a14', bgCard: '#131722', border: '#1e2230', text: '#e8e8f0', textDim: '#a8aab8', textMuted: '#6c6e7a' },
+        bezoslight: { primary: '#ec7211', primaryDark: '#c45e0e', bgBody: '#faf8f5', bgCard: '#ffffff', border: '#e0d8cc', text: '#232f3e', textDim: '#545b64', textMuted: '#8c939a' },
         dontbeevil: { primary: '#4285f4', primaryDark: '#3367d6', bgBody: '#0c0c0c', bgCard: '#141414', border: '#1e1e1e', text: '#e8e8e8', textDim: '#a8a8a8', textMuted: '#5a5a5a' },
+        dontbelight: { primary: '#4285f4', primaryDark: '#3367d6', bgBody: '#f8f9fa', bgCard: '#ffffff', border: '#dadce0', text: '#202124', textDim: '#5f6368', textMuted: '#9aa0a6' },
     };
 
     const saved = localStorage.getItem('fc_theme');

@@ -1108,3 +1108,29 @@ kbd {
     [data-font-size="medium"] { font-size: 13px; }
     [data-font-size="small"] { font-size: 12px; }
 }
+
+/* ── Extreme narrow (< 280px) ──────────────────────────── */
+@media (max-width: 280px) {
+    .container { padding: 0.4rem 0.25rem; }
+    .section { padding: 0.4rem; }
+    header h1 { font-size: 0.8rem; }
+    header p { font-size: 0.6rem; }
+    .header-logo { width: 44px; height: 44px; }
+    .flashcard { padding: 0.4rem; }
+    .choice-letter { display: none; }
+    .choice { padding: 0.3rem; }
+    .choice-text { font-size: 11px; }
+    .card-content p { font-size: 12px; }
+    .btn { font-size: 11px; padding: 0.3rem 0.4rem; }
+    .input-group input, .control-group select { font-size: 12px; padding: 0.35rem 0.4rem; }
+    .score-summary { grid-template-columns: 1fr 1fr 1fr; }
+    .score-value { font-size: 0.75rem; }
+    .score-label { font-size: 0.5rem; }
+    .navigation .btn { font-size: 11px; padding: 0.3rem; }
+}
+
+/* Force all flex/grid children to shrink */
+.section *, .flashcard *, .card-actions *, .results-actions *, .navigation * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}

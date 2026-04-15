@@ -1078,3 +1078,15 @@ kbd {
 [data-font-size="large"] .card-content p { font-size: 1rem; }
 [data-font-size="small"] .choice-text { font-size: 0.75rem; }
 [data-font-size="small"] .card-content p { font-size: 0.8rem; }
+
+/* Cap font size on mobile to prevent overflow */
+@media (max-width: 600px) {
+    [data-font-size="large"] { font-size: 15px; }
+    [data-font-size="medium"] { font-size: 14px; }
+    [data-font-size="small"] { font-size: 13px; }
+}
+@media (max-width: 380px) {
+    [data-font-size="large"] { font-size: 14px; }
+    [data-font-size="medium"] { font-size: 13px; }
+    [data-font-size="small"] { font-size: 12px; }
+}

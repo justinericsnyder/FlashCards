@@ -184,12 +184,13 @@ header a:hover { opacity: 1; }
 }
 .input-group input::placeholder { color: var(--text-muted); }
 
-.controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
+.controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
 
 @media (max-width: 700px) {
     .controls { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 450px) {
+
+@media (max-width: 500px) {
     .controls { grid-template-columns: 1fr; gap: 0.5rem; }
 }
 
@@ -594,68 +595,85 @@ header a:hover { opacity: 1; }
 
 /* Responsive */
 @media (max-width: 600px) {
-    .container { padding: 1rem 0.5rem; }
-    .section { padding: 0.85rem; }
-    header h1 { font-size: 1.1rem; }
-    .header-logo { width: 80px; height: 80px; }
-    .controls { grid-template-columns: 1fr; gap: 0.6rem; }
-    .flashcard { padding: 0.85rem; min-height: auto; }
+    .container { padding: 0.75rem 0.5rem; }
+    .section { padding: 0.75rem; }
+    .app-layout { gap: 0.75rem; }
+    header { margin-bottom: 0.6rem; }
+    header h1 { font-size: 1rem; }
+    header p { font-size: 0.72rem; }
+    .header-logo { width: 72px; height: 72px; margin-bottom: 0.5rem; }
+
+    /* FORCE single column controls on mobile */
+    .controls { grid-template-columns: 1fr !important; gap: 0.5rem !important; }
+
+    .input-group { margin-bottom: 0.6rem; }
+    .input-group input { font-size: 14px; padding: 0.5rem 0.6rem; }
+    .input-group label, .control-group label { font-size: 0.7rem; }
+    .control-group select { font-size: 14px; padding: 0.45rem 0.55rem; }
+    .help-text { font-size: 0.6rem; }
+    .search-group { margin-bottom: 0.6rem; }
+    .search-input-row input { font-size: 14px; }
+    .btn-lg { padding: 0.5rem; font-size: 14px; }
+
+    .flashcard { padding: 0.7rem; min-height: auto; }
     .flashcard::after { display: none; }
-    .choice { padding: 0.5rem 0.6rem; }
-    .choice-letter { width: 22px; height: 22px; font-size: 0.65rem; margin-right: 0.5rem; border-radius: 5px; }
-    .choice-text { font-size: 0.75rem; word-break: break-word; }
+    .card-content h3 { font-size: 0.7rem; }
+    .card-content p { font-size: 14px; word-break: break-word; overflow-wrap: anywhere; line-height: 1.5; }
+    .question-header { flex-wrap: wrap; gap: 0.25rem; }
+    .tts-btn { padding: 0.2rem; }
+
+    .choices-container { gap: 0.3rem; margin-top: 0.6rem; }
+    .choice { padding: 0.45rem 0.5rem; }
+    .choice-letter { width: 20px; height: 20px; font-size: 0.6rem; margin-right: 0.4rem; border-radius: 4px; }
+    .choice-text { font-size: 13px; word-break: break-word; }
     .choice::after { display: none; }
-    .card-content h3 { font-size: 0.72rem; }
-    .card-content p { font-size: 0.78rem; word-break: break-word; overflow-wrap: anywhere; }
-    #question-text { font-size: 0.82rem; line-height: 1.5; }
-    .question-header { flex-wrap: wrap; gap: 0.3rem; }
-    .score-summary { gap: 0.35rem; }
-    .score-item { padding: 0.6rem 0.3rem; }
+
+    .card-actions { flex-direction: column; gap: 0.3rem; }
+    .card-actions .btn { width: 100%; }
+    .keyboard-hint { font-size: 0.55rem; }
+    .answer-feedback { font-size: 13px; padding: 0.4rem 0.55rem; }
+    .explanation { padding: 0.55rem; }
+    .explanation p { font-size: 12px; }
+    #correct-answer { font-size: 13px; padding: 0.4rem 0.5rem; }
+
+    .session-stats { font-size: 0.65rem; gap: 0.4rem; }
+    .progress-text { font-size: 0.6rem; }
+    .progress-bar { margin-bottom: 0.8rem; }
+    .navigation { gap: 0.3rem; padding-top: 0.5rem; }
+    .navigation .btn { flex: 1; font-size: 12px; padding: 0.35rem; }
+
+    .score-summary { gap: 0.3rem; }
+    .score-item { padding: 0.5rem 0.25rem; }
     .score-value { font-size: 1rem; }
-    .score-label { font-size: 0.6rem; }
-    .navigation { gap: 0.4rem; }
-    .navigation .btn { flex: 1; font-size: 0.72rem; padding: 0.4rem; }
-    .card-actions { flex-wrap: wrap; }
-    .card-actions .btn { font-size: 0.72rem; padding: 0.4rem 0.7rem; flex: 1; min-width: 0; }
-    .results-actions { flex-direction: column; }
-    .results-actions .btn, .results-actions a { width: 100%; text-align: center; }
-    .consent-banner { padding: 1rem; }
+    .score-label { font-size: 0.55rem; }
+    .results-actions { flex-direction: column; gap: 0.3rem; }
+    .results-actions .btn, .results-actions a { width: 100%; text-align: center; font-size: 13px; }
+
+    .summary-q { font-size: 11px; }
+    .summary-answer { font-size: 10px; }
+    .recent-topics-grid { grid-template-columns: 1fr; }
+    .consent-banner { padding: 0.8rem; }
     .consent-actions { flex-direction: column; }
     .consent-btn { width: 100%; }
-    .ai-disclaimer { font-size: 0.6rem; }
-    .recent-topics-grid { grid-template-columns: 1fr; }
-    .session-stats { font-size: 0.7rem; gap: 0.5rem; }
-    .progress-text { font-size: 0.65rem; }
-    .keyboard-hint { font-size: 0.6rem; }
-    .answer-feedback { font-size: 0.75rem; padding: 0.45rem 0.65rem; }
-    .explanation { padding: 0.65rem; }
-    .explanation p { font-size: 0.72rem; }
-    #correct-answer { font-size: 0.78rem; padding: 0.45rem 0.6rem; }
-    .search-input-row input { font-size: 0.78rem; }
-    .input-group input { font-size: 0.82rem; padding: 0.55rem 0.7rem; }
-    .control-group select { font-size: 0.78rem; padding: 0.5rem 0.6rem; }
-    .btn-lg { padding: 0.55rem 1rem; font-size: 0.82rem; }
-    .summary-item { font-size: 0.7rem; }
+    .ai-disclaimer { font-size: 0.55rem; }
     .signup-prompt-actions { flex-direction: column; }
     .signup-prompt-actions .btn { width: 100%; }
+    .review-banner-link { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
 }
 
 /* Very narrow phones */
 @media (max-width: 380px) {
-    .container { padding: 0.75rem 0.4rem; }
-    .section { padding: 0.65rem; }
-    header h1 { font-size: 0.95rem; }
-    .header-logo { width: 64px; height: 64px; }
-    .flashcard { padding: 0.65rem; }
-    .choice { padding: 0.4rem 0.5rem; }
-    .choice-letter { width: 20px; height: 20px; font-size: 0.6rem; margin-right: 0.4rem; }
-    .choice-text { font-size: 0.7rem; }
-    .btn { font-size: 0.72rem; padding: 0.4rem 0.7rem; }
-    .btn-lg { font-size: 0.75rem; padding: 0.45rem 0.8rem; }
-    .input-group input, .control-group select { font-size: 0.78rem; padding: 0.45rem 0.55rem; }
-    .score-summary { grid-template-columns: repeat(3, 1fr); }
-    .score-value { font-size: 0.9rem; }
-    .help-text { font-size: 0.6rem; }
+    .container { padding: 0.5rem 0.35rem; }
+    .section { padding: 0.55rem; }
+    header h1 { font-size: 0.9rem; }
+    .header-logo { width: 56px; height: 56px; }
+    .flashcard { padding: 0.55rem; }
+    .choice { padding: 0.35rem 0.4rem; }
+    .choice-letter { width: 18px; height: 18px; font-size: 0.55rem; margin-right: 0.3rem; }
+    .choice-text { font-size: 12px; }
+    .btn { font-size: 12px; padding: 0.35rem 0.5rem; }
+    .input-group input, .control-group select { font-size: 13px; padding: 0.4rem 0.45rem; }
+    .score-value { font-size: 0.85rem; }
 }
 
 /* ── Cookie Consent Banner ─────────────────────────────── */

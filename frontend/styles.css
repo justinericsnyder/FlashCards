@@ -100,6 +100,12 @@ body {
     .section { width: 100%; max-width: 100%; }
     .flashcard { width: 100%; max-width: 100%; }
     main { width: 100%; max-width: 100%; overflow: hidden; }
+    .sidebar { width: 100%; max-width: 100%; overflow: hidden; }
+    aside { width: 100%; max-width: 100%; overflow: hidden; }
+    .review-banner-link { word-break: break-word; }
+    .resume-banner { padding: 0.75rem; }
+    .signup-prompt-content { padding: 0.75rem; }
+    .ai-disclaimer { word-break: break-word; }
 }
 
 /* Header */
@@ -423,7 +429,7 @@ header a:hover { opacity: 1; }
 /* Recent Topics */
 .recent-topics { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); }
 .recent-topics-title { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
-.recent-topics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.4rem; }
+.recent-topics-grid { display: grid; grid-template-columns: 1fr; gap: 0.4rem; }
 .recent-topic-card {
     display: flex; align-items: center; gap: 0.6rem;
     padding: 0.5rem 0.65rem;

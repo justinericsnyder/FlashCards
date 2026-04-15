@@ -52,11 +52,18 @@ class FlashCardApp {
 
         if (url) {
             const input = document.getElementById('doc-url');
-            if (input) {
-                input.value = url;
-                setTimeout(() => this.generateCards(), 500);
-            }
+            if (input) input.value = url;
+
+            // Apply settings from URL params if present
+            const count = params.get('count');
+            const difficulty = params.get('difficulty');
+            const timer = params.get('timer');
+            if (count) { const el = document.getElementById('card-count'); if (el) el.value = count; }
+            if (difficulty) { const el = document.getElementById('difficulty'); if (el) el.value = difficulty; }
+            if (timer) { const el = document.getElementById('timer-mode'); if (el) el.value = timer; }
+
             window.history.replaceState({}, '', '/');
+            setTimeout(() => this.generateCards(), 500);
         }
     }
 

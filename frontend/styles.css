@@ -427,7 +427,7 @@ header a:hover { opacity: 1; }
 .results-actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
 
 /* Recent Topics */
-.recent-topics { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); }
+.recent-topics { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); overflow: hidden; max-width: 100%; }
 .recent-topics-title { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
 .recent-topics-grid { display: grid; grid-template-columns: 1fr; gap: 0.4rem; }
 .recent-topic-card {
@@ -436,10 +436,11 @@ header a:hover { opacity: 1; }
     background: var(--bg-body); border: 1px solid var(--border-subtle);
     border-radius: var(--radius); cursor: pointer;
     transition: all var(--fast); text-decoration: none;
+    overflow: hidden; max-width: 100%;
 }
 .recent-topic-card:hover { border-color: rgba(245,197,24,0.25); background: var(--primary-subtle); }
 .recent-topic-info { flex: 1; min-width: 0; }
-.recent-topic-name { display: block; font-size: 0.72rem; font-weight: 600; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent-topic-name { display: block; font-size: 0.72rem; font-weight: 600; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .recent-topic-card:hover .recent-topic-name { color: var(--text); }
 .recent-topic-meta { display: block; font-size: 0.6rem; color: var(--text-muted); margin-top: 0.1rem; }
 .recent-topic-score { font-size: 0.72rem; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0; }

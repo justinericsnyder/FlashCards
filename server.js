@@ -810,50 +810,58 @@ app.get('/api/cert-study-guide', async (req, res) => {
 app.get('/api/learning-paths', cached('learning-paths', 3600000, async () => {
   // Fetch from Microsoft Learn Catalog API
   const https = require('https');
-  const data = await new Promise((resolve, reject) => {
-    https.get('https://learn.microsoft.com/api/catalog/?type=certifications', { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
+  const fetchCatalog = (type) => new Promise((resolve, reject) => {
+    https.get(`https://learn.microsoft.com/api/catalog/?type=${type}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
       let d = ''; res.on('data', c => d += c);
-      res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ certifications: [] }); } });
-    }).on('error', () => resolve({ certifications: [] }));
+      res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({}); } });
+    }).on('error', () => resolve({}));
   });
 
-  const certs = (data.certifications || [])
-    .filter(c => {
-      const sub = String(c.subtitle || '').toLowerCase();
-      return !sub.includes('retired') && !sub.includes('no longer available') && !sub.includes('has been retired');
-    })
-    .map(c => {
-      // Categorize by solution area
-      const title = (c.title || '').toLowerCase();
-      const roles = Array.isArray(c.roles) ? c.roles.join(' ').toLowerCase() : String(c.roles || '').toLowerCase();
-      let area = 'General';
-      if (title.includes('azure') || title.includes('az-')) area = 'Azure';
-      else if (title.includes('dynamics') || title.includes('d365') || title.includes('mb-')) area = 'Dynamics 365';
-      else if (title.includes('365') || title.includes('m365') || title.includes('ms-')) area = 'Microsoft 365';
-      else if (title.includes('power') || title.includes('pl-')) area = 'Power Platform';
-      else if (title.includes('security') || title.includes('sc-')) area = 'Security';
-      else if (title.includes('github')) area = 'GitHub';
-      else if (title.includes('fabric') || title.includes('data') || title.includes('dp-')) area = 'Data & AI';
-      else if (roles.includes('ai') || title.includes('ai')) area = 'Data & AI';
+  const [certData, skillsData] = await Promise.all([
+    fetchCatalog('certifications'),
+    fetchCatalog('appliedskills'),
+  ]);
 
-      return {
-        id: c.uid,
-        name: c.title,
-        url: c.url?.replace('?WT.mc_id=api_CatalogApi', '') || '',
-        level: String(c.levels || 'intermediate'),
-        type: c.certification_type || 'role-based',
-        roles: Array.isArray(c.roles) ? c.roles : String(c.roles || '').split(/\s+/).filter(Boolean),
-        area,
-        icon: c.icon_url || '',
-      };
-    })
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const mapItem = (c, credType) => {
+    const title = (c.title || '').toLowerCase();
+    const roles = Array.isArray(c.roles) ? c.roles.join(' ').toLowerCase() : String(c.roles || '').toLowerCase();
+    let area = 'General';
+    if (title.includes('azure') || title.includes('az-')) area = 'Azure';
+    else if (title.includes('dynamics') || title.includes('d365') || title.includes('mb-')) area = 'Dynamics 365';
+    else if (title.includes('365') || title.includes('m365') || title.includes('ms-')) area = 'Microsoft 365';
+    else if (title.includes('power') || title.includes('pl-')) area = 'Power Platform';
+    else if (title.includes('security') || title.includes('sc-')) area = 'Security';
+    else if (title.includes('github')) area = 'GitHub';
+    else if (title.includes('fabric') || title.includes('data') || title.includes('dp-')) area = 'Data & AI';
+    else if (roles.includes('ai') || title.includes('ai')) area = 'Data & AI';
 
-  // Get unique areas for filtering
-  const areas = [...new Set(certs.map(c => c.area))].sort();
-  const levels = [...new Set(certs.map(c => c.level))].sort();
+    return {
+      id: c.uid,
+      name: c.title,
+      url: (c.url || '').replace('?WT.mc_id=api_CatalogApi', ''),
+      level: String(c.levels || 'intermediate'),
+      type: credType,
+      certType: c.certification_type || credType,
+      roles: Array.isArray(c.roles) ? c.roles : String(c.roles || '').split(/\s+/).filter(Boolean),
+      area,
+      icon: c.icon_url || '',
+    };
+  };
 
-  return { certifications: certs, areas, levels, total: certs.length };
+  const filterRetired = (c) => {
+    const sub = String(c.subtitle || '').toLowerCase();
+    return !sub.includes('retired') && !sub.includes('no longer available') && !sub.includes('has been retired');
+  };
+
+  const certs = (certData.certifications || []).filter(filterRetired).map(c => mapItem(c, 'certification'));
+  const skills = (skillsData.appliedSkills || skillsData.applied_skills || []).filter(filterRetired).map(c => mapItem(c, 'applied-skill'));
+  const all = [...certs, ...skills].sort((a, b) => a.name.localeCompare(b.name));
+
+  const areas = [...new Set(all.map(c => c.area))].sort();
+  const levels = [...new Set(all.map(c => c.level))].sort();
+  const types = [...new Set(all.map(c => c.type))].sort();
+
+  return { certifications: all, areas, levels, types, total: all.length };
 }));
 
 // ── Socratic Mode (conversational AI coaching) ──────────

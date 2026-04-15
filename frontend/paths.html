@@ -86,9 +86,10 @@
         </header>
 
         <div class="filter-bar">
-            <input type="text" id="search" placeholder="Search certifications..." autocomplete="off">
+            <input type="text" id="search" placeholder="Search certifications & applied skills..." autocomplete="off">
             <select id="area-filter"><option value="">All Areas</option></select>
             <select id="level-filter"><option value="">All Levels</option></select>
+            <select id="type-filter"><option value="">All Types</option><option value="certification">Certifications</option><option value="applied-skill">Applied Skills</option></select>
         </div>
         <div class="cert-count" id="cert-count"></div>
         <div class="cert-grid" id="cert-grid"></div>
@@ -164,6 +165,7 @@
             document.getElementById('search').addEventListener('input', render);
             areaSelect.addEventListener('change', render);
             levelSelect.addEventListener('change', render);
+            document.getElementById('type-filter').addEventListener('change', render);
             } catch (err) {
                 console.error('Failed to load certifications:', err);
                 document.getElementById('cert-grid').innerHTML = `<div class="empty-state">Failed to load certifications: ${err.message}</div>`;
@@ -174,11 +176,13 @@
             const query = document.getElementById('search').value.toLowerCase();
             const area = document.getElementById('area-filter').value;
             const level = document.getElementById('level-filter').value;
+            const type = document.getElementById('type-filter').value;
 
             const filtered = allCerts.filter(c => {
                 if (query && !c.name.toLowerCase().includes(query)) return false;
                 if (area && c.area !== area) return false;
                 if (level && c.level !== level) return false;
+                if (type && c.type !== type) return false;
                 return true;
             });
 
@@ -198,6 +202,7 @@
                         <div class="cert-meta">
                             <span class="cert-tag tag-area">${c.area}</span>
                             <span class="cert-tag ${levelCls}">${c.level}</span>
+                            <span class="cert-tag" style="background:rgba(148,163,184,0.12);color:var(--text-dim);">${c.type === 'applied-skill' ? 'Applied Skill' : 'Cert'}</span>
                         </div>
                         <div class="cert-actions">
                             <a href="${c.url}" target="_blank" class="cert-btn">Exam Details →</a>

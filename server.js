@@ -810,17 +810,13 @@ app.get('/api/cert-study-guide', async (req, res) => {
 app.get('/api/learning-paths', cached('learning-paths', 3600000, async () => {
   // Fetch from Microsoft Learn Catalog API
   const https = require('https');
-  const fetchCatalog = (type) => new Promise((resolve, reject) => {
-    https.get(`https://learn.microsoft.com/api/catalog/?type=${type}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
+  // Fetch full catalog (includes certifications, appliedSkills, learningPaths)
+  const data = await new Promise((resolve, reject) => {
+    https.get('https://learn.microsoft.com/api/catalog/', { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
       let d = ''; res.on('data', c => d += c);
       res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({}); } });
     }).on('error', () => resolve({}));
   });
-
-  const [certData, skillsData] = await Promise.all([
-    fetchCatalog('certifications'),
-    fetchCatalog('appliedskills'),
-  ]);
 
   const mapItem = (c, credType) => {
     const title = (c.title || '').toLowerCase();
@@ -853,8 +849,8 @@ app.get('/api/learning-paths', cached('learning-paths', 3600000, async () => {
     return !sub.includes('retired') && !sub.includes('no longer available') && !sub.includes('has been retired');
   };
 
-  const certs = (certData.certifications || []).filter(filterRetired).map(c => mapItem(c, 'certification'));
-  const skills = (skillsData.appliedSkills || skillsData.applied_skills || []).filter(filterRetired).map(c => mapItem(c, 'applied-skill'));
+  const certs = (data.certifications || []).filter(filterRetired).map(c => mapItem(c, 'certification'));
+  const skills = (data.appliedSkills || []).filter(filterRetired).map(c => mapItem(c, 'applied-skill'));
   const all = [...certs, ...skills].sort((a, b) => a.name.localeCompare(b.name));
 
   const areas = [...new Set(all.map(c => c.area))].sort();

@@ -756,73 +756,100 @@ app.get('/api/cert-study-guide', async (req, res) => {
 
     const html = await fetchPage(certUrl);
 
-    // Extract skills measured sections and training module links
-    const skillsMatches = html.match(/<h[23][^>]*>(?:Skills measured|Skills at a glance|Functional groups)[^<]*<\/h[23]>[\s\S]*?(?=<h[23]|<footer|$)/gi) || [];
+    // Collect training module links from the cert page
     const allLinks = html.match(/href="(https:\/\/learn\.microsoft\.com\/[^"]*\/training\/[^"]*?)"/g) || [];
     const trainingUrls = [...new Set(allLinks.map(l => l.match(/href="([^"]+)"/)?.[1]).filter(Boolean))];
 
-    // Extract skill categories from headings
-    const skillHeadings = html.match(/<h[34][^>]*>([^<]+)<\/h[34]>/g) || [];
-    const skills = skillHeadings
-      .map(h => h.replace(/<[^>]+>/g, '').trim())
-      .filter(s => s.length > 5 && s.length < 100 && !s.match(/^(Note|Important|Warning|Tip|Prerequisites)/i))
-      .slice(0, 20);
-
-    // Also try to find the study guide link
-    const studyGuideMatch = html.match(/href="([^"]*study-guide[^"]*)"/i);
-    let studyGuideUrl = studyGuideMatch ? studyGuideMatch[1] : null;
-    if (studyGuideUrl && !studyGuideUrl.startsWith('http')) {
-      studyGuideUrl = new URL(studyGuideUrl, certUrl).href;
+    // Derive the study guide URL from the exam code on the cert page
+    // Cert pages contain examUid=exam.AZ-900 or similar data attributes
+    let studyGuideUrl = null;
+    const examUidMatch = html.match(/examUid=exam\.([A-Za-z]{2,3}-\d{3,4})/i)
+      || html.match(/data-exam-pricing-type="([A-Za-z]{2,3}-\d{3,4})"/i)
+      || html.match(/Exam\s+([A-Z]{2,3}-\d{3,4})/);
+    if (examUidMatch) {
+      const examCode = examUidMatch[1].toLowerCase();
+      studyGuideUrl = `https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/${examCode}`;
     }
 
-    // If we found a study guide, fetch it for more detailed skills
+    // Also check for an explicit study guide href (fallback)
+    if (!studyGuideUrl) {
+      const sgHrefMatch = html.match(/href="([^"]*study-guide[^"]*)"/i);
+      if (sgHrefMatch) {
+        studyGuideUrl = sgHrefMatch[1];
+        if (!studyGuideUrl.startsWith('http')) studyGuideUrl = new URL(studyGuideUrl, certUrl).href;
+      }
+    }
+
     let detailedSkills = [];
+
+    // Fetch the study guide page for detailed skills
     if (studyGuideUrl) {
       try {
         const sgHtml = await fetchPage(studyGuideUrl);
 
-        // Extract skills between "Skills at a glance" and the next <h2> (usually "Study resources")
-        const skillsGlanceMatch = sgHtml.match(/Skills at a glance[\s\S]*?(?=<h2|<footer|$)/i);
+        // Extract everything between "Skills at a glance" and "Study resources" (or next major h2)
+        const skillsGlanceMatch = sgHtml.match(/Skills at a glance[\s\S]*?(?=<h2[^>]*>\s*(?:Study resources|Change log|Additional resources)|$)/i);
         if (skillsGlanceMatch) {
           const skillsBlock = skillsGlanceMatch[0];
-          // Extract all <li> items (including nested) — these are the actual sub-skills
           const liMatches = skillsBlock.match(/<li[\s\S]*?<\/li>/gi) || [];
-          const liSkills = liMatches
+          detailedSkills = liMatches
             .map(li => li.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim())
-            .filter(s => s.length > 5 && s.length < 200);
-          if (liSkills.length > 0) detailedSkills = liSkills;
+            .filter(s => s.length > 5 && s.length < 250);
         }
 
-        // Fallback: also grab h3/h4 headings as category headers if no <li> found
+        // Fallback: extract between "Skills measured" and "Study resources"
         if (detailedSkills.length === 0) {
-          const sgHeadings = sgHtml.match(/<h[34][^>]*>([^<]+)<\/h[34]>/g) || [];
+          const measuredMatch = sgHtml.match(/Skills measured[\s\S]*?(?=<h2[^>]*>\s*(?:Study resources|Change log|Additional)|$)/i);
+          if (measuredMatch) {
+            const liMatches = measuredMatch[0].match(/<li[\s\S]*?<\/li>/gi) || [];
+            detailedSkills = liMatches
+              .map(li => li.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim())
+              .filter(s => s.length > 5 && s.length < 250);
+          }
+        }
+
+        // Last fallback: h3/h4 headings from study guide
+        if (detailedSkills.length === 0) {
+          const sgHeadings = sgHtml.match(/<h[34][^>]*>[\s\S]*?<\/h[34]>/g) || [];
           detailedSkills = sgHeadings
             .map(h => h.replace(/<[^>]+>/g, '').trim())
-            .filter(s => s.length > 5 && s.length < 150 && !s.match(/^(Note|Important|Warning|Tip|Prerequisites|In this article|Study guide)/i));
+            .filter(s => s.length > 5 && s.length < 150 && !s.match(/^(Note|Important|Warning|Tip|Prerequisites|In this article|Study guide|Share via|Purpose)/i));
         }
 
-        // Get training links from study guide too
+        // Collect training links from study guide too
         const sgLinks = sgHtml.match(/href="(https:\/\/learn\.microsoft\.com\/[^"]*\/training\/[^"]*?)"/g) || [];
         sgLinks.forEach(l => {
           const url = l.match(/href="([^"]+)"/)?.[1];
           if (url && !trainingUrls.includes(url)) trainingUrls.push(url);
         });
-      } catch {}
+      } catch (sgErr) {
+        console.warn('Study guide fetch failed:', sgErr.message);
+      }
     }
 
-    // Also try extracting skills from the main cert page if study guide didn't yield results
+    // For applied skills (no study guide), try extracting from the cert page directly
     if (detailedSkills.length === 0) {
-      const mainSkillsMatch = html.match(/Skills at a glance[\s\S]*?(?=<h2|<footer|$)/i);
+      const mainSkillsMatch = html.match(/Skills at a glance[\s\S]*?(?=<h2|<footer|$)/i)
+        || html.match(/Skills measured[\s\S]*?(?=<h2|<footer|$)/i);
       if (mainSkillsMatch) {
         const liMatches = mainSkillsMatch[0].match(/<li[\s\S]*?<\/li>/gi) || [];
         detailedSkills = liMatches
           .map(li => li.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim())
-          .filter(s => s.length > 5 && s.length < 200);
+          .filter(s => s.length > 5 && s.length < 250);
       }
     }
 
+    // Final fallback: grab any h3/h4 headings from the cert page itself
+    if (detailedSkills.length === 0) {
+      const h34 = html.match(/<h[34][^>]*>[\s\S]*?<\/h[34]>/g) || [];
+      detailedSkills = h34
+        .map(h => h.replace(/<[^>]+>/g, '').trim())
+        .filter(s => s.length > 5 && s.length < 100 && !s.match(/^(Note|Important|Warning|Tip|Prerequisites|Skills earned)/i))
+        .slice(0, 20);
+    }
+
     res.json({
-      skills: detailedSkills.length > 0 ? detailedSkills : skills,
+      skills: detailedSkills,
       trainingUrls: trainingUrls.slice(0, 15),
       studyGuideUrl,
       totalTrainingModules: trainingUrls.length,

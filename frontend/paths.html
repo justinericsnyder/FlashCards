@@ -129,19 +129,45 @@
             grid.innerHTML = filtered.map(c => {
                 const levelCls = c.level === 'advanced' ? 'tag-level-advanced' : c.level === 'intermediate' ? 'tag-level-intermediate' : 'tag-level';
                 return `
-                    <div class="cert-card">
+                    <div class="cert-card" data-cert-url="${c.url}">
                         <div class="cert-name">${c.name}</div>
                         <div class="cert-meta">
                             <span class="cert-tag tag-area">${c.area}</span>
                             <span class="cert-tag ${levelCls}">${c.level}</span>
                         </div>
                         <div class="cert-actions">
-                            <a href="${c.url}" target="_blank" class="cert-btn">View Details →</a>
-                            <a href="/?url=${encodeURIComponent(c.url)}" class="cert-btn cert-btn-primary">Study This</a>
+                            <a href="${c.url}" target="_blank" class="cert-btn">Exam Details →</a>
+                            <button class="cert-btn cert-btn-primary study-cert-btn" data-url="${c.url}" data-name="${c.name}">Study Skills</button>
                         </div>
                     </div>
                 `;
             }).join('');
+
+            // Attach study button handlers
+            grid.querySelectorAll('.study-cert-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const url = btn.dataset.url;
+                    const name = btn.dataset.name;
+                    btn.textContent = 'Loading...';
+                    btn.disabled = true;
+                    try {
+                        const sgRes = await fetch(`${API_BASE}/api/cert-study-guide?url=${encodeURIComponent(url)}`);
+                        const sg = await sgRes.json();
+                        if (sg.trainingUrls && sg.trainingUrls.length > 0) {
+                            // Pick a random training module and go study it
+                            const trainingUrl = sg.trainingUrls[Math.floor(Math.random() * Math.min(5, sg.trainingUrls.length))];
+                            window.location.href = `/?url=${encodeURIComponent(trainingUrl)}`;
+                        } else if (sg.skills && sg.skills.length > 0) {
+                            // No training URLs found, use the cert page itself but tell Claude to focus on skills
+                            window.location.href = `/?url=${encodeURIComponent(url)}`;
+                        } else {
+                            window.location.href = `/?url=${encodeURIComponent(url)}`;
+                        }
+                    } catch {
+                        window.location.href = `/?url=${encodeURIComponent(url)}`;
+                    }
+                });
+            });
         }
 
         load();

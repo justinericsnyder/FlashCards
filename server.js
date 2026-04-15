@@ -734,6 +734,78 @@ app.get('/api/learning-profile', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Certification Study Guide Extraction ─────────────────
+app.get('/api/cert-study-guide', async (req, res) => {
+  const certUrl = req.query.url;
+  if (!certUrl) return res.status(400).json({ error: 'URL required' });
+
+  try {
+    // Fetch the certification page
+    const https = require('https');
+    const fetchPage = (url, redirects = 5) => new Promise((resolve, reject) => {
+      if (redirects <= 0) return reject(new Error('Too many redirects'));
+      const u = new URL(url);
+      const mod = u.protocol === 'https:' ? require('https') : require('http');
+      mod.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } }, resp => {
+        if ([301,302,303,307,308].includes(resp.statusCode) && resp.headers.location) {
+          return resolve(fetchPage(new URL(resp.headers.location, url).href, redirects - 1));
+        }
+        let d = ''; resp.on('data', c => d += c); resp.on('end', () => resolve(d));
+      }).on('error', reject);
+    });
+
+    const html = await fetchPage(certUrl);
+
+    // Extract skills measured sections and training module links
+    const skillsMatches = html.match(/<h[23][^>]*>(?:Skills measured|Skills at a glance|Functional groups)[^<]*<\/h[23]>[\s\S]*?(?=<h[23]|<footer|$)/gi) || [];
+    const allLinks = html.match(/href="(https:\/\/learn\.microsoft\.com\/[^"]*\/training\/[^"]*?)"/g) || [];
+    const trainingUrls = [...new Set(allLinks.map(l => l.match(/href="([^"]+)"/)?.[1]).filter(Boolean))];
+
+    // Extract skill categories from headings
+    const skillHeadings = html.match(/<h[34][^>]*>([^<]+)<\/h[34]>/g) || [];
+    const skills = skillHeadings
+      .map(h => h.replace(/<[^>]+>/g, '').trim())
+      .filter(s => s.length > 5 && s.length < 100 && !s.match(/^(Note|Important|Warning|Tip|Prerequisites)/i))
+      .slice(0, 20);
+
+    // Also try to find the study guide link
+    const studyGuideMatch = html.match(/href="([^"]*study-guide[^"]*)"/i);
+    let studyGuideUrl = studyGuideMatch ? studyGuideMatch[1] : null;
+    if (studyGuideUrl && !studyGuideUrl.startsWith('http')) {
+      studyGuideUrl = new URL(studyGuideUrl, certUrl).href;
+    }
+
+    // If we found a study guide, fetch it for more detailed skills
+    let detailedSkills = [];
+    if (studyGuideUrl) {
+      try {
+        const sgHtml = await fetchPage(studyGuideUrl);
+        const sgHeadings = sgHtml.match(/<h[234][^>]*>([^<]+)<\/h[234]>/g) || [];
+        detailedSkills = sgHeadings
+          .map(h => h.replace(/<[^>]+>/g, '').trim())
+          .filter(s => s.length > 5 && s.length < 150 && !s.match(/^(Note|Important|Warning|Tip|Prerequisites|In this article|Study guide)/i));
+
+        // Get training links from study guide too
+        const sgLinks = sgHtml.match(/href="(https:\/\/learn\.microsoft\.com\/[^"]*\/training\/[^"]*?)"/g) || [];
+        sgLinks.forEach(l => {
+          const url = l.match(/href="([^"]+)"/)?.[1];
+          if (url && !trainingUrls.includes(url)) trainingUrls.push(url);
+        });
+      } catch {}
+    }
+
+    res.json({
+      skills: detailedSkills.length > 0 ? detailedSkills : skills,
+      trainingUrls: trainingUrls.slice(0, 15),
+      studyGuideUrl,
+      totalTrainingModules: trainingUrls.length,
+    });
+  } catch (err) {
+    console.error('Study guide extraction error:', err.message);
+    res.status(500).json({ error: 'Failed to extract study guide' });
+  }
+});
+
 // ── Curated Learning Paths (dynamic from Microsoft Catalog API) ──
 app.get('/api/learning-paths', cached('learning-paths', 3600000, async () => {
   // Fetch from Microsoft Learn Catalog API

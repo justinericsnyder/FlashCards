@@ -82,8 +82,6 @@ body {
     .sidebar {
         position: sticky;
         top: 1.5rem;
-        max-height: var(--sidebar-max-h, auto);
-        overflow: hidden;
     }
 }
 

@@ -19,25 +19,8 @@ class FlashCardApp {
         this.checkSavedSession();
         this.initTelemetry();
         this.handleUrlParam();
-        this.constrainSidebar();
     }
 
-    constrainSidebar() {
-        const sync = () => {
-            if (window.innerWidth <= 900) return;
-            const main = document.querySelector('main');
-            const sidebar = document.querySelector('.sidebar');
-            if (main && sidebar) {
-                const mainH = main.offsetHeight;
-                document.documentElement.style.setProperty('--sidebar-max-h', mainH + 'px');
-            }
-        };
-        sync();
-        window.addEventListener('resize', sync);
-        // Re-check after content loads
-        setTimeout(sync, 500);
-        setTimeout(sync, 2000);
-    }
 
     handleUrlParam() {
         const params = new URLSearchParams(window.location.search);

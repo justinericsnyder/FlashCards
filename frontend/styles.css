@@ -1,6 +1,6 @@
 /* Reset */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { overflow-x: hidden; }
+html, body { overflow-x: hidden; width: 100%; }
 
 :root {
     --primary: #f5c518;
@@ -91,10 +91,15 @@ body {
     .container {
         max-width: 100%;
         padding: 1rem 0.75rem;
+        width: 100%;
     }
     .app-layout {
         grid-template-columns: 1fr;
+        width: 100%;
     }
+    .section { width: 100%; max-width: 100%; }
+    .flashcard { width: 100%; max-width: 100%; }
+    main { width: 100%; max-width: 100%; overflow: hidden; }
 }
 
 /* Header */

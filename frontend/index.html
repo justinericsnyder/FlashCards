@@ -287,7 +287,14 @@
             });
         }
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(() => {});
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                // Check for updates every 5 minutes
+                setInterval(() => reg.update(), 300000);
+            }).catch(() => {});
+            // Auto-reload when service worker updates
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (e.data?.type === 'SW_UPDATED') window.location.reload();
+            });
         }
     </script>
 

@@ -134,6 +134,20 @@
         </div>
     </div>
 
+        <!-- Skills Tested Modal -->
+        <div id="skills-modal" class="study-modal hidden">
+            <div class="study-modal-inner" style="max-width:480px;max-height:80vh;overflow-y:auto;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                    <h3 id="skills-modal-title" style="font-size:0.9rem;">Skills Tested</h3>
+                    <button id="skills-modal-close" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">&times;</button>
+                </div>
+                <p id="skills-modal-cert" style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.75rem;"></p>
+                <div id="skills-modal-content" style="font-size:0.78rem;color:var(--text-dim);line-height:1.6;">
+                    <div style="text-align:center;padding:1.5rem;color:var(--text-muted);">Loading skills...</div>
+                </div>
+            </div>
+        </div>
+
     <script src="config.js"></script>
     <script src="consent.js"></script>
     <script src="auth.js"></script>
@@ -205,6 +219,7 @@
                             <span class="cert-tag" style="background:rgba(148,163,184,0.12);color:var(--text-dim);">${c.type === 'applied-skill' ? 'Applied Skill' : 'Cert'}</span>
                         </div>
                         <div class="cert-actions">
+                            <button class="cert-btn view-skills-btn" data-url="${c.url}" data-name="${c.name}">Skills Tested</button>
                             <a href="${c.url}" target="_blank" class="cert-btn">Exam Details →</a>
                             <button class="cert-btn cert-btn-primary study-cert-btn" data-url="${c.url}" data-name="${c.name}">Study Skills</button>
                         </div>
@@ -218,6 +233,13 @@
                     const url = btn.dataset.url;
                     const name = btn.dataset.name;
                     showStudyModal(url, name);
+                });
+            });
+
+            // Attach view skills button handlers
+            grid.querySelectorAll('.view-skills-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    showSkillsModal(btn.dataset.url, btn.dataset.name);
                 });
             });
         }
@@ -269,6 +291,53 @@
         // Close modal on backdrop click
         document.getElementById('study-modal')?.addEventListener('click', (e) => {
             if (e.target.id === 'study-modal') {
+                e.target.classList.remove('visible');
+                setTimeout(() => e.target.classList.add('hidden'), 200);
+            }
+        });
+
+        // ── Skills Tested Modal ─────────────────────────
+        async function showSkillsModal(certUrl, certName) {
+            const modal = document.getElementById('skills-modal');
+            const content = document.getElementById('skills-modal-content');
+            document.getElementById('skills-modal-cert').textContent = certName;
+            content.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-muted);">Loading skills tested...</div>';
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.add('visible'));
+
+            try {
+                const res = await fetch(`${API_BASE}/api/cert-study-guide?url=${encodeURIComponent(certUrl)}`);
+                const sg = await res.json();
+
+                if (sg.skills && sg.skills.length > 0) {
+                    content.innerHTML = `
+                        <div style="margin-bottom:0.75rem;">
+                            ${sg.skills.map(s => `
+                                <div style="padding:0.4rem 0;border-bottom:1px solid var(--border-subtle);display:flex;align-items:flex-start;gap:0.4rem;">
+                                    <span style="color:var(--primary);flex-shrink:0;margin-top:0.1rem;">•</span>
+                                    <span>${s}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${sg.trainingUrls?.length ? `<div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.5rem;">${sg.trainingUrls.length} training modules available</div>` : ''}
+                        ${sg.studyGuideUrl ? `<a href="${sg.studyGuideUrl}" target="_blank" style="display:inline-block;margin-top:0.5rem;font-size:0.72rem;color:var(--primary);text-decoration:none;">View full study guide →</a>` : ''}
+                    `;
+                } else {
+                    content.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-muted);">Could not extract skills for this credential. <a href="' + certUrl + '" target="_blank" style="color:var(--primary);">View on Microsoft Learn →</a></div>';
+                }
+            } catch {
+                content.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-muted);">Failed to load skills. Try again later.</div>';
+            }
+        }
+
+        document.getElementById('skills-modal-close')?.addEventListener('click', () => {
+            const modal = document.getElementById('skills-modal');
+            modal.classList.remove('visible');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        });
+
+        document.getElementById('skills-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'skills-modal') {
                 e.target.classList.remove('visible');
                 setTimeout(() => e.target.classList.add('hidden'), 200);
             }

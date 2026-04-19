@@ -1,324 +1,311 @@
-# Microsoft Learn Flash Cards
-
-A modern, interactive web-based flash card application designed to help you study Microsoft Learn documentation by generating personalized study sessions with customizable difficulty levels and comprehensive progress tracking.
-
-![Flash Cards Preview](https://via.placeholder.com/800x400/6366f1/ffffff?text=Microsoft+Learn+Flash+Cards)
-
-## ✨ Features
-
-- **🎯 Smart Content Generation**: Automatically extracts and processes Microsoft Learn documentation to create relevant flash cards
-- **📊 Customizable Sessions**: Choose number of cards (5-20) and difficulty level (Beginner, Intermediate, Advanced)
-- **🎨 Modern UI/UX**: World-class design with smooth animations, responsive layout, and accessibility features
-- **⌨️ Keyboard Navigation**: Full keyboard support with arrow keys, number keys, and Enter/Space
-- **📱 Mobile Optimized**: Progressive Web App (PWA) features for mobile devices
-- **🎭 Rich Animations**: Card flip animations, progress indicators, and micro-interactions
-- **♿ Accessibility**: Screen reader support, high contrast mode, and reduced motion preferences
-- **📤 Share Results**: Share your scores on social media
-- **🌐 Public Hosting Ready**: Optimized for deployment on GitHub Pages, Vercel, or any static hosting
-
-## 🎉 What's New
-
-### Version 1.0.0 Features
-- ✅ **Modern UI/UX**: Complete redesign with world-class best practices
-- ✅ **Smooth Animations**: Card flips, transitions, and micro-interactions
-- ✅ **Accessibility**: Full keyboard navigation, screen reader support, ARIA labels
-- ✅ **Mobile Responsive**: Optimized for all screen sizes
-- ✅ **Progressive Web App**: Installable on mobile devices
-- ✅ **Node.js Backend**: Production-ready Express server
-- ✅ **Cloud Deployment**: Ready for Heroku, DigitalOcean, AWS, Docker
-- ✅ **Security**: Helmet.js, CORS, compression, security headers
-- ✅ **Performance**: Optimized loading, caching, and monitoring
-- ✅ **Developer Experience**: Hot reload, health checks, API endpoints
-
-### Quick Deploy Commands
-
-```bash
-# Heroku
-heroku create your-app-name
-git push heroku main
-
-# DigitalOcean App Platform
-# Connect GitHub repo in DO dashboard
-
-# Docker
-docker build -t flashcards .
-docker run -p 3000:3000 flashcards
-
-# Local development
-npm install && npm start
-```
-
-## 🚀 Quick Start
-
-### Option 1: Live Demo
-Visit the [live demo](https://your-domain.com) to try the app immediately.
-
-### Option 2: Local Development
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/microsoft-learn-flashcards.git
-   cd microsoft-learn-flashcards
-   ```
-
-2. Open `index.html` in your web browser:
-   ```bash
-   # On Windows
-   start index.html
-
-   # Or simply double-click index.html in your file explorer
-   ```
-
-3. Start studying! Enter any Microsoft Learn documentation URL and generate your flash cards.
-
-## 📖 How to Use
-
-1. **Setup Your Session**
-   - Enter a Microsoft Learn documentation URL
-   - Select the number of cards you want to study (5-20)
-   - Choose your difficulty level
-
-2. **Study Mode**
-   - Read each question carefully
-   - Click on your answer choice or use keyboard shortcuts (1-4)
-   - Submit your answer to see the correct response and explanation
-   - Navigate between cards using Previous/Next buttons or arrow keys
-
-3. **Track Progress**
-   - Monitor your progress with the animated progress bar
-   - View your score in real-time
-   - Review detailed explanations for each answer
-
-4. **Share Results**
-   - Share your final score on social media
-   - Start a new session anytime
-
-## 🎮 Controls
-
-| Action | Mouse | Keyboard |
-|--------|-------|----------|
-| Select answer | Click choice | 1-4 keys |
-| Submit answer | Click Submit | Enter or → |
-| Next card | Click Next | → |
-| Previous card | Click Previous | ← |
-| New session | Click New Session | - |
-
-## 🛠️ Technical Features
-
-### UI/UX Improvements
-- **Modern Design System**: CSS custom properties, consistent spacing, and typography
-- **Smooth Animations**: CSS transitions, keyframe animations, and micro-interactions
-- **Responsive Design**: Mobile-first approach with breakpoints for all screen sizes
-- **Accessibility**: ARIA labels, keyboard navigation, screen reader support
-
-### Performance Optimizations
-- **Lazy Loading**: Intersection Observer for scroll-triggered animations
-- **Efficient Animations**: GPU-accelerated transforms and opacity changes
-- **Minimal Bundle**: Pure HTML/CSS/JS with no external dependencies
-- **Progressive Enhancement**: Works without JavaScript (basic functionality)
-
-### Browser Support
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-
-## 🌐 Hosting & Deployment
-
-### Local Development
-```bash
-# Install dependencies
-npm install
-
-# Start development server with auto-reload
-npm run dev
-
-# Or start production server
-npm start
-
-# Test health endpoint
-curl http://localhost:3000/health
-```
-
-### Cloud Hosting Options
-
-#### 🚀 Heroku (Recommended for beginners)
-1. **Install Heroku CLI** and login:
-   ```bash
-   # Download from https://devcenter.heroku.com/articles/heroku-cli
-   heroku login
-   ```
-
-2. **Create and deploy**:
-   ```bash
-   # Create app
-   heroku create your-flashcards-app
-
-   # Deploy
-   git push heroku main
-
-   # Open in browser
-   heroku open
-   ```
-
-3. **Environment variables** (optional):
-   ```bash
-   heroku config:set NODE_ENV=production
-   ```
-
-#### 🐙 DigitalOcean App Platform
-1. **Connect your GitHub repository** to DigitalOcean App Platform
-2. **Configure the app**:
-   - **Source**: GitHub
-   - **Runtime**: Node.js
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-3. **Set environment variables**:
-   - `NODE_ENV`: `production`
-   - `PORT`: `${PORT}` (automatically set by platform)
-
-#### ☁️ AWS (EC2 + PM2)
-1. **Launch EC2 instance** (t2.micro for free tier)
-2. **Connect and setup**:
-   ```bash
-   # Update system
-   sudo apt update && sudo apt upgrade -y
-
-   # Install Node.js
-   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-
-   # Install PM2
-   sudo npm install -g pm2
-
-   # Clone your repository
-   git clone https://github.com/yourusername/microsoft-learn-flashcards.git
-   cd microsoft-learn-flashcards
-
-   # Install dependencies
-   npm install
-
-   # Start with PM2
-   pm2 start server.js --name "flashcards"
-   pm2 startup
-   pm2 save
-
-   # Configure Nginx (optional)
-   sudo apt install nginx
-   ```
-
-#### 🐳 Docker Deployment
-```bash
-# Build image
-docker build -t flashcards .
-
-# Run locally
-docker run -p 3000:3000 flashcards
-
-# For production with Docker Compose
-docker-compose up -d
-```
-
-#### 📦 Other Platforms
-- **Railway**: Connect GitHub repo, auto-deploys
-- **Render**: Web service from GitHub, free tier available
-- **Vercel**: `vercel --prod` (works but overkill for Node.js)
-- **GitHub Pages**: Static hosting only (use the static version)
-
-### Environment Variables
-Create a `.env` file for local development:
-```env
-NODE_ENV=development
-PORT=3000
-```
-
-### Performance & Security
-- **Compression**: Gzip compression enabled
-- **Caching**: Static assets cached for 1 day
-- **Security**: Helmet.js security headers
-- **CORS**: Configured for API requests
-- **Health Checks**: `/health` endpoint for monitoring
-
-### Monitoring
-- Health check: `GET /health`
-- App info: `GET /api/info`
-- PM2 monitoring: `pm2 monit` (if using PM2)
-
-## 🔧 Customization
-
-### Colors and Themes
-Edit the CSS custom properties in `styles.css`:
-
-```css
-:root {
-    --primary-color: #6366f1;    /* Main brand color */
-    --secondary-color: #06b6d4;  /* Accent color */
-    --success-color: #10b981;    /* Correct answers */
-    --error-color: #ef4444;      /* Incorrect answers */
-}
-```
-
-### Animations
-Disable animations for users who prefer reduced motion:
-
-```css
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-```
-
-## 📊 Analytics & Tracking
-
-The app includes basic usage tracking (optional):
-- Session completion rates
-- Average scores by difficulty
-- Popular documentation topics
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Microsoft Learn documentation for providing excellent learning resources
-- [allorigins.win](https://allorigins.win) for CORS proxy service
-- Inter font family by Rasmus Andersson
-- Icons from various open-source projects
-
-## 🐛 Known Limitations
-
-- **CORS Proxy**: Currently uses a third-party CORS proxy which may have rate limits
-- **Content Parsing**: May not work perfectly with all Microsoft Learn page structures
-- **Browser Storage**: Progress is not saved between sessions (planned feature)
-
-## 🚀 Future Enhancements
-
-- [ ] **Backend API**: Replace CORS proxy with server-side content fetching
-- [ ] **User Accounts**: Save progress and create custom study plans
-- [ ] **Offline Mode**: Service worker for offline functionality
-- [ ] **Multiple Languages**: Support for non-English documentation
-- [ ] **Study Streaks**: Gamification features
-- [ ] **Export/Import**: Save and share custom card sets
+# Good Better Best
+
+AI-powered study cards for Microsoft Learn — built to turn any Microsoft documentation page into an interactive quiz session using Claude AI.
+
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express&logoColor=white)
+![Claude AI](https://img.shields.io/badge/Claude-Sonnet_4-cc785c?logo=anthropic&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white)
+![Vercel](https://img.shields.io/badge/Frontend-Vercel-000000?logo=vercel&logoColor=white)
+![Railway](https://img.shields.io/badge/API-Railway-0B0D0E?logo=railway&logoColor=white)
 
 ---
 
-**Made with ❤️ for the Microsoft Learn community**
+## Summary
 
-- `index.html` - Main HTML structure
-- `styles.css` - Styling and responsive design
-- `app.js` - JavaScript functionality and flash card logic
-- `README.md` - This documentation file
+Good Better Best is a full-stack web application that generates intelligent, adaptive flash cards from any Microsoft Learn documentation URL. Users paste a link, choose their settings, and the app fetches the page content, parses it into structured sections, and sends it to Anthropic's Claude AI to produce multiple question types — multiple choice, true/false, fill-in-the-blank, and scenario-based questions.
 
-## Browser Compatibility
+The platform includes user authentication, spaced repetition review (SM-2 algorithm), a gamification system with 29 unlockable badges, XP-based leaderboards, Socratic AI coaching, a full Microsoft certification catalog with 100+ certs and applied skills, daily challenges, weakness analysis, knowledge decay modeling, and a progressive web app experience with offline caching.
 
-Works in all modern browsers including Chrome, Firefox, Safari, and Edge.
+Built as a solo project to explore the intersection of AI-assisted learning, adaptive difficulty, and modern web architecture.
+
+---
+
+## Features
+
+- **AI Question Generation** — Claude Sonnet 4 generates varied question types from parsed documentation content, with adaptive difficulty based on user performance history
+- **Microsoft Certification Catalog** — Full integration with the Microsoft Learn Catalog API (100+ certifications, 37+ applied skills), filterable by area, level, and type
+- **Skills Tested Extraction** — Fetches exam study guides and extracts detailed competency lists (60-90 skills per cert) for targeted study
+- **Spaced Repetition** — SM-2 algorithm tracks card reviews with optimized intervals for long-term retention
+- **Gamification** — 29 badges across 6 categories, XP system, streaks, Bronze/Silver/Gold/Platinum leaderboard tiers, daily challenges
+- **Socratic AI Coach** — Conversational tutoring mode where Claude asks probing questions instead of giving answers
+- **Teach-Back Mode** — Users explain concepts in their own words; AI evaluates understanding and identifies misconceptions
+- **Certification Readiness** — AI-powered readiness scoring against a user's target certification goal
+- **Weakness Reports** — AI analyzes wrong-answer patterns and generates personalized study recommendations
+- **Knowledge Decay Modeling** — Estimates retention over time and surfaces topics that need refreshing
+- **12 Color Themes** — Including dark/light variants for each major cloud hyperscaler (with creative names)
+- **PWA** — Service worker with network-first caching, offline support, auto-update
+- **Mobile Responsive** — Breakpoints from 900px down to 280px with optimized layouts at each tier
+
+---
+
+## Technical Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              USERS                                      │
+│                    Desktop / Mobile / PWA                                │
+└──────────────────────────┬──────────────────────────────────────────────┘
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+              ▼                         ▼
+┌──────────────────────┐   ┌──────────────────────────────────────────────┐
+│   VERCEL (Frontend)  │   │         RAILWAY (API Server)                 │
+│                      │   │                                              │
+│  Static HTML/CSS/JS  │   │  ┌────────────────────────────────────────┐  │
+│  ┌────────────────┐  │   │  │          Express.js Server             │  │
+│  │  index.html    │  │   │  │                                        │  │
+│  │  app.js        │──┼───┼─▶│  /api/generate-cards    ──┐           │  │
+│  │  auth.js       │  │   │  │  /api/socratic           │           │  │
+│  │  nav.js        │  │   │  │  /api/teach-back         │  Claude   │  │
+│  │  theme.js      │  │   │  │  /api/weakness-report    │  Sonnet 4 │  │
+│  │  config.js     │  │   │  │  /api/cert-readiness   ──┘           │  │
+│  │  consent.js    │  │   │  │                                        │  │
+│  │  sw.js (PWA)   │  │   │  │  /api/auth/*         ─── JWT + bcrypt │  │
+│  └────────────────┘  │   │  │  /api/scores          ─┐              │  │
+│                      │   │  │  /api/question-log      │              │  │
+│  Pages:              │   │  │  /api/reviews/*         │  PostgreSQL │  │
+│  ┌────────────────┐  │   │  │  /api/gamification/*    │  (Railway)  │  │
+│  │ paths.html     │  │   │  │  /api/leaderboard     ─┘              │  │
+│  │ review.html    │  │   │  │                                        │  │
+│  │ socratic.html  │  │   │  │  /api/learning-paths  ─── MS Catalog  │  │
+│  │ profile.html   │  │   │  │  /api/cert-study-guide    API         │  │
+│  │ history.html   │  │   │  │  /api/fetch-page      ─── MS Learn    │  │
+│  │ topics.html    │  │   │  │                            Proxy       │  │
+│  │ compare.html   │  │   │  │  /api/search-docs     ─── MS Search   │  │
+│  │ leaderboard    │  │   │  │                            API         │  │
+│  │ settings.html  │  │   │  └────────────────────────────────────────┘  │
+│  │ changelog.html │  │   │                                              │
+│  └────────────────┘  │   │  Middleware: Helmet, CORS, Compression,      │
+│                      │   │  Rate Limiting, JWT Auth                     │
+│  vercel.json (SPA    │   │                                              │
+│  rewrites)           │   │  Dockerfile + docker-compose.yml             │
+└──────────────────────┘   └──────────────┬───────────────────────────────┘
+                                          │
+              ┌───────────────────────────┬┴──────────────────────┐
+              │                           │                       │
+              ▼                           ▼                       ▼
+┌──────────────────────┐   ┌──────────────────────┐   ┌────────────────────┐
+│   Anthropic API      │   │  PostgreSQL (Railway) │   │  Microsoft Learn   │
+│                      │   │                       │   │                    │
+│  Claude Sonnet 4     │   │  users                │   │  Catalog API       │
+│  - Question gen      │   │  scores               │   │  /api/catalog/     │
+│  - Socratic tutor    │   │  question_logs        │   │                    │
+│  - Teach-back eval   │   │  card_reviews (SM-2)  │   │  Documentation     │
+│  - Weakness reports  │   │  user_streaks         │   │  Pages (proxy)     │
+│  - Cert readiness    │   │  achievements         │   │                    │
+│                      │   │  shared_decks         │   │  Study Guides      │
+│                      │   │  question_feedback    │   │  (skill extraction)│
+│                      │   │  telemetry            │   │                    │
+│                      │   │  cert_goals           │   │  Search API        │
+│                      │   │  study_goals          │   │  /api/search       │
+└──────────────────────┘   └──────────────────────┘   └────────────────────┘
+```
+
+
+---
+
+## Services & Integrations
+
+| Service | Role | Details |
+|---------|------|---------|
+| **Vercel** | Frontend hosting | Static HTML/CSS/JS, SPA rewrites, auto-deploy from Git |
+| **Railway** | API server + database | Node.js container, PostgreSQL addon, manual deploy via `railway up` |
+| **Anthropic Claude** | AI engine | Claude Sonnet 4 (`claude-sonnet-4-20250514`) for question generation, coaching, evaluation |
+| **Microsoft Learn Catalog API** | Certification data | Full catalog of certifications and applied skills at `/api/catalog/` |
+| **Microsoft Learn** | Content source | Documentation pages fetched server-side, study guides parsed for skill extraction |
+| **PostgreSQL** | Persistence | 10 tables: users, scores, question_logs, card_reviews, user_streaks, achievements, shared_decks, question_feedback, telemetry, cert_goals |
+| **GitHub** | Source control | CI via GitHub Actions, Vercel auto-deploy on push |
+
+---
+
+## Tech Stack
+
+**Backend**
+- Node.js 18+ / Express 4
+- `@anthropic-ai/sdk` — Claude AI integration
+- `postgres` (porsager) — PostgreSQL client with tagged template queries
+- `bcryptjs` + `jsonwebtoken` — Authentication (email/password, JWT)
+- `helmet` — Security headers (CSP, HSTS, etc.)
+- `express-rate-limit` — API and AI endpoint rate limiting
+- `compression` — Gzip response compression
+- `cors` — Cross-origin resource sharing
+- `dotenv` — Environment variable management
+
+**Frontend**
+- Vanilla HTML/CSS/JS (no framework)
+- DM Sans + JetBrains Mono (Google Fonts)
+- Lucide Icons (SVG icon library)
+- Chart.js (history/analytics charts)
+- Service Worker (network-first caching, v6)
+- PWA manifest with standalone display mode
+
+**Infrastructure**
+- Docker (Alpine Node 18, non-root user, health checks)
+- docker-compose for local development
+- Vercel for frontend CDN + edge
+- Railway for API server + managed PostgreSQL
+- GitHub Actions for CI/test pipeline
+
+---
+
+## Database Schema
+
+```
+users ──────────────┐
+  id (PK)           │
+  email (unique)    │
+  password_hash     │
+  display_name      │
+  created_at        │
+                    │
+scores ◄────────────┤  question_logs ◄──────────┤
+  user_id (FK) ─────┤    user_id (FK) ──────────┤
+  url, page_title   │    url, page_title        │
+  correct, total    │    question, answers       │
+  score_pct         │    is_correct, difficulty  │
+  difficulty        │                            │
+                    │  card_reviews ◄────────────┤
+user_streaks ◄──────┤    user_id (FK) ──────────┤
+  current_streak    │    SM-2 fields (ease,      │
+  longest_streak    │    interval, repetitions)  │
+  total_xp          │    next_review             │
+                    │                            │
+achievements ◄──────┤  cert_goals ◄─────────────┘
+  badge_key         │    cert_id, cert_name
+  earned_at         │
+                    │
+shared_decks ◄──────┤  telemetry
+  share_code        │    event_type, event_data
+  cards (JSONB)     │
+                    │  question_feedback
+                    │    feedback_type
+```
+
+---
+
+## Project Structure
+
+```
+├── server.js              # Express API server (all endpoints)
+├── db.js                  # PostgreSQL queries, schema init, gamification logic
+├── package.json
+├── Dockerfile             # Production container (Node 18 Alpine)
+├── docker-compose.yml     # Local dev orchestration
+├── Procfile               # Railway/Heroku process definition
+│
+├── frontend/              # Static frontend (deployed to Vercel)
+│   ├── index.html         # Main study session page
+│   ├── app.js             # Core flash card app logic (~1600 lines)
+│   ├── auth.js            # JWT auth, signup/login modal, token management
+│   ├── nav.js             # Shared navigation (desktop sidebar + mobile tabs)
+│   ├── theme.js           # Early-load theme applier (12 themes)
+│   ├── config.js          # API base URL configuration
+│   ├── consent.js         # Cookie/analytics consent
+│   ├── sw.js              # Service worker (network-first, v6)
+│   ├── styles.css         # Full design system (~700 lines)
+│   ├── logo.svg           # App logo
+│   ├── manifest.json      # PWA manifest
+│   ├── vercel.json        # Vercel SPA routing config
+│   │
+│   ├── paths.html         # Microsoft certification catalog browser
+│   ├── review.html        # Spaced repetition review queue
+│   ├── socratic.html      # AI Socratic coaching mode
+│   ├── profile.html       # Achievements, cert readiness, weakness reports
+│   ├── history.html       # Score history with Chart.js visualizations
+│   ├── topics.html        # Per-topic accuracy breakdown
+│   ├── compare.html       # Global comparison stats
+│   ├── leaderboard.html   # XP leaderboard with tier badges
+│   ├── settings.html      # Themes, font size, goals, data export
+│   └── changelog.html     # Public changelog
+│
+└── tests/
+    └── server.test.js     # Jest + Supertest API tests
+```
+
+---
+
+## Key API Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/generate-cards` | POST | Optional | AI question generation from page content |
+| `/api/generate-cards-batch` | POST | Optional | Cross-document synthesis questions |
+| `/api/fetch-page` | GET | — | Server-side proxy for Microsoft Learn pages |
+| `/api/learning-paths` | GET | — | Full Microsoft certification catalog (cached 1hr) |
+| `/api/cert-study-guide` | GET | — | Extract skills tested + training URLs from exam study guides |
+| `/api/auth/signup` | POST | — | Create account (email/password) |
+| `/api/auth/login` | POST | — | JWT token issuance |
+| `/api/scores` | GET/POST | Required | Score history (user-scoped) |
+| `/api/question-log` | POST | Required | Individual answer logging |
+| `/api/reviews/due` | GET | Required | Spaced repetition cards due for review |
+| `/api/reviews/result` | POST | Required | Submit SM-2 review quality rating |
+| `/api/socratic` | POST | Required | Socratic AI coaching conversation |
+| `/api/teach-back` | POST | Required | AI evaluation of user explanations |
+| `/api/weakness-report` | GET | Required | AI-generated personalized study report |
+| `/api/certification-readiness` | GET | Required | AI cert readiness scoring |
+| `/api/gamification/profile` | GET | Required | Streak, XP, badges |
+| `/api/leaderboard` | GET | — | Global XP leaderboard (cached 5min) |
+| `/api/daily-challenge` | GET | — | Rotating daily study challenge |
+| `/api/knowledge-decay` | GET | Required | Retention estimates per topic |
+| `/api/export/json` | GET | Required | Full data export |
+| `/api/export/csv` | GET | Required | CSV score export |
+
+---
+
+## Running Locally
+
+```bash
+# Clone
+git clone https://github.com/justinericsnyder/FlashCards.git
+cd FlashCards
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.local .env
+# Edit .env with your keys:
+#   ANTHROPIC_API_KEY=sk-ant-...
+#   DATABASE_URL=postgres://...
+#   JWT_SECRET=your-secret
+
+# Start dev server
+npm run dev
+# → http://localhost:3000
+```
+
+Or with Docker:
+
+```bash
+docker-compose up --build
+```
+
+---
+
+## Deployment
+
+**Frontend (Vercel)** — Auto-deploys from `main` branch pushes. Config in `frontend/vercel.json`.
+
+**API (Railway)** — Manual deploy:
+```bash
+railway up --detach
+```
+
+Environment variables required on Railway:
+- `ANTHROPIC_API_KEY`
+- `DATABASE_URL` (auto-provisioned with Railway PostgreSQL addon)
+- `JWT_SECRET`
+- `FRONTEND_URL` (Vercel domain, for CORS)
+- `NODE_ENV=production`
+
+---
+
+## License
+
+MIT
+
+---
+
+© 2026 [JUSTINERICSNYDER.COM](https://www.justinericsnyder.com)

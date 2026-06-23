@@ -12,22 +12,24 @@
     <style>
         /* ---- Fluent 2 design tokens (light) — scoped to this page ---- */
         .cert-page {
-            --f-canvas: #faf9f8;
-            --f-surface: #ffffff;
-            --f-surface-2: #f5f5f5;
-            --f-stroke: #e1dfdd;
-            --f-stroke-2: #d2d0ce;
-            --f-text: #242424;
-            --f-text-2: #616161;
-            --f-text-3: #8a8886;
-            --f-brand: #0f6cbd;
+            /* Surfaces, text, brand & success derive from the active app theme (theme.js) */
+            --f-canvas: var(--bg-body);
+            --f-surface: var(--bg-card);
+            --f-surface-2: color-mix(in srgb, var(--text) 7%, var(--bg-card));
+            --f-stroke: var(--border);
+            --f-stroke-2: color-mix(in srgb, var(--text) 16%, var(--border));
+            --f-text: var(--text);
+            --f-text-2: var(--text-dim);
+            --f-text-3: var(--text-muted);
+            --f-brand: var(--primary);
+            /* Category accents are intrinsic to the certification poster — kept across themes */
             --f-brand-cloud: #0078d4;
             --f-brand-aibiz: #c239b3;
             --f-brand-security: #498205;
             --f-github: #6e40c9;
-            --f-success: #0e700e;
-            --f-success-bg: #f1faf1;
-            --f-success-stroke: #9fd89f;
+            --f-success: var(--success, #34d399);
+            --f-success-bg: color-mix(in srgb, var(--success, #34d399) 13%, var(--bg-card));
+            --f-success-stroke: color-mix(in srgb, var(--success, #34d399) 45%, var(--border));
             --f-radius: 4px;
             --f-radius-lg: 8px;
             --f-shadow-2: 0 1px 2px rgba(0,0,0,.10), 0 0 1px rgba(0,0,0,.10);
@@ -135,15 +137,15 @@
         .cert .c-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.3rem; flex-wrap: wrap; }
         .cert .c-code {
             font-family: var(--font-mono, monospace); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em;
-            background: #2b2b2b; color: #fff; padding: 0.12rem 0.4rem; border-radius: 3px;
+            background: var(--f-text); color: var(--f-surface); padding: 0.12rem 0.4rem; border-radius: 3px;
         }
-        .cert[data-provider="business"] .c-code { background: var(--f-brand-aibiz); }
-        .cert[data-provider="github"] .c-code { background: var(--f-github); }
+        .cert[data-provider="business"] .c-code { background: var(--f-brand-aibiz); color: #fff; }
+        .cert[data-provider="github"] .c-code { background: var(--f-github); color: #fff; }
         .badge { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.32rem; border-radius: 3px; display: inline-flex; align-items: center; gap: 0.2rem; }
-        .badge.beta { background: #fff4ce; color: #6a5a00; }
-        .badge.new { background: #ddeeff; color: #0a5ca8; }
-        .badge.expert { background: #efe6ff; color: #5c2e9e; }
-        .badge.prereq { background: #f3f2f1; color: #616161; }
+        .badge.beta { background: rgba(217,146,10,.16); color: #d9920a; }
+        .badge.new { background: rgba(59,130,246,.16); color: #4b91f7; }
+        .badge.expert { background: rgba(139,92,246,.16); color: #9b7cf0; }
+        .badge.prereq { background: color-mix(in srgb, var(--f-text-3) 22%, transparent); color: var(--f-text-2); }
         .badge .b-icon { width: 9px; height: 9px; }
 
         /* check control */
@@ -162,15 +164,16 @@
         }
         .cert.done .check { background: var(--f-success); border-color: var(--f-success); }
         .cert.done .check svg { opacity: 1; transform: scale(1); }
-        .cert.done .c-title { color: #143b14; }
+        .cert.done .c-title { color: color-mix(in srgb, var(--f-success) 45%, var(--f-text)); }
         @keyframes pop { 0%{transform:scale(.97)} 60%{transform:scale(1.02)} 100%{transform:scale(1)} }
 
         .done-foot { display: flex; align-items: center; gap: 0.4rem; padding-left: 1.6rem; }
         .done-foot .df-icon { width: 12px; height: 12px; color: var(--f-success); flex-shrink: 0; }
         .done-foot label { font-size: 0.68rem; color: var(--f-success); font-weight: 700; }
         .done-foot input[type=date] {
-            font-family: var(--f-font); font-size: 0.7rem; color: #143b14; font-weight: 600;
-            border: 1px solid var(--f-success-stroke); background: #fff; border-radius: 3px; padding: 0.1rem 0.3rem; cursor: pointer;
+            font-family: var(--f-font); font-size: 0.7rem; color: var(--f-text); font-weight: 600;
+            border: 1px solid var(--f-success-stroke); background: var(--f-surface); border-radius: 3px; padding: 0.1rem 0.3rem; cursor: pointer;
+            color-scheme: light dark;
         }
         .done-foot input[type=date]:focus { outline: none; border-color: var(--f-success); box-shadow: 0 0 0 1px var(--f-success); }
 
@@ -213,7 +216,7 @@
             </div>
             <label class="toggle"><input type="checkbox" id="hide-done"> Hide completed</label>
             <div class="legend">
-                <span><span class="dot" style="background:#2b2b2b"></span> Microsoft technical</span>
+                <span><span class="dot" style="background:var(--text)"></span> Microsoft technical</span>
                 <span><span class="dot" style="background:#c239b3"></span> Microsoft business</span>
                 <span><span class="dot" style="background:#6e40c9"></span> GitHub</span>
             </div>

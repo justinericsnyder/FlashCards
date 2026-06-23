@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification Tracker — Good Better Best</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script><script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* ---- Fluent 2 design tokens (light) — scoped to this page ---- */
+        .cert-page {
+            --f-canvas: #faf9f8;
+            --f-surface: #ffffff;
+            --f-surface-2: #f5f5f5;
+            --f-stroke: #e1dfdd;
+            --f-stroke-2: #d2d0ce;
+            --f-text: #242424;
+            --f-text-2: #616161;
+            --f-text-3: #8a8886;
+            --f-brand: #0f6cbd;
+            --f-brand-cloud: #0078d4;
+            --f-brand-aibiz: #c239b3;
+            --f-brand-security: #498205;
+            --f-github: #6e40c9;
+            --f-success: #0e700e;
+            --f-success-bg: #f1faf1;
+            --f-success-stroke: #9fd89f;
+            --f-radius: 4px;
+            --f-radius-lg: 8px;
+            --f-shadow-2: 0 1px 2px rgba(0,0,0,.10), 0 0 1px rgba(0,0,0,.10);
+            --f-shadow-4: 0 2px 4px rgba(0,0,0,.12), 0 0 2px rgba(0,0,0,.10);
+            --f-shadow-8: 0 4px 8px rgba(0,0,0,.14), 0 0 2px rgba(0,0,0,.12);
+            --f-font: 'Segoe UI Variable Text','Segoe UI',system-ui,-apple-system,'DM Sans',sans-serif;
+
+            font-family: var(--f-font);
+            background: var(--f-canvas);
+            color: var(--f-text);
+            min-height: 100vh;
+            box-sizing: border-box;
+            padding: 1.75rem 2rem 4rem;
+            max-width: 1320px;
+            margin: 0 auto;
+            -webkit-font-smoothing: antialiased;
+        }
+        .cert-page *, .cert-page *::before, .cert-page *::after { box-sizing: border-box; }
+
+        .cert-page .back-link {
+            color: var(--f-brand); text-decoration: none; display: inline-flex; align-items: center;
+            gap: 0.35rem; margin-bottom: 1rem; font-weight: 600; font-size: 0.82rem;
+        }
+        .cert-page .back-link:hover { text-decoration: underline; }
+
+        /* ---- Header ---- */
+        .cert-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+        .cert-head h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 0.25rem; line-height: 1.1; }
+        .cert-head h1 .accent {
+            background: linear-gradient(90deg,#0078d4,#c239b3,#498205);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .cert-head p { color: var(--f-text-2); font-size: 0.9rem; margin: 0; max-width: 46ch; }
+        .cert-head .head-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .cert-head .head-links a, .cert-page .ghost-btn {
+            font-size: 0.78rem; font-weight: 600; color: var(--f-text-2); text-decoration: none;
+            border: 1px solid var(--f-stroke-2); background: var(--f-surface); padding: 0.4rem 0.7rem;
+            border-radius: var(--f-radius); display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;
+            transition: background .1s, border-color .1s;
+        }
+        .cert-head .head-links a:hover, .cert-page .ghost-btn:hover { background: var(--f-surface-2); border-color: var(--f-text-3); }
+        .cert-page .ghost-btn.danger:hover { color: #b10e1c; border-color: #b10e1c; }
+
+        /* ---- Top metrics ---- */
+        .metrics { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .metric-card {
+            background: var(--f-surface); border: 1px solid var(--f-stroke); border-radius: var(--f-radius-lg);
+            padding: 0.9rem 1rem; box-shadow: var(--f-shadow-2);
+        }
+        .metric-card .m-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--f-text-3); font-weight: 600; display: flex; align-items: center; gap: 0.35rem; }
+        .metric-card .m-value { font-size: 1.7rem; font-weight: 700; margin-top: 0.15rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+        .metric-card .m-sub { font-size: 0.72rem; color: var(--f-text-2); margin-top: 0.15rem; }
+        .metric-card .m-icon { width: 14px; height: 14px; }
+
+        .overall { display: flex; flex-direction: column; justify-content: center; }
+        .overall .m-top { display: flex; align-items: baseline; gap: 0.5rem; }
+        .overall .pct { font-size: 2.1rem; font-weight: 700; color: var(--f-brand); line-height: 1; font-variant-numeric: tabular-nums; }
+        .overall .frac { font-size: 0.85rem; color: var(--f-text-2); }
+        .progress-track { height: 8px; background: var(--f-surface-2); border-radius: 99px; margin-top: 0.6rem; overflow: hidden; border: 1px solid var(--f-stroke); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg,#0078d4,#c239b3,#498205); border-radius: 99px; transition: width .5s cubic-bezier(.2,.9,.3,1); }
+
+        /* ---- Toolbar ---- */
+        .toolbar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+        .toolbar .search { position: relative; flex: 1; min-width: 200px; max-width: 380px; }
+        .toolbar .search input {
+            width: 100%; padding: 0.5rem 0.7rem 0.5rem 2rem; border: 1px solid var(--f-stroke-2);
+            border-radius: var(--f-radius); font-size: 0.85rem; font-family: var(--f-font); background: var(--f-surface); color: var(--f-text);
+        }
+        .toolbar .search input:focus { outline: none; border-color: var(--f-brand); box-shadow: 0 0 0 1px var(--f-brand); }
+        .toolbar .search .s-icon { position: absolute; left: 0.55rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--f-text-3); }
+        .toggle { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: var(--f-text-2); cursor: pointer; user-select: none; font-weight: 600; }
+        .toggle input { accent-color: var(--f-brand); width: 15px; height: 15px; }
+        .legend { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-left: auto; font-size: 0.72rem; color: var(--f-text-2); }
+        .legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+        .legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+        /* ---- Columns ---- */
+        .columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: start; }
+        .col { background: var(--f-surface); border: 1px solid var(--f-stroke); border-radius: var(--f-radius-lg); box-shadow: var(--f-shadow-2); overflow: hidden; }
+        .col-head { padding: 0.9rem 1rem 0.8rem; border-top: 3px solid var(--col-accent, var(--f-brand)); }
+        .col-head .ch-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+        .col-head h2 { font-size: 0.98rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.45rem; }
+        .col-head h2 .ch-icon { width: 17px; height: 17px; color: var(--col-accent); }
+        .col-head .ch-pct { font-size: 1.05rem; font-weight: 700; color: var(--col-accent); font-variant-numeric: tabular-nums; }
+        .col-head .ch-frac { font-size: 0.72rem; color: var(--f-text-3); font-weight: 600; }
+        .col-progress { height: 6px; background: var(--f-surface-2); border-radius: 99px; margin-top: 0.55rem; overflow: hidden; }
+        .col-progress > div { height: 100%; background: var(--col-accent); border-radius: 99px; transition: width .5s cubic-bezier(.2,.9,.3,1); }
+
+        .level-group { padding: 0.4rem 0.7rem 0.7rem; }
+        .level-title { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--f-text-3); padding: 0.6rem 0.3rem 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
+        .level-title .lt-count { color: var(--f-text-3); font-weight: 600; margin-left: auto; }
+
+        /* ---- Cert card ---- */
+        .cert {
+            position: relative; display: flex; flex-direction: column; gap: 0.35rem;
+            border: 1px solid var(--f-stroke); border-left: 3px solid var(--f-stroke-2);
+            border-radius: var(--f-radius); padding: 0.55rem 0.65rem 0.55rem 0.7rem; margin-bottom: 0.4rem;
+            background: var(--f-surface); cursor: pointer; transition: box-shadow .1s, border-color .1s, background .15s, transform .08s;
+        }
+        .cert:hover { box-shadow: var(--f-shadow-4); border-left-color: var(--col-accent); }
+        .cert:active { transform: scale(0.995); }
+        .cert .c-main { display: flex; align-items: flex-start; gap: 0.6rem; }
+        .cert .c-text { flex: 1; min-width: 0; }
+        .cert .c-title { font-size: 0.8rem; font-weight: 600; line-height: 1.25; color: var(--f-text); }
+        .cert .c-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.3rem; flex-wrap: wrap; }
+        .cert .c-code {
+            font-family: var(--font-mono, monospace); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em;
+            background: #2b2b2b; color: #fff; padding: 0.12rem 0.4rem; border-radius: 3px;
+        }
+        .cert[data-provider="business"] .c-code { background: var(--f-brand-aibiz); }
+        .cert[data-provider="github"] .c-code { background: var(--f-github); }
+        .badge { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.32rem; border-radius: 3px; display: inline-flex; align-items: center; gap: 0.2rem; }
+        .badge.beta { background: #fff4ce; color: #6a5a00; }
+        .badge.new { background: #ddeeff; color: #0a5ca8; }
+        .badge.expert { background: #efe6ff; color: #5c2e9e; }
+        .badge.prereq { background: #f3f2f1; color: #616161; }
+        .badge .b-icon { width: 9px; height: 9px; }
+
+        /* check control */
+        .check {
+            flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+            border: 2px solid var(--f-stroke-2); background: var(--f-surface);
+            display: flex; align-items: center; justify-content: center; transition: all .12s; margin-top: 1px;
+        }
+        .check svg { width: 13px; height: 13px; color: #fff; opacity: 0; transform: scale(0.5); transition: all .12s; }
+        .cert:hover .check { border-color: var(--col-accent); }
+
+        /* completed state — high glance contrast */
+        .cert.done {
+            background: var(--f-success-bg); border-color: var(--f-success-stroke);
+            border-left-color: var(--f-success); animation: pop .25s cubic-bezier(.34,1.56,.64,1);
+        }
+        .cert.done .check { background: var(--f-success); border-color: var(--f-success); }
+        .cert.done .check svg { opacity: 1; transform: scale(1); }
+        .cert.done .c-title { color: #143b14; }
+        @keyframes pop { 0%{transform:scale(.97)} 60%{transform:scale(1.02)} 100%{transform:scale(1)} }
+
+        .done-foot { display: flex; align-items: center; gap: 0.4rem; padding-left: 1.6rem; }
+        .done-foot .df-icon { width: 12px; height: 12px; color: var(--f-success); flex-shrink: 0; }
+        .done-foot label { font-size: 0.68rem; color: var(--f-success); font-weight: 700; }
+        .done-foot input[type=date] {
+            font-family: var(--f-font); font-size: 0.7rem; color: #143b14; font-weight: 600;
+            border: 1px solid var(--f-success-stroke); background: #fff; border-radius: 3px; padding: 0.1rem 0.3rem; cursor: pointer;
+        }
+        .done-foot input[type=date]:focus { outline: none; border-color: var(--f-success); box-shadow: 0 0 0 1px var(--f-success); }
+
+        .cert.hidden-card { display: none; }
+        .level-group.empty, .col.empty-col { display: none; }
+
+        @media (max-width: 980px) {
+            .metrics { grid-template-columns: 1fr 1fr; }
+            .overall { grid-column: 1 / -1; }
+            .columns { grid-template-columns: 1fr; }
+            .legend { width: 100%; margin-left: 0; }
+        }
+        @media (max-width: 560px) {
+            .cert-page { padding: 1.25rem 1rem 4rem; }
+            .metrics { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cert-page">
+        <a href="/" class="back-link"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> Back to Flash Cards</a>
+
+        <div class="cert-head">
+            <div>
+                <h1><span class="accent">Certification</span> Tracker</h1>
+                <p>Track your progress toward Microsoft &amp; GitHub credentials. Check off each cert as you earn it — your progress saves to this browser.</p>
+            </div>
+            <div class="head-links">
+                <a href="https://aka.ms/ExploreCredentials" target="_blank" rel="noopener"><i data-lucide="external-link" style="width:13px;height:13px"></i> Explore credentials</a>
+                <button class="ghost-btn danger" id="reset-btn"><i data-lucide="rotate-ccw" style="width:13px;height:13px"></i> Reset</button>
+            </div>
+        </div>
+
+        <div class="metrics" id="metrics"></div>
+
+        <div class="toolbar">
+            <div class="search">
+                <i data-lucide="search" class="s-icon"></i>
+                <input type="text" id="search" placeholder="Search by name or exam code…" autocomplete="off">
+            </div>
+            <label class="toggle"><input type="checkbox" id="hide-done"> Hide completed</label>
+            <div class="legend">
+                <span><span class="dot" style="background:#2b2b2b"></span> Microsoft technical</span>
+                <span><span class="dot" style="background:#c239b3"></span> Microsoft business</span>
+                <span><span class="dot" style="background:#6e40c9"></span> GitHub</span>
+            </div>
+        </div>
+
+        <div class="columns" id="columns"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+    (function () {
+        "use strict";
+
+        // ---- Certification catalogue (source: Microsoft Certification Poster, June 2026) ----
+        const CATEGORIES = [
+            { key: "cloud",    name: "Cloud & AI Platforms", accent: "#0078d4", icon: "cloud" },
+            { key: "aibiz",    name: "AI Business Solutions", accent: "#c239b3", icon: "briefcase-business" },
+            { key: "security", name: "Security",              accent: "#498205", icon: "shield-check" },
+        ];
+        const LEVELS = ["Fundamentals", "Role-based", "Specialty", "Business"];
+
+        const CERTS = [
+            // ---- Cloud & AI Platforms ----
+            { code: "AZ-900", title: "Azure Fundamentals", cat: "cloud", level: "Fundamentals", provider: "tech" },
+            { code: "AI-900", title: "Azure AI Fundamentals", cat: "cloud", level: "Fundamentals", provider: "tech", note: "Retires end of June 2026" },
+            { code: "AI-901", title: "Azure AI Fundamentals (beta)", cat: "cloud", level: "Fundamentals", provider: "tech", beta: true, isNew: true },
+            { code: "DP-900", title: "Azure Data Fundamentals", cat: "cloud", level: "Fundamentals", provider: "tech" },
+
+            { code: "AZ-104", title: "Azure Administrator Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "AZ-204", title: "Azure Developer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "AZ-305", title: "Azure Solutions Architect Expert", cat: "cloud", level: "Role-based", provider: "tech", expert: true, prereq: true },
+            { code: "AZ-400", title: "DevOps Engineer Expert", cat: "cloud", level: "Role-based", provider: "tech", expert: true, prereq: true },
+            { code: "AZ-700", title: "Azure Network Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "AZ-800 / AZ-801", title: "Windows Server Hybrid Administrator Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "AI-102", title: "Azure AI Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "AI-103", title: "Azure AI Apps and Agents Developer Associate", cat: "cloud", level: "Role-based", provider: "tech", beta: true, isNew: true },
+            { code: "AI-200", title: "Azure AI Cloud Developer Associate", cat: "cloud", level: "Role-based", provider: "tech", beta: true, isNew: true },
+            { code: "AI-300", title: "Machine Learning Operations Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "DP-300", title: "Azure Database Administrator Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "DP-600", title: "Fabric Analytics Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "DP-700", title: "Fabric Data Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "DP-750", title: "Azure Databricks Data Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech", isNew: true },
+            { code: "DP-800", title: "SQL AI Developer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+            { code: "PL-300", title: "Power BI Data Analyst Associate", cat: "cloud", level: "Role-based", provider: "tech" },
+
+            { code: "AZ-120", title: "Azure for SAP Workloads Specialty", cat: "cloud", level: "Specialty", provider: "tech" },
+            { code: "AZ-140", title: "Azure Virtual Desktop Specialty", cat: "cloud", level: "Specialty", provider: "tech" },
+            { code: "DP-420", title: "Azure Cosmos DB Developer Specialty", cat: "cloud", level: "Specialty", provider: "tech" },
+            { code: "GH-900", title: "GitHub Foundations", cat: "cloud", level: "Specialty", provider: "github" },
+            { code: "GH-100", title: "GitHub Administration", cat: "cloud", level: "Specialty", provider: "github" },
+            { code: "GH-200", title: "GitHub Actions", cat: "cloud", level: "Specialty", provider: "github" },
+            { code: "GH-300", title: "GitHub Copilot", cat: "cloud", level: "Specialty", provider: "github" },
+            { code: "GH-600", title: "GitHub Agentic AI Developer", cat: "cloud", level: "Specialty", provider: "github", beta: true, isNew: true },
+
+            // ---- AI Business Solutions ----
+            { code: "AB-900", title: "Microsoft 365 Copilot and Agent Administration Fundamentals", cat: "aibiz", level: "Fundamentals", provider: "business" },
+            { code: "PL-900", title: "Power Platform Fundamentals", cat: "aibiz", level: "Fundamentals", provider: "tech" },
+
+            { code: "MD-102", title: "Endpoint Administrator Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MS-102", title: "Administrator Expert", cat: "aibiz", level: "Role-based", provider: "tech", expert: true, prereq: true },
+            { code: "MS-721", title: "Collaboration Communications Systems Engineer Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MS-700", title: "Teams Administrator Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MB-230", title: "Dynamics 365 Customer Service Functional Consultant Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MB-240", title: "Dynamics 365 Field Service Functional Consultant Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MB-280", title: "Dynamics 365 Customer Experience Analyst Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MB-310", title: "Dynamics 365 Finance Functional Consultant Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MB-330", title: "Dynamics 365 Supply Chain Management Functional Consultant Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MB-335", title: "Dynamics 365: Supply Chain Management Functional Consultant Expert", cat: "aibiz", level: "Role-based", provider: "tech", expert: true, prereq: true },
+            { code: "MB-500", title: "Dynamics 365: Finance and Operations Apps Developer Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MB-700", title: "Dynamics 365: Finance and Operations Apps Solution Architect Expert", cat: "aibiz", level: "Role-based", provider: "tech", expert: true, prereq: true },
+            { code: "MB-800", title: "Dynamics 365 Business Central Functional Consultant Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "MB-820", title: "Dynamics 365 Business Central Developer Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "PL-200", title: "Power Platform Functional Consultant Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "PL-400", title: "Power Platform Developer Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "PL-500", title: "Power Automate RPA Developer Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
+            { code: "PL-600", title: "Power Platform Solution Architect Expert", cat: "aibiz", level: "Role-based", provider: "tech", expert: true, prereq: true },
+            { code: "AB-100", title: "Agentic AI Business Solutions Architect", cat: "aibiz", level: "Role-based", provider: "business", expert: true, prereq: true, isNew: true },
+            { code: "AB-620", title: "AI Agent Builder Associate (beta)", cat: "aibiz", level: "Role-based", provider: "business", beta: true, isNew: true },
+            { code: "AB-210", title: "Dynamics 365 Sales AI Consultant Associate", cat: "aibiz", level: "Role-based", provider: "business", beta: true, isNew: true },
+            { code: "AB-250", title: "Dynamics 365 Contact Center AI Engineer Associate", cat: "aibiz", level: "Role-based", provider: "business", beta: true, isNew: true },
+            { code: "AB-410", title: "Intelligent Applications Builder Associate", cat: "aibiz", level: "Role-based", provider: "business", beta: true, isNew: true },
+
+            { code: "AB-730", title: "AI Business Professional", cat: "aibiz", level: "Business", provider: "business" },
+            { code: "AB-731", title: "AI Transformation Leader", cat: "aibiz", level: "Business", provider: "business" },
+
+            // ---- Security ----
+            { code: "SC-900", title: "Security, Compliance, and Identity Fundamentals", cat: "security", level: "Fundamentals", provider: "tech" },
+
+            { code: "AZ-500", title: "Azure Security Engineer Associate", cat: "security", level: "Role-based", provider: "tech" },
+            { code: "SC-100", title: "Cybersecurity Architect Expert", cat: "security", level: "Role-based", provider: "tech", expert: true, prereq: true },
+            { code: "SC-200", title: "Security Operations Analyst Associate", cat: "security", level: "Role-based", provider: "tech" },
+            { code: "SC-300", title: "Identity and Access Administrator Associate", cat: "security", level: "Role-based", provider: "tech" },
+            { code: "SC-401", title: "Information Security Administrator Associate", cat: "security", level: "Role-based", provider: "tech" },
+            { code: "SC-500", title: "Cloud and AI Security Engineer Associate", cat: "security", level: "Role-based", provider: "tech", beta: true, isNew: true },
+            { code: "SC-730", title: "Cybersecurity Business Professional", cat: "security", level: "Role-based", provider: "tech", beta: true, isNew: true },
+
+            { code: "GH-500", title: "GitHub Advanced Security", cat: "security", level: "Specialty", provider: "github" },
+        ];
+
+        const STORAGE_KEY = "fc_cert_progress_v1";
+        const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+        // progress: { [code]: "YYYY-MM-DD" }
+        function loadProgress() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+            catch { return {}; }
+        }
+        function saveProgress(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+        let progress = loadProgress();
+
+        function todayISO() {
+            const d = new Date();
+            const off = d.getTimezoneOffset();
+            return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+        }
+        function fmtDate(iso) {
+            if (!iso) return "";
+            const [y, m, day] = iso.split("-").map(Number);
+            const d = new Date(y, m - 1, day);
+            return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+        }
+        function monthsBetween(isoA, isoB) {
+            const a = new Date(isoA), b = new Date(isoB);
+            return (b - a) / (1000 * 60 * 60 * 24 * 30.44);
+        }
+
+        const elColumns = document.getElementById("columns");
+        const elMetrics = document.getElementById("metrics");
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function certCardHTML(c) {
+            const date = progress[c.code];
+            const done = !!date;
+            const badges = [];
+            if (c.expert) badges.push('<span class="badge expert"><i data-lucide="star" class="b-icon"></i>Expert</span>');
+            if (c.prereq) badges.push('<span class="badge prereq"><i data-lucide="lock" class="b-icon"></i>Prereq</span>');
+            if (c.beta) badges.push('<span class="badge beta">Beta</span>');
+            if (c.isNew) badges.push('<span class="badge new">New</span>');
+            const learn = `https://learn.microsoft.com/credentials/browse/?terms=${encodeURIComponent(c.code.split(" / ")[0])}`;
+            return `
+            <div class="cert${done ? " done" : ""}" data-code="${c.code}" data-provider="${c.provider}"
+                 data-search="${escapeHtml((c.title + " " + c.code).toLowerCase())}" data-done="${done}">
+                <div class="c-main">
+                    <div class="check" role="checkbox" aria-checked="${done}" tabindex="0"
+                         aria-label="Mark ${escapeHtml(c.title)} as ${done ? "not earned" : "earned"}">${ICON_CHECK}</div>
+                    <div class="c-text">
+                        <a class="c-title" href="${learn}" target="_blank" rel="noopener" title="${c.note ? escapeHtml(c.note) + ' · ' : ''}View on Microsoft Learn">${escapeHtml(c.title)}</a>
+                        <div class="c-meta">
+                            <span class="c-code">${escapeHtml(c.code)}</span>
+                            ${badges.join("")}
+                        </div>
+                    </div>
+                </div>
+                ${done ? `
+                <div class="done-foot">
+                    <i data-lucide="badge-check" class="df-icon"></i>
+                    <label>Earned</label>
+                    <input type="date" value="${date}" max="${todayISO()}" aria-label="Date earned for ${escapeHtml(c.code)}">
+                </div>` : ""}
+            </div>`;
+        }
+
+        function render() {
+            elColumns.innerHTML = CATEGORIES.map(cat => {
+                const catCerts = CERTS.filter(c => c.cat === cat.key);
+                const earned = catCerts.filter(c => progress[c.code]).length;
+                const pct = catCerts.length ? Math.round((earned / catCerts.length) * 100) : 0;
+                const levelsHTML = LEVELS.map(level => {
+                    const levelCerts = catCerts.filter(c => c.level === level);
+                    if (!levelCerts.length) return "";
+                    const lDone = levelCerts.filter(c => progress[c.code]).length;
+                    return `
+                    <div class="level-group">
+                        <div class="level-title">${level}<span class="lt-count">${lDone}/${levelCerts.length}</span></div>
+                        ${levelCerts.map(certCardHTML).join("")}
+                    </div>`;
+                }).join("");
+                return `
+                <section class="col" style="--col-accent:${cat.accent}">
+                    <div class="col-head">
+                        <div class="ch-top">
+                            <h2><i data-lucide="${cat.icon}" class="ch-icon"></i>${cat.name}</h2>
+                            <div style="text-align:right">
+                                <div class="ch-pct">${pct}%</div>
+                                <div class="ch-frac">${earned}/${catCerts.length}</div>
+                            </div>
+                        </div>
+                        <div class="col-progress"><div style="width:${pct}%"></div></div>
+                    </div>
+                    ${levelsHTML}
+                </section>`;
+            }).join("");
+
+            renderMetrics();
+            if (window.lucide) lucide.createIcons();
+            applyFilter();
+        }
+
+        function renderMetrics() {
+            const total = CERTS.length;
+            const earnedCodes = Object.keys(progress).filter(k => CERTS.some(c => c.code === k));
+            const earned = earnedCodes.length;
+            const pct = Math.round((earned / total) * 100);
+            const dates = earnedCodes.map(k => progress[k]).filter(Boolean).sort();
+            const today = todayISO();
+
+            // Velocity: certs per month across active span (first earned -> today)
+            let perMonth = 0;
+            if (dates.length) {
+                const span = Math.max(monthsBetween(dates[0], today), 0.5);
+                perMonth = earned / span;
+            }
+            // Recent activity
+            const last90 = dates.filter(d => monthsBetween(d, today) <= 3).length;
+            const last30 = dates.filter(d => monthsBetween(d, today) <= 1).length;
+            const remaining = total - earned;
+            // Projection: months to finish at current velocity
+            let etaText = "—";
+            if (perMonth > 0 && remaining > 0) {
+                const m = remaining / perMonth;
+                etaText = m >= 12 ? (m / 12).toFixed(1) + " yr" : Math.ceil(m) + " mo";
+            } else if (remaining === 0 && earned > 0) {
+                etaText = "Done! 🎉";
+            }
+
+            elMetrics.innerHTML = `
+            <div class="metric-card overall">
+                <div class="m-label"><i data-lucide="award" class="m-icon"></i> Overall completion</div>
+                <div class="m-top"><span class="pct">${pct}%</span><span class="frac">${earned} of ${total} certs</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+            </div>
+            <div class="metric-card">
+                <div class="m-label"><i data-lucide="circle-check-big" class="m-icon"></i> Earned</div>
+                <div class="m-value">${earned}</div>
+                <div class="m-sub">${remaining} remaining</div>
+            </div>
+            <div class="metric-card">
+                <div class="m-label"><i data-lucide="gauge" class="m-icon"></i> Velocity</div>
+                <div class="m-value">${perMonth ? perMonth.toFixed(1) : "0"}</div>
+                <div class="m-sub">certs / month</div>
+            </div>
+            <div class="metric-card">
+                <div class="m-label"><i data-lucide="calendar-clock" class="m-icon"></i> Recent</div>
+                <div class="m-value">${last90}</div>
+                <div class="m-sub">${last30} in last 30 days</div>
+            </div>
+            <div class="metric-card">
+                <div class="m-label"><i data-lucide="flag" class="m-icon"></i> Est. to finish</div>
+                <div class="m-value" style="font-size:1.35rem">${etaText}</div>
+                <div class="m-sub">at current pace</div>
+            </div>`;
+        }
+
+        // ---- Interactions ----
+        function toggle(code) {
+            if (progress[code]) delete progress[code];
+            else progress[code] = todayISO();
+            saveProgress(progress);
+            render();
+        }
+
+        elColumns.addEventListener("click", (e) => {
+            const dateInput = e.target.closest('input[type="date"]');
+            if (dateInput) return; // handled on change
+            if (e.target.closest("a")) return; // let Learn links work
+            const card = e.target.closest(".cert");
+            if (!card) return;
+            toggle(card.dataset.code);
+        });
+
+        elColumns.addEventListener("keydown", (e) => {
+            if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("check")) {
+                e.preventDefault();
+                const card = e.target.closest(".cert");
+                if (card) toggle(card.dataset.code);
+            }
+        });
+
+        elColumns.addEventListener("change", (e) => {
+            const input = e.target.closest('input[type="date"]');
+            if (!input) return;
+            const card = input.closest(".cert");
+            const val = input.value || todayISO();
+            progress[card.dataset.code] = val;
+            saveProgress(progress);
+            renderMetrics();
+            if (window.lucide) lucide.createIcons();
+        });
+
+        // ---- Filters ----
+        const searchInput = document.getElementById("search");
+        const hideDone = document.getElementById("hide-done");
+        function applyFilter() {
+            const q = searchInput.value.trim().toLowerCase();
+            const hide = hideDone.checked;
+            document.querySelectorAll(".cert").forEach(card => {
+                const matchQ = !q || card.dataset.search.includes(q);
+                const matchDone = !(hide && card.dataset.done === "true");
+                card.classList.toggle("hidden-card", !(matchQ && matchDone));
+            });
+            // hide empty level groups / columns
+            document.querySelectorAll(".level-group").forEach(g => {
+                const anyVisible = g.querySelector(".cert:not(.hidden-card)");
+                g.classList.toggle("empty", !anyVisible);
+            });
+            document.querySelectorAll(".col").forEach(col => {
+                const anyVisible = col.querySelector(".cert:not(.hidden-card)");
+                col.classList.toggle("empty-col", !anyVisible);
+            });
+        }
+        searchInput.addEventListener("input", applyFilter);
+        hideDone.addEventListener("change", applyFilter);
+
+        document.getElementById("reset-btn").addEventListener("click", () => {
+            if (confirm("Clear all certification progress? This cannot be undone.")) {
+                progress = {};
+                saveProgress(progress);
+                render();
+            }
+        });
+
+        render();
+    })();
+    </script>
+    <script src="nav.js"></script>
+</body>
+</html>

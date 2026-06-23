@@ -13,6 +13,7 @@
                 <a href="/paths.html" class="popover-item"><i data-lucide="route" class="pop-icon"></i> Learning Paths</a>
                 <a href="/socratic.html" class="popover-item"><i data-lucide="message-circle" class="pop-icon"></i> AI Coach</a>
                 <a href="/leaderboard.html" class="popover-item"><i data-lucide="crown" class="pop-icon"></i> Leaderboard</a>
+                <a href="/certifications.html" class="popover-item"><i data-lucide="award" class="pop-icon"></i> Certifications</a>
             </div></div>
         </div>
         <div class="side-nav-group">
@@ -35,6 +36,7 @@
             <a href="/paths.html" class="more-menu-item"><i data-lucide="route" class="icon"></i> Paths</a>
             <a href="/socratic.html" class="more-menu-item"><i data-lucide="message-circle" class="icon"></i> Coach</a>
             <a href="/profile.html" class="more-menu-item"><i data-lucide="trophy" class="icon"></i> Profile</a>
+            <a href="/certifications.html" class="more-menu-item"><i data-lucide="award" class="icon"></i> Certifications</a>
             <div class="more-menu-divider"></div>
             <a href="/history.html" class="more-menu-item"><i data-lucide="bar-chart-3" class="icon"></i> History</a>
             <a href="/topics.html" class="more-menu-item"><i data-lucide="layers" class="icon"></i> Topics</a>
@@ -110,6 +112,7 @@
             '.review-card',
             '.lb-row',
             '.changelog-summary',
+            '.metrics',
             '.path-card',
             '.chat-area',
             '[class*="-container"] > :not(header):not(.back-link):not(a)',

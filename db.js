@@ -151,6 +151,13 @@ async function initialize() {
           set_at TIMESTAMPTZ DEFAULT NOW()
         )
       `;
+      await db`
+        CREATE TABLE IF NOT EXISTS cert_progress (
+          user_id INTEGER PRIMARY KEY REFERENCES users(id),
+          data JSONB NOT NULL DEFAULT '{}',
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
 
       console.log('✅ Database initialized');
       return;
@@ -661,6 +668,8 @@ module.exports = {
   getDifficultyCalibration,
   setCertGoal,
   getCertGoal,
+  getCertProgress,
+  saveCertProgress,
 };
 
 // ── Telemetry ──────────────────────────────────────────
@@ -758,4 +767,22 @@ async function getCertGoal(userId) {
   const db = getSql();
   const [row] = await db`SELECT * FROM cert_goals WHERE user_id = ${userId}`;
   return row || null;
+}
+
+// ── Certification Progress (tracker check-offs) ────────
+async function getCertProgress(userId) {
+  const db = getSql();
+  const [row] = await db`SELECT data FROM cert_progress WHERE user_id = ${userId}`;
+  return row ? row.data : {};
+}
+
+async function saveCertProgress(userId, data) {
+  const db = getSql();
+  const json = JSON.stringify(data || {});
+  await db`
+    INSERT INTO cert_progress (user_id, data, updated_at)
+    VALUES (${userId}, ${json}::jsonb, NOW())
+    ON CONFLICT (user_id) DO UPDATE SET data = ${json}::jsonb, updated_at = NOW()
+  `;
+  return data;
 }

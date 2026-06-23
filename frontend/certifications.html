@@ -106,6 +106,24 @@
         .legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
         .legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
+        /* ---- Level filter chips ---- */
+        .lvl-filters { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+        .lvl-filters .lf-label { font-size: 0.7rem; font-weight: 700; color: var(--f-text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+        .lvl-chip {
+            font-family: var(--f-font); font-size: 0.78rem; font-weight: 600; color: var(--f-text-2);
+            background: var(--f-surface); border: 1px solid var(--f-stroke-2); border-radius: 99px;
+            padding: 0.32rem 0.72rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: all .12s; user-select: none;
+        }
+        .lvl-chip:hover { border-color: var(--f-brand); color: var(--f-text); }
+        .lvl-chip:not(.active) { opacity: 0.5; }
+        .lvl-chip.active { background: color-mix(in srgb, var(--f-brand) 15%, var(--f-surface)); border-color: var(--f-brand); color: var(--f-brand); }
+        .lvl-chip .lf-check { width: 12px; height: 12px; }
+        .lvl-chip:not(.active) .lf-check { display: none; }
+        .lvl-chip .lvl-count { font-family: var(--font-mono, monospace); font-size: 0.66rem; color: var(--f-text-3); font-weight: 700; }
+        .lvl-chip.active .lvl-count { color: var(--f-brand); }
+        .cols-empty { grid-column: 1 / -1; text-align: center; color: var(--f-text-3); padding: 3rem 1rem; font-size: 0.9rem; }
+
         /* ---- Columns ---- */
         .columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: start; }
         .col { background: var(--f-surface); border: 1px solid var(--f-stroke); border-radius: var(--f-radius-lg); box-shadow: var(--f-shadow-2); overflow: hidden; }
@@ -146,7 +164,57 @@
         .badge.new { background: rgba(59,130,246,.16); color: #4b91f7; }
         .badge.expert { background: rgba(139,92,246,.16); color: #9b7cf0; }
         .badge.prereq { background: color-mix(in srgb, var(--f-text-3) 22%, transparent); color: var(--f-text-2); }
+        .badge.soon { background: color-mix(in srgb, var(--f-text-3) 22%, transparent); color: var(--f-text-2); }
         .badge .b-icon { width: 9px; height: 9px; }
+
+        /* Applied Skills type pill (no exam code) */
+        .type-pill { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.12rem 0.42rem; border-radius: 3px; }
+        .type-pill.type-tech { background: rgba(0,120,212,.16); color: #2b88d8; }
+        .type-pill.type-business { background: color-mix(in srgb, var(--f-brand-aibiz) 18%, transparent); color: var(--f-brand-aibiz); }
+
+        /* Coming-soon Applied Skills — visible but not yet earnable */
+        .cert.coming { cursor: default; opacity: 0.72; }
+        .cert.coming:hover { box-shadow: none; border-left-color: var(--f-stroke-2); }
+        .cert.coming .check { border-style: dashed; cursor: default; }
+
+        /* ---- Per-item status: targeting / awaiting results ---- */
+        .c-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
+        .act-btn {
+            width: 25px; height: 25px; border-radius: 6px; border: 1px solid var(--f-stroke-2);
+            background: var(--f-surface); color: var(--f-text-3); display: flex; align-items: center;
+            justify-content: center; cursor: pointer; transition: all .12s; padding: 0;
+        }
+        .act-btn svg { width: 13px; height: 13px; }
+        .act-btn:hover { color: var(--f-text); border-color: var(--f-text-3); }
+        .act-btn.act-target[aria-pressed="true"] { background: rgba(217,146,10,.18); border-color: #d9920a; color: #d9920a; }
+        .act-btn.act-await[aria-pressed="true"]  { background: rgba(139,92,246,.18); border-color: #9b7cf0; color: #9b7cf0; }
+
+        /* Status accents on the whole card for glanceability */
+        .cert.targeting { border-left-color: #d9920a; background: color-mix(in srgb, #d9920a 7%, var(--f-surface)); }
+        .cert.awaiting  { border-left-color: #9b7cf0; background: color-mix(in srgb, #9b7cf0 8%, var(--f-surface)); }
+
+        .status-pill { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.4rem; border-radius: 3px; display: inline-flex; align-items: center; gap: 0.25rem; }
+        .status-pill .b-icon { width: 9px; height: 9px; }
+        .status-pill.s-target { background: rgba(217,146,10,.16); color: #d9920a; }
+        .status-pill.s-await  { background: rgba(139,92,246,.16); color: #9b7cf0; }
+
+        /* Compact totals strip under the metrics */
+        .status-strip { display: flex; gap: 1rem; flex-wrap: wrap; margin: -0.5rem 0 1.25rem; font-size: 0.78rem; font-weight: 600; }
+        .status-strip .ss { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--f-text-2); }
+        .status-strip .ss svg { width: 14px; height: 14px; }
+        .status-strip .ss.s-target svg { color: #d9920a; }
+        .status-strip .ss.s-await svg { color: #9b7cf0; }
+        .status-strip .ss b { color: var(--f-text); font-variant-numeric: tabular-nums; }
+
+        /* ---- Mode switch (segmented control) ---- */
+        .mode-switch { display: inline-flex; gap: 0.25rem; padding: 0.25rem; background: var(--f-surface-2); border: 1px solid var(--f-stroke); border-radius: var(--f-radius-lg); margin-bottom: 1.25rem; }
+        .mode-btn {
+            font-family: var(--f-font); font-size: 0.85rem; font-weight: 600; color: var(--f-text-2);
+            background: transparent; border: none; border-radius: calc(var(--f-radius-lg) - 3px);
+            padding: 0.45rem 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; transition: all .12s;
+        }
+        .mode-btn:hover { color: var(--f-text); }
+        .mode-btn.active { background: var(--f-surface); color: var(--f-brand); box-shadow: var(--f-shadow-2); }
 
         /* check control */
         .check {
@@ -198,34 +266,43 @@
 
         <div class="cert-head">
             <div>
-                <h1><span class="accent">Certification</span> Tracker</h1>
-                <p>Track your progress toward Microsoft &amp; GitHub credentials. Check off each cert as you earn it — your progress saves to this browser.</p>
+                <h1><span class="accent">Microsoft Credential</span> Tracker</h1>
+                <p id="cred-subtitle"></p>
             </div>
             <div class="head-links">
-                <a href="https://aka.ms/ExploreCredentials" target="_blank" rel="noopener"><i data-lucide="external-link" style="width:13px;height:13px"></i> Explore credentials</a>
+                <a id="explore-link" href="https://aka.ms/ExploreCredentials" target="_blank" rel="noopener"><i data-lucide="external-link" style="width:13px;height:13px"></i> Explore credentials</a>
                 <button class="ghost-btn danger" id="reset-btn"><i data-lucide="rotate-ccw" style="width:13px;height:13px"></i> Reset</button>
             </div>
         </div>
 
+        <div class="mode-switch" id="mode-switch" role="tablist" aria-label="Credential type">
+            <button class="mode-btn active" data-mode="certs" role="tab" aria-selected="true"><i data-lucide="award" style="width:14px;height:14px"></i> Certifications</button>
+            <button class="mode-btn" data-mode="applied" role="tab" aria-selected="false"><i data-lucide="badge-check" style="width:14px;height:14px"></i> Applied Skills</button>
+        </div>
+
         <div class="metrics" id="metrics"></div>
+        <div class="status-strip" id="status-strip"></div>
+
+        <div class="toolbar">
+            <div class="lvl-filters" id="level-filters">
+                <span class="lf-label">Levels</span>
+            </div>
+            <label class="toggle"><input type="checkbox" id="hide-done"> Hide completed</label>
+        </div>
 
         <div class="toolbar">
             <div class="search">
                 <i data-lucide="search" class="s-icon"></i>
                 <input type="text" id="search" placeholder="Search by name or exam code…" autocomplete="off">
             </div>
-            <label class="toggle"><input type="checkbox" id="hide-done"> Hide completed</label>
-            <div class="legend">
-                <span><span class="dot" style="background:var(--text)"></span> Microsoft technical</span>
-                <span><span class="dot" style="background:#c239b3"></span> Microsoft business</span>
-                <span><span class="dot" style="background:#6e40c9"></span> GitHub</span>
-            </div>
+            <div class="legend" id="cred-legend"></div>
         </div>
 
         <div class="columns" id="columns"></div>
     </div>
 
     <script src="config.js"></script>
+    <script src="auth.js"></script>
     <script>
     (function () {
         "use strict";
@@ -236,7 +313,8 @@
             { key: "aibiz",    name: "AI Business Solutions", accent: "#c239b3", icon: "briefcase-business" },
             { key: "security", name: "Security",              accent: "#498205", icon: "shield-check" },
         ];
-        const LEVELS = ["Fundamentals", "Role-based", "Specialty", "Business"];
+        const CERT_LEVELS = ["Fundamentals", "Role-based", "Specialty", "Business"];
+        const APPLIED_LEVELS = ["Beginner", "Intermediate"];
 
         const CERTS = [
             // ---- Cloud & AI Platforms ----
@@ -316,16 +394,164 @@
             { code: "GH-500", title: "GitHub Advanced Security", cat: "security", level: "Specialty", provider: "github" },
         ];
 
-        const STORAGE_KEY = "fc_cert_progress_v1";
+        // ---- Applied Skills (source: Microsoft Applied Skills Poster, May 2026) ----
+        // No exam codes — a stable id is derived from the title at load.
+        const APPLIED_SKILLS = [
+            // ---- Cloud & AI Platforms ----
+            { title: "Create an AI agent", cat: "cloud", level: "Beginner", provider: "tech" },
+            { title: "Get started with classes, properties, and methods in C#", cat: "cloud", level: "Beginner", provider: "tech" },
+            { title: "Get started with cloud security and monitoring tasks", cat: "cloud", level: "Beginner", provider: "tech" },
+            { title: "Get started with Azure management tasks", cat: "cloud", level: "Beginner", provider: "tech" },
+            { title: "Get started developing agents in Microsoft Foundry", cat: "cloud", level: "Beginner", provider: "tech", isNew: true },
+
+            { title: "Accelerate app development by using GitHub Copilot", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Administer Active Directory Domain Services", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Build a natural language processing solution with Azure AI Language", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Build AI-powered solutions by using Microsoft Azure Database for PostgreSQL", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Build a generative AI chat app", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Configure and migrate to Azure Database for PostgreSQL", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Configure secure access to your workloads using Azure networking", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Deploy and configure Azure Monitor", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Deploy cloud-native apps using Azure Container Apps", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Develop data-driven applications by using Microsoft Azure SQL Database", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Enhance agents with autonomous capabilities", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Implement a Real-Time Intelligence solution with Microsoft Fabric", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Implement a data warehouse in Microsoft Fabric", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Implement security through a pipeline using Azure DevOps", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Migrate SQL Server workloads to Azure SQL Database", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Secure storage for Azure Files and Azure Blob Storage", cat: "cloud", level: "Intermediate", provider: "tech" },
+            { title: "Resolve GitHub issues by using GitHub Copilot", cat: "cloud", level: "Intermediate", provider: "tech", isNew: true },
+            { title: "Integrate model context protocol tools with agents in Microsoft Foundry", cat: "cloud", level: "Intermediate", provider: "tech", isNew: true },
+
+            // ---- AI Business Solutions ----
+            { title: "Generate reports by using AI research agents", cat: "aibiz", level: "Beginner", provider: "business" },
+            { title: "Streamline business workflows with AI chat", cat: "aibiz", level: "Beginner", provider: "business" },
+
+            { title: "Automate Azure Load Testing by using GitHub Actions", cat: "aibiz", level: "Intermediate", provider: "tech" },
+            { title: "Create agents in Microsoft Copilot Studio", cat: "aibiz", level: "Intermediate", provider: "business" },
+            { title: "Create and manage automated processes by using Power Automate", cat: "aibiz", level: "Intermediate", provider: "business" },
+            { title: "Create and manage canvas apps with Power Apps", cat: "aibiz", level: "Intermediate", provider: "business" },
+            { title: "Create and manage model-driven apps with Power Apps and Dataverse", cat: "aibiz", level: "Intermediate", provider: "business" },
+            { title: "Prepare security and compliance to support Copilot for Microsoft 365", cat: "aibiz", level: "Intermediate", provider: "business" },
+
+            // ---- Security ----
+            { title: "Get started with identities and access using Microsoft Entra", cat: "security", level: "Beginner", provider: "tech" },
+
+            { title: "Defend against cyberthreats with Microsoft Defender XDR", cat: "security", level: "Intermediate", provider: "tech" },
+            { title: "Secure AI solutions in the cloud", cat: "security", level: "Intermediate", provider: "tech" },
+            { title: "Implement information protection and data loss prevention by using Microsoft Purview", cat: "security", level: "Intermediate", provider: "tech" },
+            { title: "Secure Azure services and workloads with Microsoft Defender for Cloud regulatory compliance controls", cat: "security", level: "Intermediate", provider: "tech" },
+            { title: "Implement retention, eDiscovery, and Communication Compliance in Microsoft Purview", cat: "security", level: "Intermediate", provider: "tech" },
+            { title: "Protect information in Microsoft 365 Copilot by using Microsoft Purview", cat: "security", level: "Intermediate", provider: "tech", comingSoon: true },
+        ];
+
+        // Derive a stable storage id for each applied skill and tag it.
+        const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 110);
+        APPLIED_SKILLS.forEach(s => { s.code = "as-" + slugify(s.title); s.applied = true; });
+
+        // Credential families share the same UI; each has its own catalogue + level set.
+        const CRED = {
+            certs:   { label: "Certifications", items: CERTS,          levels: CERT_LEVELS,    learn: "https://aka.ms/ExploreCredentials",
+                       blurb: "Track your progress toward Microsoft & GitHub certifications. Check off each as you earn it." },
+            applied: { label: "Applied Skills",  items: APPLIED_SKILLS, levels: APPLIED_LEVELS, learn: "https://aka.ms/AppliedSkillsPoster",
+                       blurb: "Scenario-based Applied Skills credentials. Check off each as you complete the assessment." },
+        };
+        const ITEM_BY_CODE = {};
+        [...CERTS, ...APPLIED_SKILLS].forEach(c => { ITEM_BY_CODE[c.code] = c; });
+        let mode = "certs";
+        const items = () => CRED[mode].items;
+        const levels = () => CRED[mode].levels;
+
+        const STORAGE_PREFIX = "fc_cert_progress_v1";
+        const API_BASE = window.__API_BASE__ || "";
         const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
-        // progress: { [code]: "YYYY-MM-DD" }
-        function loadProgress() {
-            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-            catch { return {}; }
+        // ---- Per-user storage ----
+        // Progress is namespaced per account so multiple users on one browser
+        // stay separate, and synced to the server when the user is logged in.
+        const hasAuth = typeof Auth !== "undefined";
+        function currentUser() { return hasAuth && Auth.getUser ? Auth.getUser() : null; }
+        function loggedIn() { return hasAuth && Auth.isLoggedIn && Auth.isLoggedIn(); }
+        function bucketKey() {
+            const u = currentUser();
+            return `${STORAGE_PREFIX}:${u ? (u.id || u.email) : "guest"}`;
         }
-        function saveProgress(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+
+        // progress: { [code]: { st: "earned"|"target"|"await", date?: "YYYY-MM-DD" } }
+        // (Legacy format was { [code]: "YYYY-MM-DD" } — migrated on load.)
+        const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+        function normalizeMap(m) {
+            const out = {};
+            for (const [k, v] of Object.entries(m || {})) {
+                if (typeof v === "string") {
+                    if (DATE_RE.test(v)) out[k] = { st: "earned", date: v };
+                } else if (v && typeof v === "object" && ["earned", "target", "await"].includes(v.st)) {
+                    out[k] = v.st === "earned"
+                        ? { st: "earned", date: (typeof v.date === "string" && DATE_RE.test(v.date)) ? v.date : todayISO() }
+                        : { st: v.st };
+                }
+            }
+            return out;
+        }
+        function loadProgress() {
+            const key = bucketKey();
+            let raw = localStorage.getItem(key);
+            if (raw == null) {
+                // First load for this bucket — adopt legacy/guest data so nothing is lost:
+                // un-namespaced v1 data, or (on first login) progress made while a guest.
+                const legacy = localStorage.getItem(STORAGE_PREFIX)
+                    || (currentUser() ? localStorage.getItem(`${STORAGE_PREFIX}:guest`) : null);
+                if (legacy != null) { localStorage.setItem(key, legacy); raw = legacy; }
+            }
+            try { return normalizeMap(JSON.parse(raw)); } catch { return {}; }
+        }
+        // Status helpers
+        const statusOf = code => progress[code] ? progress[code].st : null;
+        const dateOf = code => progress[code] ? progress[code].date : null;
+        const isEarned = code => statusOf(code) === "earned";
+        function saveProgress(p) {
+            localStorage.setItem(bucketKey(), JSON.stringify(p));
+            pushServer(); // debounced; no-op when logged out
+        }
         let progress = loadProgress();
+
+        // ---- Server sync (logged-in users) ----
+        let syncTimer = null;
+        function pushServer(immediate) {
+            if (!loggedIn()) return;
+            clearTimeout(syncTimer);
+            const doPush = () => Auth.apiFetch(`${API_BASE}/api/cert-progress`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ data: progress }),
+            }).catch(() => {});
+            if (immediate) doPush(); else syncTimer = setTimeout(doPush, 700);
+        }
+        async function pullServer() {
+            if (!loggedIn()) return;
+            try {
+                const res = await Auth.apiFetch(`${API_BASE}/api/cert-progress`);
+                if (!res.ok) return;
+                const server = normalizeMap((await res.json()).data);
+                const local = progress;
+                // Server wins on conflicts; keep local-only entries and push the union back.
+                const merged = { ...local, ...server };
+                progress = merged;
+                localStorage.setItem(bucketKey(), JSON.stringify(progress));
+                render();
+                const localOnly = Object.keys(local).some(k => !(k in server));
+                if (localOnly) pushServer(true);
+            } catch {}
+        }
+
+        // Which levels are shown — drives both the rendered list AND all metrics.
+        // Tracked per credential family so switching modes keeps each one's filters.
+        const activeLevelsByMode = {
+            certs: new Set(CERT_LEVELS),
+            applied: new Set(APPLIED_LEVELS),
+        };
+        const activeLevels = () => activeLevelsByMode[mode];
+        const scopedCerts = () => items().filter(c => activeLevels().has(c.level));
 
         function todayISO() {
             const d = new Date();
@@ -345,52 +571,117 @@
 
         const elColumns = document.getElementById("columns");
         const elMetrics = document.getElementById("metrics");
+        const elSubtitle = document.getElementById("cred-subtitle");
+        const elExplore = document.getElementById("explore-link");
+        const elLegend = document.getElementById("cred-legend");
+        const elModeSwitch = document.getElementById("mode-switch");
+
+        function renderModeUI() {
+            elSubtitle.textContent = CRED[mode].blurb;
+            elExplore.href = CRED[mode].learn;
+            elModeSwitch.querySelectorAll(".mode-btn").forEach(b => {
+                const on = b.dataset.mode === mode;
+                b.classList.toggle("active", on);
+                b.setAttribute("aria-selected", on);
+            });
+            elLegend.innerHTML = mode === "applied"
+                ? `<span><span class="dot" style="background:#0078d4"></span> Technical</span>
+                   <span><span class="dot" style="background:#c239b3"></span> Business</span>`
+                : `<span><span class="dot" style="background:var(--text)"></span> Microsoft technical</span>
+                   <span><span class="dot" style="background:#c239b3"></span> Microsoft business</span>
+                   <span><span class="dot" style="background:#6e40c9"></span> GitHub</span>`;
+        }
 
         function escapeHtml(s) {
             return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
         }
 
         function certCardHTML(c) {
-            const date = progress[c.code];
-            const done = !!date;
+            const st = statusOf(c.code);
+            const date = dateOf(c.code);
+            const done = st === "earned";
+            const soon = !!c.comingSoon;
             const badges = [];
             if (c.expert) badges.push('<span class="badge expert"><i data-lucide="star" class="b-icon"></i>Expert</span>');
             if (c.prereq) badges.push('<span class="badge prereq"><i data-lucide="lock" class="b-icon"></i>Prereq</span>');
             if (c.beta) badges.push('<span class="badge beta">Beta</span>');
             if (c.isNew) badges.push('<span class="badge new">New</span>');
-            const learn = `https://learn.microsoft.com/credentials/browse/?terms=${encodeURIComponent(c.code.split(" / ")[0])}`;
+            if (soon) badges.push('<span class="badge soon"><i data-lucide="clock" class="b-icon"></i>Coming soon</span>');
+            if (st === "target") badges.push('<span class="status-pill s-target"><i data-lucide="target" class="b-icon"></i>Targeting</span>');
+            if (st === "await") badges.push('<span class="status-pill s-await"><i data-lucide="hourglass" class="b-icon"></i>Awaiting results</span>');
+            // Certifications carry an exam code; Applied Skills show their Technical/Business type.
+            const chip = c.applied
+                ? `<span class="type-pill type-${c.provider}">${c.provider === "business" ? "Business" : "Technical"}</span>`
+                : `<span class="c-code">${escapeHtml(c.code)}</span>`;
+            const learn = c.applied
+                ? `https://learn.microsoft.com/credentials/browse/?terms=${encodeURIComponent(c.title)}&types=appliedskills`
+                : `https://learn.microsoft.com/credentials/browse/?terms=${encodeURIComponent(c.code.split(" / ")[0])}`;
+            const linkTitle = c.applied ? "View on Microsoft Learn" : `${c.note ? escapeHtml(c.note) + ' · ' : ''}View on Microsoft Learn`;
+            const cls = done ? " done" : st === "target" ? " targeting" : st === "await" ? " awaiting" : "";
             return `
-            <div class="cert${done ? " done" : ""}" data-code="${c.code}" data-provider="${c.provider}"
+            <div class="cert${cls}${soon ? " coming" : ""}" data-code="${c.code}" data-provider="${c.provider}" data-status="${st || ""}"
                  data-search="${escapeHtml((c.title + " " + c.code).toLowerCase())}" data-done="${done}">
                 <div class="c-main">
-                    <div class="check" role="checkbox" aria-checked="${done}" tabindex="0"
+                    <div class="check"${soon ? "" : ` role="checkbox" aria-checked="${done}" tabindex="0"`}
                          aria-label="Mark ${escapeHtml(c.title)} as ${done ? "not earned" : "earned"}">${ICON_CHECK}</div>
                     <div class="c-text">
-                        <a class="c-title" href="${learn}" target="_blank" rel="noopener" title="${c.note ? escapeHtml(c.note) + ' · ' : ''}View on Microsoft Learn">${escapeHtml(c.title)}</a>
+                        <a class="c-title" href="${learn}" target="_blank" rel="noopener" title="${linkTitle}">${escapeHtml(c.title)}</a>
                         <div class="c-meta">
-                            <span class="c-code">${escapeHtml(c.code)}</span>
+                            ${chip}
                             ${badges.join("")}
                         </div>
+                    </div>
+                    <div class="c-actions">
+                        <button type="button" class="act-btn act-target" data-status="target" aria-pressed="${st === "target"}"
+                                title="${st === "target" ? "Remove from targets" : "I'm targeting this"}" aria-label="Targeting">
+                            <i data-lucide="target"></i>
+                        </button>
+                        <button type="button" class="act-btn act-await" data-status="await" aria-pressed="${st === "await"}"
+                                title="${st === "await" ? "Clear awaiting status" : "Taken — awaiting results"}" aria-label="Awaiting results"${soon ? " disabled style=\"display:none\"" : ""}>
+                            <i data-lucide="hourglass"></i>
+                        </button>
                     </div>
                 </div>
                 ${done ? `
                 <div class="done-foot">
                     <i data-lucide="badge-check" class="df-icon"></i>
-                    <label>Earned</label>
-                    <input type="date" value="${date}" max="${todayISO()}" aria-label="Date earned for ${escapeHtml(c.code)}">
+                    <label>${c.applied ? "Completed" : "Earned"}</label>
+                    <input type="date" value="${date}" max="${todayISO()}" aria-label="Date for ${escapeHtml(c.title)}">
                 </div>` : ""}
             </div>`;
         }
 
+        const elLevelFilters = document.getElementById("level-filters");
+        function renderLevelFilters() {
+            const chips = levels().map(level => {
+                const lvlCerts = items().filter(c => c.level === level);
+                const lDone = lvlCerts.filter(c => isEarned(c.code)).length;
+                const on = activeLevels().has(level);
+                return `<button type="button" class="lvl-chip${on ? " active" : ""}" data-level="${level}" aria-pressed="${on}">
+                    <i data-lucide="check" class="lf-check"></i>${level}
+                    <span class="lvl-count">${lDone}/${lvlCerts.length}</span>
+                </button>`;
+            }).join("");
+            elLevelFilters.innerHTML = `<span class="lf-label">Levels</span>${chips}`;
+        }
+
         function render() {
+            renderModeUI();
+            renderLevelFilters();
+            if (!activeLevels().size) {
+                elColumns.innerHTML = `<div class="cols-empty">Select at least one level to display certifications.</div>`;
+                renderMetrics();
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
             elColumns.innerHTML = CATEGORIES.map(cat => {
-                const catCerts = CERTS.filter(c => c.cat === cat.key);
-                const earned = catCerts.filter(c => progress[c.code]).length;
+                const catCerts = scopedCerts().filter(c => c.cat === cat.key);
+                const earned = catCerts.filter(c => isEarned(c.code)).length;
                 const pct = catCerts.length ? Math.round((earned / catCerts.length) * 100) : 0;
-                const levelsHTML = LEVELS.map(level => {
+                const levelsHTML = levels().map(level => {
                     const levelCerts = catCerts.filter(c => c.level === level);
                     if (!levelCerts.length) return "";
-                    const lDone = levelCerts.filter(c => progress[c.code]).length;
+                    const lDone = levelCerts.filter(c => isEarned(c.code)).length;
                     return `
                     <div class="level-group">
                         <div class="level-title">${level}<span class="lt-count">${lDone}/${levelCerts.length}</span></div>
@@ -419,12 +710,24 @@
         }
 
         function renderMetrics() {
-            const total = CERTS.length;
-            const earnedCodes = Object.keys(progress).filter(k => CERTS.some(c => c.code === k));
+            const noun = mode === "applied" ? "skills" : "certs";
+            const scoped = scopedCerts();
+            const total = scoped.length;
+            const earnedCodes = scoped.filter(c => isEarned(c.code)).map(c => c.code);
             const earned = earnedCodes.length;
-            const pct = Math.round((earned / total) * 100);
-            const dates = earnedCodes.map(k => progress[k]).filter(Boolean).sort();
+            const targeting = scoped.filter(c => statusOf(c.code) === "target").length;
+            const awaiting = scoped.filter(c => statusOf(c.code) === "await").length;
+            const pct = total ? Math.round((earned / total) * 100) : 0;
+            const dates = earnedCodes.map(k => dateOf(k)).filter(Boolean).sort();
             const today = todayISO();
+
+            // Compact totals strip for the two new statuses.
+            const strip = document.getElementById("status-strip");
+            if (strip) {
+                strip.innerHTML = `
+                    <span class="ss s-target"><i data-lucide="target"></i> <b>${targeting}</b> targeting</span>
+                    <span class="ss s-await"><i data-lucide="hourglass"></i> <b>${awaiting}</b> awaiting results</span>`;
+            }
 
             // Velocity: certs per month across active span (first earned -> today)
             let perMonth = 0;
@@ -448,7 +751,7 @@
             elMetrics.innerHTML = `
             <div class="metric-card overall">
                 <div class="m-label"><i data-lucide="award" class="m-icon"></i> Overall completion</div>
-                <div class="m-top"><span class="pct">${pct}%</span><span class="frac">${earned} of ${total} certs</span></div>
+                <div class="m-top"><span class="pct">${pct}%</span><span class="frac">${earned} of ${total} ${noun}</span></div>
                 <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
             </div>
             <div class="metric-card">
@@ -459,7 +762,7 @@
             <div class="metric-card">
                 <div class="m-label"><i data-lucide="gauge" class="m-icon"></i> Velocity</div>
                 <div class="m-value">${perMonth ? perMonth.toFixed(1) : "0"}</div>
-                <div class="m-sub">certs / month</div>
+                <div class="m-sub">${noun} / month</div>
             </div>
             <div class="metric-card">
                 <div class="m-label"><i data-lucide="calendar-clock" class="m-icon"></i> Recent</div>
@@ -474,27 +777,40 @@
         }
 
         // ---- Interactions ----
-        function toggle(code) {
-            if (progress[code]) delete progress[code];
-            else progress[code] = todayISO();
+        // Each item has a single status: earned (with date), targeting, awaiting, or none.
+        function toggleEarned(code) {
+            if (ITEM_BY_CODE[code]?.comingSoon) return; // not yet available
+            const cur = progress[code];
+            if (cur && cur.st === "earned") delete progress[code];
+            else progress[code] = { st: "earned", date: (cur && cur.date) || todayISO() };
+            saveProgress(progress);
+            render();
+        }
+        function setStatus(code, status) {
+            if (status === "await" && ITEM_BY_CODE[code]?.comingSoon) return;
+            const cur = progress[code];
+            if (cur && cur.st === status) delete progress[code]; // toggle off
+            else progress[code] = { st: status };
             saveProgress(progress);
             render();
         }
 
         elColumns.addEventListener("click", (e) => {
-            const dateInput = e.target.closest('input[type="date"]');
-            if (dateInput) return; // handled on change
+            if (e.target.closest('input[type="date"]')) return; // handled on change
             if (e.target.closest("a")) return; // let Learn links work
             const card = e.target.closest(".cert");
             if (!card) return;
-            toggle(card.dataset.code);
+            const actBtn = e.target.closest(".act-btn");
+            if (actBtn) { setStatus(card.dataset.code, actBtn.dataset.status); return; }
+            toggleEarned(card.dataset.code); // click on check or card body
         });
 
         elColumns.addEventListener("keydown", (e) => {
+            // Only the check element needs this; .act-btn are native buttons.
             if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("check")) {
                 e.preventDefault();
                 const card = e.target.closest(".cert");
-                if (card) toggle(card.dataset.code);
+                if (card) toggleEarned(card.dataset.code);
             }
         });
 
@@ -502,8 +818,7 @@
             const input = e.target.closest('input[type="date"]');
             if (!input) return;
             const card = input.closest(".cert");
-            const val = input.value || todayISO();
-            progress[card.dataset.code] = val;
+            progress[card.dataset.code] = { st: "earned", date: input.value || todayISO() };
             saveProgress(progress);
             renderMetrics();
             if (window.lucide) lucide.createIcons();
@@ -533,15 +848,40 @@
         searchInput.addEventListener("input", applyFilter);
         hideDone.addEventListener("change", applyFilter);
 
+        // Credential mode switch (Certifications ⇄ Applied Skills) — swaps the whole view.
+        elModeSwitch.addEventListener("click", (e) => {
+            const btn = e.target.closest(".mode-btn");
+            if (!btn || btn.dataset.mode === mode) return;
+            mode = btn.dataset.mode;
+            searchInput.value = "";
+            render();
+        });
+
+        // Level filter chips — toggling rescopes the rendered list and ALL metrics.
+        elLevelFilters.addEventListener("click", (e) => {
+            const chip = e.target.closest(".lvl-chip");
+            if (!chip) return;
+            const level = chip.dataset.level;
+            const set = activeLevels();
+            if (set.has(level)) {
+                if (set.size === 1) return; // keep at least one level shown
+                set.delete(level);
+            } else {
+                set.add(level);
+            }
+            render();
+        });
+
         document.getElementById("reset-btn").addEventListener("click", () => {
-            if (confirm("Clear all certification progress? This cannot be undone.")) {
-                progress = {};
+            if (confirm(`Clear all ${CRED[mode].label} progress? This cannot be undone.`)) {
+                items().forEach(c => { delete progress[c.code]; });
                 saveProgress(progress);
                 render();
             }
         });
 
         render();
+        pullServer(); // reconcile with the account's saved progress when logged in
     })();
     </script>
     <script src="nav.js"></script>

@@ -405,6 +405,54 @@ app.get('/api/scores', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Certification tracker progress (user's own) ─────────
+app.get('/api/cert-progress', authMiddleware, async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ error: 'Database not configured' });
+  }
+  try {
+    const data = await db.getCertProgress(req.userId);
+    res.json({ data: data || {} });
+  } catch (err) {
+    console.error('Get cert progress error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch cert progress' });
+  }
+});
+
+app.put('/api/cert-progress', authMiddleware, async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ error: 'Database not configured' });
+  }
+  try {
+    const raw = (req.body && typeof req.body.data === 'object' && req.body.data) || {};
+    // Sanitize entries, bounded to avoid abuse. Accepts the status-object shape
+    // { st: 'earned'|'target'|'await', date?: 'YYYY-MM-DD' } and the legacy
+    // date-string shape ("YYYY-MM-DD" => earned), normalizing to the object form.
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+    const clean = {};
+    let count = 0;
+    for (const [code, val] of Object.entries(raw)) {
+      if (count >= 300) break;
+      if (typeof code !== 'string' || code.length > 120) continue;
+      let entry = null;
+      if (typeof val === 'string' && DATE_RE.test(val)) {
+        entry = { st: 'earned', date: val };
+      } else if (val && typeof val === 'object') {
+        if (val.st === 'target' || val.st === 'await') entry = { st: val.st };
+        else if (val.st === 'earned' && typeof val.date === 'string' && DATE_RE.test(val.date)) entry = { st: 'earned', date: val.date };
+      }
+      if (!entry) continue;
+      clean[code] = entry;
+      count++;
+    }
+    await db.saveCertProgress(req.userId, clean);
+    res.json({ ok: true, data: clean });
+  } catch (err) {
+    console.error('Save cert progress error:', err.message);
+    res.status(500).json({ error: 'Failed to save cert progress' });
+  }
+});
+
 // Get aggregate stats (user's own)
 app.get('/api/stats', authMiddleware, async (req, res) => {
   if (!process.env.DATABASE_URL) {

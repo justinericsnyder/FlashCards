@@ -41,7 +41,7 @@ describe('Health & Info', () => {
   test('GET /api/info returns app info', async () => {
     const res = await request(app).get('/api/info');
     expect(res.status).toBe(200);
-    expect(res.body.name).toContain('Flash Cards');
+    expect(res.body.name).toContain('Good Better Best');
   });
 });
 

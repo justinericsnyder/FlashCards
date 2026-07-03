@@ -90,6 +90,132 @@ header p {
     margin: 0 auto;
 }
 
+.header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+}
+
+.auth-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.auth-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: white;
+}
+
+.auth-name,
+.auth-guest {
+    font-weight: 600;
+}
+
+.auth-status-badge {
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 0.8rem;
+}
+
+.auth-status-guest {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.auth-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 9999;
+}
+
+.auth-modal {
+    width: min(420px, 100%);
+    background: white;
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: var(--shadow-lg);
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.auth-modal h2 {
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.auth-error {
+    display: none;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: var(--error-color);
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.auth-error.visible {
+    display: block;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.auth-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.auth-link {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0;
+}
+
+.auth-close {
+    width: 100%;
+}
+
 /* Section Styles */
 .section {
     background: var(--bg-primary);
@@ -256,6 +382,56 @@ header p {
     border-color: var(--primary-light);
 }
 
+.button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.resume-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--border-radius);
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.resume-banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.resume-banner-content strong {
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.resume-banner-content span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.resume-banner-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.info-toast .error-content {
+    background: #1d4ed8;
+    border-left-color: #1e40af;
+}
+
+.info-toast .error-icon {
+    font-size: 1.25rem;
+}
+
 .btn-success {
     background: var(--success-color);
     color: white;
@@ -272,6 +448,56 @@ header p {
 
 .btn-danger:hover {
     background: #dc2626;
+}
+
+.button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.resume-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--border-radius);
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.resume-banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.resume-banner-content strong {
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.resume-banner-content span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.resume-banner-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.info-toast .error-content {
+    background: #1d4ed8;
+    border-left-color: #1e40af;
+}
+
+.info-toast .error-icon {
+    font-size: 1.25rem;
 }
 
 /* Loading Animation */
@@ -865,6 +1091,32 @@ header p {
     margin-top: 2rem;
 }
 
+.loading-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.toast-action {
+    margin-left: 1rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    color: white;
+    cursor: pointer;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.toast-action:hover {
+    background: rgba(255,255,255,0.16);
+    transform: translateY(-1px);
+}
+
+.toast-action-secondary {
+    background: rgba(255,255,255,0.16);
+}
+
 .step {
     display: flex;
     align-items: center;
@@ -930,6 +1182,11 @@ header p {
     border-left: 4px solid #dc2626;
 }
 
+.info-toast .error-content {
+    background: #2563eb;
+    border-left-color: #1d4ed8;
+}
+
 .error-icon {
     font-size: 1.25rem;
     flex-shrink: 0;
@@ -979,20 +1236,32 @@ header p {
 
 /* Footer */
 .footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
     text-align: center;
     margin-top: 3rem;
     padding: 2rem 0;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
 }
 
-.footer a {
-    color: rgba(255, 255, 255, 0.9);
-    text-decoration: none;
+.footer-copy {
+    max-width: 42rem;
+    line-height: 1.6;
 }
 
-.footer a:hover {
-    text-decoration: underline;
+.footer a,
+.footer .btn {
+    color: inherit;
+}
+
+.footer-link {
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
 }
 
 /* Results actions */

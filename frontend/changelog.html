@@ -41,102 +41,59 @@
     </div>
     <script>
         const entries = [
-            // ── April 15, 2026 ──────────────────────────
-            { date: '2026-04-15', tag: 'feature', text: "New hyperscaler themes: Clippy's Revenge (Microsoft blue), Bezos' Smile (AWS orange), Don't Be Evil (Google blue/multicolor)" },
-            { date: '2026-04-15', tag: 'feature', text: "Light mode variants: Clippy's Day Off (Microsoft), Bezos' Grin (AWS), Be Mostly Good (Google)" },
-            { date: '2026-04-15', tag: 'fix', text: 'Theme applyTheme now sets textDim, textMuted, and border-focus CSS vars consistently' },
-            { date: '2026-04-15', tag: 'fix', text: 'Skills Tested modal now extracts exam code from cert page and fetches the actual study guide for detailed sub-skills (60+ skills for AZ-900, 87 for AZ-104, etc.)' },
-            { date: '2026-04-15', tag: 'fix', text: 'Study guide URL derived from exam code (examUid) instead of broken href scraping' },
+            { date: '2026-06-07', tag: 'docs', text: 'Synchronized the public changelog with repository PR history and updated the root changelog page.' },
+            { date: '2026-06-07', tag: 'fix', text: 'Added footer changelog link on the main site for easier discovery.' },
+            { date: '2026-06-07', tag: 'feature', text: 'Improved review sync messaging, due card counts, and auth token validation across sessions.' },
+            { date: '2026-06-07', tag: 'infra', text: 'Added auth validation on page load to clear expired sessions and keep the UI consistent.' },
+            { date: '2026-04-19', tag: 'docs', text: 'Added 7 Mermaid architecture diagrams to README for system overview, user flow, AI integration, data model, SM-2 flow, gamification pipeline, page map, and deployment.' },
+            { date: '2026-04-19', tag: 'security', text: 'Hardened README by removing endpoint maps, database schema details, package version lists, and deployment specifics.' },
+            { date: '2026-04-19', tag: 'docs', text: 'Rewrote README with a clear architecture overview, services table, and tech stack summary.' },
+            { date: '2026-04-15', tag: 'feature', text: 'Added Skills Tested modal to extract certification skills and fetch actual study guide details.' },
+            { date: '2026-04-15', tag: 'feature', text: 'Added study settings modal for card count, difficulty, and timer before certification study sessions.' },
+            { date: '2026-04-15', tag: 'feature', text: 'Included Applied Skills from Microsoft Catalog API with filtering by skill type.' },
+            { date: '2026-04-15', tag: 'feature', text: 'Added 6 hyperscaler themes with light and dark variants.' },
+            { date: '2026-04-15', tag: 'fix', text: 'Derived study guide URL from exam code instead of broken href scraping.' },
+            { date: '2026-04-15', tag: 'fix', text: 'Removed sidebar max-height constraint so recent topics do not clip on desktop.' },
+            { date: '2026-04-15', tag: 'fix', text: 'Improved mobile responsive layout with single-column controls, fixed font sizes, stacking, and 240px narrow support.' },
+            { date: '2026-04-15', tag: 'fix', text: 'Updated service worker auto-update behavior so mobile clients refresh without manual reload.' },
+            { date: '2026-04-13', tag: 'feature', text: 'Added dynamic certification catalog with filtering by area, level, and certification type.' },
+            { date: '2026-04-13', tag: 'feature', text: 'Added certification goal system with personalized readiness scoring.' },
+            { date: '2026-04-13', tag: 'design', text: 'Rebranded to Good Better Best with custom logo, favicon, and new brand styling.' },
+            { date: '2026-04-13', tag: 'design', text: 'Added icon-only sidebar navigation with hover popovers and grouped menu items.' },
+            { date: '2026-04-13', tag: 'design', text: 'Shared navigation injected across all pages for consistent experience.' },
+            { date: '2026-04-13', tag: 'design', text: 'Added mobile tab layout with a More menu and pinned desktop sidebar.' },
+            { date: '2026-04-13', tag: 'fix', text: 'Fixed achievement toasts so they only trigger for newly earned badges.' },
+            { date: '2026-04-13', tag: 'fix', text: 'Fixed nav hover gap and theme persistence across pages.' },
+            { date: '2026-04-13', tag: 'infra', text: 'Switched service worker to network-first caching to prevent stale UI.' },
+            { date: '2026-04-13', tag: 'infra', text: 'Fixed CI builds to skip server.listen during test mode.' },
+            { date: '2026-04-12', tag: 'feature', text: 'Added spaced repetition with SM-2 algorithm and review scheduling.' },
+            { date: '2026-04-12', tag: 'feature', text: 'Added 29 unlockable achievement badges and tiers.' },
+            { date: '2026-04-12', tag: 'feature', text: 'Added Socratic Mode conversational AI coaching.' },
+            { date: '2026-04-12', tag: 'feature', text: 'Added AI-powered weakness reports and certification readiness scoring.' },
+            { date: '2026-04-12', tag: 'feature', text: 'Added Teach-Back Mode and multiple question types including scenario-based questions.' },
+            { date: '2026-04-12', tag: 'feature', text: 'Added daily challenges, study goals, and advanced analytics.' },
+            { date: '2026-04-12', tag: 'feature', text: 'Added shareable decks, export JSON/CSV, and Microsoft Learn search integration.' },
+            { date: '2026-04-12', tag: 'infra', text: 'Added Jest tests, rate limiting, and caching for expensive queries.' },
+            { date: '2026-04-10', tag: 'design', text: 'Updated UX with feedback banners, running score, loading timers, keyboard hints, and SVG icons.' },
+            { date: '2026-04-09', tag: 'feature', text: 'Initial core launch: AI flash card generation from Microsoft Learn documentation, auth, score tracking, and history.' },
+            { date: '2026-04-09', tag: 'infra', text: 'Replaced broken CORS proxy with server-side fetch proxy and improved card navigation.' },
+        ];
 
-            // ── April 13, 2026 ──────────────────────────
-            { date: '2026-04-13', tag: 'fix', text: 'Changelog accessible from desktop nav Data popover' },
-            { date: '2026-04-13', tag: 'fix', text: 'Footer spacing consistent with page layout' },
-            { date: '2026-04-13', tag: 'fix', text: 'Recent topics limited to 5 items' },
-            { date: '2026-04-13', tag: 'fix', text: 'Sidebar height constrained to main column — no scrolling' },
-            { date: '2026-04-13', tag: 'infra', text: 'Shared theme.js applies saved theme on all pages instantly' },
-            { date: '2026-04-13', tag: 'design', text: 'Renamed default theme to "Hoist the Cone"' },
-            { date: '2026-04-13', tag: 'feature', text: 'GoPackGo theme: Green Bay Packers-inspired green and gold' },
-            { date: '2026-04-13', tag: 'fix', text: 'Achievement toasts only show for newly earned badges, not all' },
-            { date: '2026-04-13', tag: 'fix', text: 'Mobile hamburger menu now opens correctly' },
-            { date: '2026-04-13', tag: 'design', text: 'Nav revamp: icon-only with hover popovers, grouped items, tooltips — never scrolls' },
-            { date: '2026-04-13', tag: 'infra', text: 'Shared nav.js component injected on all pages' },
-            { date: '2026-04-13', tag: 'design', text: 'Nav dynamically aligns top and left with first content block on each page' },
-            { date: '2026-04-13', tag: 'design', text: 'Two-column layout: main quiz + sidebar for recent topics on desktop' },
-            { date: '2026-04-13', tag: 'design', text: 'Rebranded to "Good Better Best" with custom logo and favicon' },
-            { date: '2026-04-13', tag: 'feature', text: 'Settings page: 9 color themes, font size toggle, study goals, daily challenge, data export' },
-            { date: '2026-04-13', tag: 'feature', text: 'Leaderboard page with Bronze/Silver/Gold/Platinum tiers' },
-            { date: '2026-04-13', tag: 'feature', text: 'Explanation text-to-speech button' },
-            { date: '2026-04-13', tag: 'feature', text: 'Hint system: eliminate two wrong answers' },
-            { date: '2026-04-13', tag: 'feature', text: 'Timed mode: 30/60/90 second timer per card for exam simulation' },
-            { date: '2026-04-13', tag: 'feature', text: 'Keyboard shortcuts modal (press ? to view)' },
-            { date: '2026-04-13', tag: 'feature', text: 'Haptic feedback on mobile for correct/incorrect answers' },
-            { date: '2026-04-13', tag: 'infra', text: 'API rate limiting, server-side response caching, input sanitization' },
-            { date: '2026-04-13', tag: 'infra', text: 'CI/CD pipeline with GitHub Actions' },
-            { date: '2026-04-13', tag: 'fix', text: 'Robust correct answer resolution for all question types from Claude' },
-            { date: '2026-04-13', tag: 'feature', text: 'Adaptive learning: AI adjusts question difficulty based on your performance' },
-            { date: '2026-04-13', tag: 'feature', text: 'Learning retention tracking: compare first vs latest attempts' },
-            { date: '2026-04-13', tag: 'feature', text: 'Teach-Back Mode: explain concepts in your own words, AI evaluates' },
-            { date: '2026-04-13', tag: 'feature', text: 'Cross-document synthesis questions from multiple pages' },
-            { date: '2026-04-13', tag: 'feature', text: 'Microsoft Learn search bar on home page' },
-            { date: '2026-04-13', tag: 'feature', text: 'Share Deck button with unique shareable links' },
-            { date: '2026-04-13', tag: 'feature', text: 'Export study data as JSON or CSV' },
-            { date: '2026-04-13', tag: 'feature', text: 'Daily challenges with themed topics and bonus XP' },
-            { date: '2026-04-13', tag: 'feature', text: 'Study goals: set and track weekly/monthly session targets' },
-            { date: '2026-04-13', tag: 'feature', text: 'Knowledge decay modeling: estimated retention per topic' },
-            { date: '2026-04-13', tag: 'fix', text: 'Service worker switched to network-first caching' },
-
-            // ── April 12, 2026 ──────────────────────────
-            { date: '2026-04-12', tag: 'feature', text: '29 unlockable achievement badges across 6 categories' },
-            { date: '2026-04-12', tag: 'feature', text: 'Profile page: achievements gallery, certification readiness, AI weakness reports' },
-            { date: '2026-04-12', tag: 'feature', text: 'Content quality scoring: warns when source page has limited content' },
-            { date: '2026-04-12', tag: 'fix', text: 'Learning path links auto-populate URL and start generating' },
-            { date: '2026-04-12', tag: 'feature', text: 'User friction telemetry: track hesitation, abandonment, answer timing' },
-            { date: '2026-04-12', tag: 'feature', text: 'Session summary: question-by-question breakdown on results page' },
-            { date: '2026-04-12', tag: 'feature', text: 'Achievement toast notifications with gold-glow animation' },
-            { date: '2026-04-12', tag: 'feature', text: 'Session persistence: save and resume interrupted sessions' },
-            { date: '2026-04-12', tag: 'feature', text: 'Curated learning paths for AZ-900, AI-900, SC-900, MS-900' },
-            { date: '2026-04-12', tag: 'feature', text: 'Scenario-based questions: realistic workplace problem-solving' },
-            { date: '2026-04-12', tag: 'feature', text: 'Socratic Mode: conversational AI coaching with Claude' },
-            { date: '2026-04-12', tag: 'feature', text: 'AI-powered certification readiness score' },
-            { date: '2026-04-12', tag: 'feature', text: 'AI-powered personalized weakness reports' },
-            { date: '2026-04-12', tag: 'feature', text: 'Question quality feedback: flag confusing or wrong questions' },
-            { date: '2026-04-12', tag: 'feature', text: 'Anonymous-first flow: study without signing in' },
-            { date: '2026-04-12', tag: 'feature', text: 'Public changelog page' },
-            { date: '2026-04-12', tag: 'infra', text: 'Jest test suite: 12 automated tests' },
-            { date: '2026-04-12', tag: 'feature', text: 'Microsoft Learn documentation search API' },
-            { date: '2026-04-12', tag: 'feature', text: 'Advanced analytics: weekly trends, hardest/strongest topics, activity heatmap' },
-            { date: '2026-04-12', tag: 'feature', text: 'Text-to-speech for questions using Web Speech API' },
-            { date: '2026-04-12', tag: 'feature', text: 'Shareable decks with unique codes' },
-            { date: '2026-04-12', tag: 'feature', text: 'Offline mode with service worker caching' },
-            { date: '2026-04-12', tag: 'feature', text: 'Gamification: streaks, XP, achievement badges, leaderboard' },
-            { date: '2026-04-12', tag: 'feature', text: 'Multiple question types: true/false, fill-in-the-blank, scenario, multiple choice' },
-            { date: '2026-04-12', tag: 'feature', text: 'Spaced repetition with SM-2 algorithm and dedicated review page' },
-
-            // ── April 10, 2026 ──────────────────────────
-            { date: '2026-04-10', tag: 'design', text: 'Lucide SVG icons replace all emoji for professional iconography' },
-            { date: '2026-04-10', tag: 'design', text: 'UX overhaul: feedback banners, running score, loading timer, keyboard hints' },
-            { date: '2026-04-10', tag: 'design', text: 'Design overhaul: noise texture, gold accents, deeper blacks, distinctive cards' },
-            { date: '2026-04-10', tag: 'design', text: 'Auth moved to side nav with avatar display' },
-
-            // ── April 9, 2026 ───────────────────────────
-            { date: '2026-04-09', tag: 'design', text: 'Pittsburgh black and gold dark theme' },
-            { date: '2026-04-09', tag: 'feature', text: 'User authentication: signup, login, JWT sessions, user-scoped data' },
-            { date: '2026-04-09', tag: 'feature', text: 'Recent topics quick-access cards on home page' },
-            { date: '2026-04-09', tag: 'design', text: 'Chart.js font improvements and filter pills on history page' },
-            { date: '2026-04-09', tag: 'fix', text: 'Must answer before proceeding — no skipping questions' },
-            { date: '2026-04-09', tag: 'design', text: 'Slide animations replace card flip, floating side nav, mobile bottom bar' },
-            { date: '2026-04-09', tag: 'feature', text: 'AI model disclaimer in footer for transparency' },
-            { date: '2026-04-09', tag: 'feature', text: 'Compare page: your performance vs all users per topic' },
-            { date: '2026-04-09', tag: 'feature', text: 'Smart question deduplication via Claude' },
-            { date: '2026-04-09', tag: 'design', text: 'DM Sans + JetBrains Mono fonts' },
-            { date: '2026-04-09', tag: 'feature', text: 'Individual question answer logging with per-topic stats' },
-            { date: '2026-04-09', tag: 'feature', text: 'Cookie consent banner with granular category controls' },
-            { date: '2026-04-09', tag: 'design', text: 'Dark theme with compact layout' },
-            { date: '2026-04-09', tag: 'feature', text: 'AI-powered flash card generation using Claude' },
-            { date: '2026-04-09', tag: 'feature', text: 'Score tracking and history page with charts' },
-            { date: '2026-04-09', tag: 'infra', text: 'Deployed to Vercel (frontend) + Railway (API + PostgreSQL)' },
-            { date: '2026-04-09', tag: 'fix', text: 'Replaced dead CORS proxy with server-side fetch, fixed card navigation' },
-            { date: '2026-04-09', tag: 'infra', text: 'Initial release: flash card generation from Microsoft Learn documentation' },
+        const prHistory = [
+            'P01: Anonymous-first flow — study without signing in, prompt account creation after first session.',
+            'P02: Question quality feedback — flag confusing, wrong, or irrelevant questions.',
+            'P03: AI-powered personalized weakness reports using Claude analysis of wrong-answer patterns.',
+            'P04: AI-powered certification readiness scoring with Claude assessment.',
+            'P05: Socratic Mode — conversational AI coaching with Claude dialogue.',
+            'P06: Scenario-based learning — workplace scenarios included in the question mix.',
+            'P07: Curated learning paths for AZ-900, AI-900, SC-900, MS-900 certifications.',
+            'P08: Session persistence — save and resume interrupted sessions via local storage.',
+            'P09: Achievement toast notifications with celebratory animations.',
+            'P10: Session summary — question-by-question breakdown on the results page.',
+            'P11: User friction telemetry — track hesitation, abandonment, answer timing.',
+            'P12: Content quality scoring — warn users when source page content is too shallow.',
+            'P13-P22: Adaptive learning, retention tracking, teach-back mode, cross-document synthesis, difficulty calibration, search UI, share/export UI.',
+            'P23-P50: Hints, timed mode, keyboard shortcuts, haptic feedback, daily challenges, study goals, leaderboard tiers, knowledge decay, CI/CD, rate limiting, caching.',
         ];
 
         function render() {
@@ -145,6 +102,7 @@
             const fixes = entries.filter(e => e.tag === 'fix').length;
             const design = entries.filter(e => e.tag === 'design').length;
             const infra = entries.filter(e => e.tag === 'infra').length;
+            const docs = entries.filter(e => e.tag === 'docs').length;
 
             let html = `<div class="changelog-summary">
                 <div class="summary-stat"><div class="num">${entries.length}</div><div class="label">Updates</div></div>
@@ -152,11 +110,12 @@
                 <div class="summary-stat"><div class="num">${design}</div><div class="label">Design</div></div>
                 <div class="summary-stat"><div class="num">${fixes}</div><div class="label">Fixes</div></div>
                 <div class="summary-stat"><div class="num">${infra}</div><div class="label">Infra</div></div>
+                <div class="summary-stat"><div class="num">${docs}</div><div class="label">Docs</div></div>
             </div>`;
 
             const grouped = {};
             entries.forEach(e => { if (!grouped[e.date]) grouped[e.date] = []; grouped[e.date].push(e); });
-            const tagCls = { feature: 'tag-feature', fix: 'tag-fix', design: 'tag-design', infra: 'tag-infra' };
+            const tagCls = { feature: 'tag-feature', fix: 'tag-fix', design: 'tag-design', infra: 'tag-infra', docs: 'tag-docs' };
 
             for (const [date, items] of Object.entries(grouped)) {
                 const d = new Date(date + 'T12:00:00');
@@ -167,6 +126,8 @@
                 }
                 html += '</div>';
             }
+
+            html += `<section class="pr-history"><div class="changelog-date">Complete PR History</div><ul>${prHistory.map(item => `<li>${item}</li>`).join('')}</ul></section>`;
             container.innerHTML = html;
         }
         render();

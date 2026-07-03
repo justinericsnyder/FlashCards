@@ -7,10 +7,18 @@ class FlashCardApp {
         this.selectedChoice = null;
         this.answered = false;
         this.isAnimating = false;
+        this.isReviewSession = false;
+        this.reviewQueue = [];
+        this._generationController = null;
 
         this.initializeEventListeners();
         this.initializeKeyboardNavigation();
         this.initializeAnimations();
+        this.loadAuthState();
+        this.updateAuthUI();
+        this.validateAuthToken().catch(() => {});
+        this.checkSavedSession();
+        this.updateReviewSummary().catch(() => {});
     }
 
     initializeEventListeners() {
@@ -19,6 +27,19 @@ class FlashCardApp {
             e.preventDefault();
             this.generateCards();
         });
+
+        document.getElementById('demo-session')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.startDemoSession();
+        });
+
+        document.getElementById('review-due')?.addEventListener('click', () => {
+            this.requireAuth(() => this.openReviewSection());
+        });
+        document.getElementById('load-review')?.addEventListener('click', () => this.startReviewSession());
+        document.getElementById('back-to-setup')?.addEventListener('click', () => this.showSection('setup-section'));
+
+        document.getElementById('cancel-generation')?.addEventListener('click', () => this.cancelGeneration());
 
         // Card interactions
         document.getElementById('submit-answer').addEventListener('click', () => this.submitAnswer());
@@ -73,6 +94,229 @@ class FlashCardApp {
         });
     }
 
+    loadAuthState() {
+        try {
+            this.authToken = localStorage.getItem('flashcards_auth_token');
+            this.authUser = JSON.parse(localStorage.getItem('flashcards_auth_user') || 'null');
+        } catch (err) {
+            console.warn('Failed to load auth state:', err);
+            this.authToken = null;
+            this.authUser = null;
+        }
+    }
+
+    saveAuthState(token, user) {
+        try {
+            localStorage.setItem('flashcards_auth_token', token);
+            localStorage.setItem('flashcards_auth_user', JSON.stringify(user));
+            this.authToken = token;
+            this.authUser = user;
+            this.updateAuthUI();
+        } catch (err) {
+            console.warn('Failed to save auth state:', err);
+        }
+        this.updateReviewSummary().catch(() => {});
+    }
+
+    clearAuthState() {
+        try {
+            localStorage.removeItem('flashcards_auth_token');
+            localStorage.removeItem('flashcards_auth_user');
+        } catch (err) {
+            console.warn('Failed to clear auth state:', err);
+        }
+        this.authToken = null;
+        this.authUser = null;
+        this.updateAuthUI();
+        this.updateReviewSummary().catch(() => {});
+    }
+
+    isLoggedIn() {
+        return !!this.authToken;
+    }
+
+    authHeaders() {
+        return this.isLoggedIn() ? { Authorization: `Bearer ${this.authToken}` } : {};
+    }
+
+    async apiFetch(url, options = {}) {
+        const headers = { ...(options.headers || {}), ...this.authHeaders() };
+        const response = await fetch(url, { ...options, headers });
+        if (response.status === 401 && this.isLoggedIn()) {
+            console.warn('Auth token invalid or expired. Clearing local auth state.');
+            this.clearAuthState();
+        }
+        return response;
+    }
+
+    async validateAuthToken() {
+        if (!this.isLoggedIn()) return;
+        try {
+            const res = await this.apiFetch('/api/auth/me');
+            if (!res.ok) throw new Error('Invalid auth token');
+            const user = await res.json();
+            this.saveAuthState(this.authToken, user);
+        } catch (err) {
+            console.warn('Auth validation failed:', err);
+            this.clearAuthState();
+        }
+    }
+
+    async logQuestionAnswer(card, isCorrect) {
+        if (!this.isLoggedIn()) return;
+
+        try {
+            await this.apiFetch('/api/question-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: document.getElementById('doc-url')?.value.trim() || '',
+                    pageTitle: this.currentPageTitle || document.getElementById('doc-url')?.value.trim() || '',
+                    question: card.question,
+                    correctAnswer: card.correctAnswer,
+                    userAnswer: this.selectedChoice,
+                    isCorrect,
+                    difficulty: document.getElementById('difficulty')?.value || 'intermediate',
+                    choices: card.choices,
+                    explanation: card.explanation,
+                }),
+            });
+        } catch (err) {
+            console.warn('Could not log question answer:', err);
+        }
+    }
+
+    showAuthModal(onSuccess) {
+        if (document.getElementById('auth-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'auth-overlay';
+        overlay.className = 'auth-overlay';
+        overlay.innerHTML = `
+            <div class="auth-modal">
+                <h2>Sign in to save your progress</h2>
+                <p class="auth-subtitle">Your study history, review cards, and scores are stored securely.</p>
+                <div id="auth-error" class="auth-error hidden"></div>
+                <form id="auth-form" class="auth-form">
+                    <input type="email" id="auth-email" placeholder="Email" required autocomplete="email">
+                    <input type="password" id="auth-password" placeholder="Password" required minlength="6" autocomplete="current-password">
+                    <input type="text" id="auth-name" placeholder="Display name (optional)" class="hidden" autocomplete="name">
+                    <button type="submit" class="btn btn-primary" id="auth-submit">Sign In</button>
+                </form>
+                <div class="auth-toggle">
+                    <span id="auth-toggle-text">Don&rsquo;t have an account?</span>
+                    <button id="auth-toggle-btn" class="auth-link" type="button">Sign Up</button>
+                </div>
+                <button class="auth-close btn btn-secondary" type="button">Continue as guest</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const form = overlay.querySelector('#auth-form');
+        const errorEl = overlay.querySelector('#auth-error');
+        const nameInput = overlay.querySelector('#auth-name');
+        const toggleBtn = overlay.querySelector('#auth-toggle-btn');
+        const toggleText = overlay.querySelector('#auth-toggle-text');
+        const submitBtn = overlay.querySelector('#auth-submit');
+        const closeBtn = overlay.querySelector('.auth-close');
+
+        let isSignup = false;
+
+        const resetForm = () => {
+            errorEl.classList.add('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = isSignup ? 'Create Account' : 'Sign In';
+        };
+
+        toggleBtn.addEventListener('click', () => {
+            isSignup = !isSignup;
+            nameInput.classList.toggle('hidden', !isSignup);
+            submitBtn.textContent = isSignup ? 'Create Account' : 'Sign In';
+            toggleText.textContent = isSignup ? 'Already have an account?' : "Don't have an account?";
+            toggleBtn.textContent = isSignup ? 'Sign In' : 'Sign Up';
+            resetForm();
+        });
+
+        closeBtn.addEventListener('click', () => {
+            overlay.remove();
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorEl.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.textContent = isSignup ? 'Creating...' : 'Signing in...';
+
+            const email = overlay.querySelector('#auth-email').value.trim();
+            const password = overlay.querySelector('#auth-password').value;
+            const displayName = overlay.querySelector('#auth-name').value.trim();
+
+            try {
+                const endpoint = isSignup ? '/api/auth/signup' : '/api/auth/login';
+                const body = isSignup ? { email, password, displayName } : { email, password };
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Authentication failed');
+                this.saveAuthState(data.token, data.user);
+                overlay.remove();
+                if (onSuccess) onSuccess();
+                this.updateReviewSummary().catch(() => {});
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.classList.remove('hidden');
+                resetForm();
+            }
+        });
+    }
+
+    requireAuth(callback) {
+        if (this.isLoggedIn()) {
+            callback();
+            return;
+        }
+        this.showAuthModal(callback);
+    }
+
+    updateAuthUI() {
+        const authActions = document.getElementById('auth-actions');
+        if (!authActions) return;
+        const reviewBtn = document.getElementById('review-due');
+
+        if (this.isLoggedIn() && this.authUser) {
+            authActions.innerHTML = `
+                <div class="auth-info">
+                    <span class="auth-name">${this.authUser.displayName || this.authUser.email}</span>
+                    <span class="auth-status-badge">Sync enabled</span>
+                </div>
+                <button id="auth-logout" class="btn btn-secondary" type="button">Sign Out</button>
+            `;
+            authActions.querySelector('#auth-logout').addEventListener('click', () => {
+                if (confirm('Sign out of your account?')) {
+                    this.clearAuthState();
+                }
+            });
+            if (reviewBtn) {
+                reviewBtn.textContent = 'Review Due Cards';
+            }
+        } else {
+            authActions.innerHTML = `
+                <div class="auth-info">
+                    <span class="auth-guest">Guest mode</span>
+                    <span class="auth-status-badge auth-status-guest">Local only</span>
+                </div>
+                <button id="auth-signin" class="btn btn-secondary" type="button">Sign In</button>
+            `;
+            authActions.querySelector('#auth-signin').addEventListener('click', () => this.showAuthModal());
+            if (reviewBtn) {
+                reviewBtn.textContent = 'Review Due Cards (sign in to sync)';
+            }
+        }
+    }
+
     handleKeydown(e) {
         // Arrow key navigation
         if (e.key === 'ArrowLeft' && !document.getElementById('prev-card').disabled) {
@@ -95,10 +339,10 @@ class FlashCardApp {
 
     // ── Fetching & Parsing ──────────────────────────────────────────────
 
-    async fetchDocContent(url) {
+    async fetchDocContent(url, signal) {
         // Use our own server-side proxy to fetch the page HTML
         const proxyUrl = `/api/fetch-page?url=${encodeURIComponent(url)}`;
-        const response = await fetch(proxyUrl);
+        const response = await fetch(proxyUrl, { signal });
         if (!response.ok) throw new Error(`Failed to fetch page (${response.status})`);
         return await response.text();
     }
@@ -366,18 +610,31 @@ class FlashCardApp {
             return;
         }
 
-        if (!url.includes('microsoft.com') && !url.includes('learn.microsoft.com')) {
-            this.showError('Please enter a valid Microsoft Learn or Microsoft Docs URL');
+        let normalizedUrl;
+        try {
+            normalizedUrl = new URL(url).toString();
+        } catch {
+            this.showError('Please enter a valid URL. Supported sources include learn.microsoft.com and docs.microsoft.com.');
+            return;
+        }
+
+        const supportedUrlPattern = /^(https?:\/\/)?(www\.)?(learn\.microsoft\.com|docs\.microsoft\.com|microsoft\.com)\//i;
+        if (!supportedUrlPattern.test(normalizedUrl)) {
+            this.showError('Please enter a valid Microsoft documentation URL. Supported sources include learn.microsoft.com and docs.microsoft.com.');
             return;
         }
 
         this.animateSectionTransition('loading-section');
         this.updateLoadingSteps(1);
+        this._generationController = new AbortController();
+        const signal = this._generationController.signal;
+        const cancelButton = document.getElementById('cancel-generation');
+        if (cancelButton) cancelButton.disabled = false;
 
         try {
             this.updateLoadingSteps(1);
 
-            const html = await this.fetchDocContent(url);
+            const html = await this.fetchDocContent(url, signal);
 
             this.updateLoadingSteps(2);
 
@@ -400,6 +657,7 @@ class FlashCardApp {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sections, count: cardCount, difficulty }),
+                signal,
             });
 
             const data = await response.json();
@@ -418,9 +676,29 @@ class FlashCardApp {
             setTimeout(() => this.startFlashCardSession(), 500);
 
         } catch (error) {
-            console.error('Error generating cards:', error);
-            this.showError(error.message || 'Failed to generate flash cards. Please try a different URL.');
+            if (error.name === 'AbortError') {
+                this.showInfo('Flash card generation canceled.');
+            } else {
+                console.error('Error generating cards:', error);
+                this.showError(
+                    error.message || 'Failed to generate flash cards. Please try a different URL.',
+                    'Retry',
+                    () => this.generateCards(),
+                    'Use demo',
+                    () => this.startDemoSession()
+                );
+            }
             this.animateSectionTransition('setup-section');
+        } finally {
+            this._generationController = null;
+            if (cancelButton) cancelButton.disabled = true;
+        }
+    }
+
+    cancelGeneration() {
+        if (this._generationController) {
+            this._generationController.abort();
+            this._generationController = null;
         }
     }
 
@@ -435,39 +713,389 @@ class FlashCardApp {
         });
     }
 
-    showError(message) {
-        // Create error toast
+    showError(message, actionText, actionCallback, secondaryText, secondaryCallback) {
+        this.showToast(message, 'error', actionText, actionCallback, secondaryText, secondaryCallback);
+    }
+
+    showInfo(message, actionText, actionCallback) {
+        this.showToast(message, 'info', actionText, actionCallback);
+    }
+
+    showToast(message, type = 'error', actionText, actionCallback, secondaryText, secondaryCallback) {
         const toast = document.createElement('div');
-        toast.className = 'error-toast';
-        toast.innerHTML = `
-            <div class="error-content">
-                <span class="error-icon">⚠️</span>
-                <span class="error-message">${message}</span>
-                <button class="error-close" aria-label="Close error">&times;</button>
-            </div>
-        `;
+        toast.className = `error-toast ${type === 'info' ? 'info-toast' : ''}`.trim();
 
-        document.body.appendChild(toast);
+        const content = document.createElement('div');
+        content.className = `error-content ${type === 'info' ? 'info-content' : ''}`.trim();
 
-        // Animate in
-        setTimeout(() => toast.classList.add('show'), 10);
+        const icon = document.createElement('span');
+        icon.className = 'error-icon';
+        icon.textContent = type === 'info' ? 'ℹ️' : '⚠️';
 
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
+        const messageEl = document.createElement('span');
+        messageEl.className = 'error-message';
+        messageEl.textContent = message;
 
-        // Close button
-        toast.querySelector('.error-close').addEventListener('click', () => {
+        const closeButton = document.createElement('button');
+        closeButton.className = 'error-close';
+        closeButton.type = 'button';
+        closeButton.setAttribute('aria-label', 'Close notification');
+        closeButton.textContent = '×';
+        closeButton.addEventListener('click', () => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         });
+
+        content.append(icon, messageEl);
+
+        if (actionText && typeof actionCallback === 'function') {
+            const actionButton = document.createElement('button');
+            actionButton.className = 'toast-action';
+            actionButton.type = 'button';
+            actionButton.textContent = actionText;
+            actionButton.addEventListener('click', () => {
+                actionCallback();
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            });
+            content.append(actionButton);
+        }
+
+        if (secondaryText && typeof secondaryCallback === 'function') {
+            const secondaryButton = document.createElement('button');
+            secondaryButton.className = 'toast-action toast-action-secondary';
+            secondaryButton.type = 'button';
+            secondaryButton.textContent = secondaryText;
+            secondaryButton.addEventListener('click', () => {
+                secondaryCallback();
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            });
+            content.append(secondaryButton);
+        }
+
+        content.append(closeButton);
+        toast.appendChild(content);
+
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 7000);
+    }
+
+    loadReviewQueue() {
+        try {
+            const raw = localStorage.getItem('flashcards_review_queue');
+            return raw ? JSON.parse(raw) : [];
+        } catch (err) {
+            console.warn('Could not load review queue:', err);
+            return [];
+        }
+    }
+
+    saveReviewQueue(queue) {
+        try {
+            localStorage.setItem('flashcards_review_queue', JSON.stringify(queue));
+        } catch (err) {
+            console.warn('Could not save review queue:', err);
+        }
+    }
+
+    getDueReviewCards() {
+        const queue = this.loadReviewQueue();
+        const now = Date.now();
+        return queue.filter(item => item.nextReview && item.nextReview <= now);
+    }
+
+    normalizeReviewCard(card) {
+        let choices = card.choices;
+        if (typeof choices === 'string') {
+            try {
+                choices = JSON.parse(choices);
+            } catch {
+                choices = [];
+            }
+        }
+        return {
+            id: card.id,
+            question: card.question || card.question_text || '',
+            choices: Array.isArray(choices) ? choices : [],
+            correctAnswer: card.correct_answer || card.correctAnswer || card.correctAnswer,
+            explanation: card.explanation || card.answer || '',
+            nextReview: card.next_review || card.nextReview || null,
+        };
+    }
+
+    async updateReviewSummary() {
+        const reviewText = document.getElementById('review-count-text');
+        const emptyText = document.getElementById('review-empty');
+        const loadButton = document.getElementById('load-review');
+        if (!reviewText || !emptyText) return;
+
+        let due = 0;
+        let message = 'No cards are due for review right now.';
+
+        if (this.isLoggedIn()) {
+            try {
+                const res = await this.apiFetch('/api/reviews/stats');
+                const stats = await res.json();
+                if (!res.ok) throw new Error(stats.error || 'Failed to load review stats');
+                due = Number(stats.due_now) || 0;
+                message = due === 0
+                    ? 'No cards are due for review right now.'
+                    : `${due} card${due === 1 ? '' : 's'} due for review.`;
+            } catch (err) {
+                console.warn('Review stats error:', err);
+                due = this.getDueReviewCards().length;
+                message = due === 0
+                    ? 'No cards are due for review right now.'
+                    : `${due} card${due === 1 ? '' : 's'} due for review.`;
+            }
+        } else {
+            due = this.getDueReviewCards().length;
+            message = due === 0
+                ? 'No cards are due for review right now.'
+                : `${due} card${due === 1 ? '' : 's'} due for review.`;
+        }
+
+        reviewText.textContent = message;
+        if (loadButton) {
+            loadButton.disabled = due === 0;
+        }
+        const reviewBtn = document.getElementById('review-due');
+        if (reviewBtn) {
+            reviewBtn.textContent = due > 0 ? `Review Due Cards (${due})` : (this.isLoggedIn() ? 'Review Due Cards' : 'Review Due Cards (sign in to sync)');
+        }
+        if (due === 0) {
+            emptyText.classList.remove('hidden');
+        } else {
+            emptyText.classList.add('hidden');
+        }
+    }
+
+    async openReviewSection() {
+        await this.updateReviewSummary();
+        const list = document.getElementById('review-list');
+        if (!list) return;
+
+        let queue = [];
+        if (this.isLoggedIn()) {
+            try {
+                const res = await this.apiFetch('/api/reviews/due');
+                const cards = await res.json();
+                if (!res.ok) throw new Error(cards.error || 'Could not load review cards');
+                queue = Array.isArray(cards) ? cards.map(card => this.normalizeReviewCard(card)) : [];
+            } catch (err) {
+                console.warn('Remote review fetch failed:', err);
+                queue = this.loadReviewQueue();
+            }
+        } else {
+            queue = this.loadReviewQueue();
+        }
+
+        this.reviewQueue = queue;
+
+        if (!queue.length) {
+            list.innerHTML = `<p class="help-text">${this.isLoggedIn() ? 'No review cards are due yet. Study more to build your queue.' : 'Your review queue is empty locally. Sign in to sync review cards across devices.'}</p>`;
+        } else {
+            const upcoming = queue
+                .slice(0, 5)
+                .map(item => {
+                    const nextReview = item.nextReview ? new Date(item.nextReview).toLocaleDateString() : 'Soon';
+                    return `
+                        <div class="review-item">
+                            <strong>${item.question}</strong>
+                            <div class="review-item-meta">Next review: ${nextReview}</div>
+                        </div>
+                    `;
+                })
+                .join('');
+            list.innerHTML = upcoming;
+        }
+        this.animateSectionTransition('review-section');
+    }
+
+    enqueueCardsForReview(cards) {
+        if (!cards || !cards.length) return;
+        const queue = this.loadReviewQueue();
+        const now = Date.now();
+        const newItems = cards.map(card => {
+            const existing = queue.find(item => item.question === card.question);
+            if (existing) return null;
+            return {
+                ...card,
+                intervalDays: 1,
+                nextReview: now + 24 * 60 * 60 * 1000,
+            };
+        }).filter(Boolean);
+        if (newItems.length) {
+            this.saveReviewQueue(queue.concat(newItems));
+            this.updateReviewSummary();
+        }
+    }
+
+    startReviewSession() {
+        const dueCards = this.isLoggedIn() ? (this.reviewQueue || []) : this.getDueReviewCards();
+        if (!dueCards.length) {
+            this.showInfo('No cards are due for review right now.');
+            return;
+        }
+        this.isReviewSession = true;
+        this.reviewQueue = this.isLoggedIn() ? (this.reviewQueue || []) : this.loadReviewQueue();
+        this.flashCards = dueCards;
+        this.currentPageTitle = 'Review Session';
+        this.currentCardIndex = 0;
+        this.correctAnswers = 0;
+        this.incorrectAnswers = 0;
+        this.selectedChoice = null;
+        this.answered = false;
+        this.animateSectionTransition('flashcard-section');
+        this.displayCurrentCard();
+        this.updateProgress();
+    }
+
+    async updateReviewCardResult(isCorrect) {
+        const card = this.flashCards[this.currentCardIndex];
+        if (!card) return;
+
+        if (this.isLoggedIn() && card.id) {
+            try {
+                const quality = isCorrect ? 4 : 2;
+                await this.apiFetch('/api/reviews/result', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cardId: card.id, quality }),
+                });
+            } catch (err) {
+                console.warn('Failed to update review result:', err);
+            }
+            return;
+        }
+
+        const queue = this.loadReviewQueue();
+        const item = queue.find(q => q.question === card.question);
+        if (!item) return;
+
+        if (isCorrect) {
+            item.intervalDays = item.intervalDays ? Math.min(item.intervalDays * 2, 14) : 2;
+        } else {
+            item.intervalDays = 1;
+        }
+        item.nextReview = Date.now() + item.intervalDays * 24 * 60 * 60 * 1000;
+        this.saveReviewQueue(queue);
+        this.updateReviewSummary().catch(() => {});
+    }
+
+    saveSessionState() {
+        if (!this.flashCards || this.flashCards.length === 0) return;
+        try {
+            const state = {
+                flashCards: this.flashCards,
+                currentCardIndex: this.currentCardIndex,
+                correctAnswers: this.correctAnswers,
+                incorrectAnswers: this.incorrectAnswers,
+                pageTitle: this.currentPageTitle,
+                url: document.getElementById('doc-url')?.value || '',
+                timestamp: Date.now(),
+            };
+            localStorage.setItem('flashcards_session', JSON.stringify(state));
+        } catch (err) {
+            console.warn('Could not save session state:', err);
+        }
+    }
+
+    clearSavedSession() {
+        try {
+            localStorage.removeItem('flashcards_session');
+        } catch (err) {
+            console.warn('Could not clear saved session:', err);
+        }
+    }
+
+    checkSavedSession() {
+        try {
+            const raw = localStorage.getItem('flashcards_session');
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            if (!state?.flashCards?.length || Date.now() - state.timestamp > 4 * 60 * 60 * 1000) {
+                this.clearSavedSession();
+                return;
+            }
+
+            const container = document.getElementById('resume-container');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="resume-banner" role="status" aria-live="polite">
+                    <div class="resume-banner-content">
+                        <strong>Resume your last session?</strong>
+                        <span>${state.pageTitle || 'Previous session'} — Card ${state.currentCardIndex + 1} of ${state.flashCards.length}</span>
+                    </div>
+                    <div class="resume-banner-actions">
+                        <button class="btn btn-primary" id="resume-yes">Resume</button>
+                        <button class="btn btn-secondary" id="resume-no">Discard</button>
+                    </div>
+                </div>
+            `;
+
+            container.querySelector('#resume-yes').addEventListener('click', () => {
+                this.resumeSavedSession(state);
+            });
+            container.querySelector('#resume-no').addEventListener('click', () => {
+                this.clearSavedSession();
+                container.innerHTML = '';
+            });
+        } catch (err) {
+            this.clearSavedSession();
+        }
+    }
+
+    resumeSavedSession(state) {
+        this.flashCards = state.flashCards;
+        this.currentCardIndex = state.currentCardIndex || 0;
+        this.correctAnswers = state.correctAnswers || 0;
+        this.incorrectAnswers = state.incorrectAnswers || 0;
+        this.currentPageTitle = state.pageTitle || state.url || 'Saved session';
+        if (state.url) {
+            const input = document.getElementById('doc-url');
+            if (input) input.value = state.url;
+        }
+
+        const container = document.getElementById('resume-container');
+        if (container) container.innerHTML = '';
+
+        this.animateSectionTransition('flashcard-section');
+        this.displayCurrentCard();
+        this.updateProgress();
+        this.saveSessionState();
+    }
+
+    startDemoSession() {
+        this.flashCards = this.generateSampleCards(parseInt(document.getElementById('card-count')?.value || '5'), document.getElementById('difficulty')?.value || 'intermediate');
+        this.currentPageTitle = 'Demo session';
+        if (!this.flashCards.length) {
+            this.showError('Could not create a demo session at this time.');
+            return;
+        }
+
+        this.showInfo('Demo session loaded. Use it to explore the study flow.');
+        this.animateSectionTransition('flashcard-section');
+        this.currentCardIndex = 0;
+        this.correctAnswers = 0;
+        this.incorrectAnswers = 0;
+        this.selectedChoice = null;
+        this.answered = false;
+        this.displayCurrentCard();
+        this.updateProgress();
+        this.saveSessionState();
     }
 
     // ── Session & Card Display ──────────────────────────────────────────
 
     startFlashCardSession() {
+        this.isReviewSession = false;
         this.currentCardIndex = 0;
         this.correctAnswers = 0;
         this.incorrectAnswers = 0;
@@ -477,6 +1105,7 @@ class FlashCardApp {
         this.animateSectionTransition('flashcard-section');
         this.displayCurrentCard();
         this.updateProgress();
+        this.saveSessionState();
     }
 
     displayCurrentCard() {
@@ -576,6 +1205,12 @@ class FlashCardApp {
             this.incorrectAnswers++;
         }
 
+        if (this.isReviewSession) {
+            this.updateReviewCardResult(isCorrect);
+        } else {
+            this.logQuestionAnswer(card, isCorrect);
+        }
+
         // Highlight correct / incorrect choices with animation
         document.querySelectorAll('.choice').forEach(el => {
             el.classList.add('disabled');
@@ -603,6 +1238,7 @@ class FlashCardApp {
             document.getElementById('next-question').classList.remove('hidden');
 
             this.announceToScreenReader(`Answer revealed. ${isCorrect ? 'Correct!' : 'Incorrect.'} ${card.explanation}`);
+            this.saveSessionState();
         }, 1500);
     }
 
@@ -613,6 +1249,7 @@ class FlashCardApp {
             this.currentCardIndex++;
             this.displayCurrentCard();
             this.updateProgress();
+            this.saveSessionState();
         } else {
             this.showResults();
         }
@@ -623,6 +1260,7 @@ class FlashCardApp {
             this.currentCardIndex--;
             this.displayCurrentCard();
             this.updateProgress();
+            this.saveSessionState();
         }
     }
 
@@ -674,25 +1312,40 @@ class FlashCardApp {
         this.animateCounter('final-score', score, '%');
 
         this.animateSectionTransition('results-section');
+        this.isReviewSession = false;
 
-        // Save score to database
-        const url = document.getElementById('doc-url').value.trim();
-        const difficulty = document.getElementById('difficulty').value;
-        fetch('/api/scores', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                url,
-                pageTitle: this.currentPageTitle || url,
-                correct: this.correctAnswers,
-                total,
-                scorePct: score,
-                difficulty,
-            }),
-        }).catch(err => console.warn('Could not save score:', err));
+        if (!this.isReviewSession) {
+            this.enqueueCardsForReview(this.flashCards);
+        }
+
+        // Save score to database for logged in users
+        this.saveScoreToServer(total, score);
+        this.clearSavedSession();
 
         // Announce results
         this.announceToScreenReader(`Session complete! You got ${this.correctAnswers} out of ${total} correct for a score of ${score} percent.`);
+    }
+
+    async saveScoreToServer(total, score) {
+        if (!this.isLoggedIn()) return;
+        const url = document.getElementById('doc-url').value.trim();
+        const difficulty = document.getElementById('difficulty').value;
+        try {
+            await this.apiFetch('/api/scores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url,
+                    pageTitle: this.currentPageTitle || url,
+                    correct: this.correctAnswers,
+                    total,
+                    scorePct: score,
+                    difficulty,
+                }),
+            });
+        } catch (err) {
+            console.warn('Could not save score:', err);
+        }
     }
 
     animateCounter(elementId, targetValue, suffix = '') {
@@ -735,10 +1388,11 @@ class FlashCardApp {
     newSession() {
         this.animateSectionTransition('setup-section');
         document.getElementById('doc-url').value = '';
+        this.clearSavedSession();
     }
 
     showSection(sectionId) {
-        ['setup-section', 'loading-section', 'flashcard-section', 'results-section']
+        ['setup-section', 'loading-section', 'flashcard-section', 'results-section', 'review-section']
             .forEach(id => {
                 const section = document.getElementById(id);
                 section.classList.add('hidden');

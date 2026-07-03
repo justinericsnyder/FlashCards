@@ -20,15 +20,28 @@
 
 ---
 
+## Unreleased — 2026-06-07
+
+This changelog is now aligned with the current repository history and includes every PR-derived update available in the codebase.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-docs">docs</span> | Synchronized public changelog content with every repository PR and update. |
+| <span class="cl-tag cl-fix">fix</span> | Added footer changelog access on the primary site for better visibility. |
+| <span class="cl-tag cl-feat">feature</span> | Improved review sync messaging, due card counts, and auth token validation across sessions. |
+| <span class="cl-tag cl-infra">infra</span> | Added token validation at page load to detect expired sessions and clear stale auth. |
+
+---
+
 ## v2.5.0 — 2026-04-19
 
 Documentation and architecture.
 
 | | |
 |---|---|
-| <span class="cl-tag cl-docs">docs</span> | Added 7 Mermaid architecture diagrams to README — system overview, user flow, AI integration, ER data model, SM-2 state machine, gamification pipeline, page map, deployment |
-| <span class="cl-tag cl-security">security</span> | Hardened README — removed endpoint maps, database schema details, package versions, and deployment specifics to reduce supply chain attack surface |
-| <span class="cl-tag cl-docs">docs</span> | Comprehensive README rewrite with technical architecture overview, services table, and tech stack summary |
+| <span class="cl-tag cl-docs">docs</span> | Added 7 Mermaid architecture diagrams to README — system overview, user flow, AI integration, ER data model, SM-2 flow, gamification pipeline, page map, deployment. |
+| <span class="cl-tag cl-security">security</span> | Hardened README by removing endpoint maps, database schema details, package version lists, and deployment specifics. |
+| <span class="cl-tag cl-docs">docs</span> | Rewrote README with an architecture overview, services table, and clean tech stack summary. |
 
 ---
 
@@ -38,17 +51,14 @@ Certification skills extraction, hyperscaler themes, mobile hardening.
 
 | | |
 |---|---|
-| <span class="cl-tag cl-feat">feature</span> | Skills Tested modal — extracts exam code from cert pages and fetches study guides for detailed competency lists (60–90 skills per certification) |
-| <span class="cl-tag cl-feat">feature</span> | Study settings modal on Learning Paths — choose card count, difficulty, and timer before starting a cert study session |
-| <span class="cl-tag cl-feat">feature</span> | Applied Skills included in certification catalog from Microsoft Catalog API (37+ items) with type filter |
-| <span class="cl-tag cl-feat">feature</span> | 6 new color themes — dark and light variants for each major cloud hyperscaler |
-| <span class="cl-tag cl-fix">fix</span> | Study guide URL derived from exam code pattern instead of broken href scraping |
-| <span class="cl-tag cl-fix">fix</span> | Sidebar max-height constraint removed — recent topics no longer clipped on desktop |
-| <span class="cl-tag cl-fix">fix</span> | Mobile responsive — force single-column controls, px font sizes to prevent cascade, comprehensive stacking at all breakpoints |
-| <span class="cl-tag cl-fix">fix</span> | Extreme narrow support down to 240px — min-width:0 on all flex children |
-| <span class="cl-tag cl-fix">fix</span> | Recent topics grid forced to single column, overflow hidden on mobile |
-| <span class="cl-tag cl-fix">fix</span> | Service worker auto-updates and reloads clients on mobile without manual refresh |
-| <span class="cl-tag cl-fix">fix</span> | Mobile portrait layout — tighter padding, word-break, overflow fixes |
+| <span class="cl-tag cl-feat">feature</span> | Added Skills Tested modal to extract exam code and fetch certification study guide details. |
+| <span class="cl-tag cl-feat">feature</span> | Added study settings modal for card count, difficulty, and timer before starting a certification session. |
+| <span class="cl-tag cl-feat">feature</span> | Included Applied Skills from Microsoft Catalog API with filtering by skill type. |
+| <span class="cl-tag cl-feat">feature</span> | Added 6 hyperscaler themes with light and dark variants. |
+| <span class="cl-tag cl-fix">fix</span> | Derived study guide URL from exam code pattern instead of broken href scraping. |
+| <span class="cl-tag cl-fix">fix</span> | Removed sidebar max-height constraint so recent topics do not clip on desktop. |
+| <span class="cl-tag cl-fix">fix</span> | Added responsive mobile layout fixes: single-column controls, fixed font scaling, stacking behavior, and a 240px narrow mode. |
+| <span class="cl-tag cl-fix">fix</span> | Updated service worker auto-update logic so mobile clients refresh without manual reload. |
 
 ---
 
@@ -58,67 +68,50 @@ Navigation overhaul, branding, dynamic certification catalog.
 
 | | |
 |---|---|
-| <span class="cl-tag cl-feat">feature</span> | Dynamic certification catalog — fetches full Microsoft Learn Catalog API with filtering by area, level, and type |
-| <span class="cl-tag cl-feat">feature</span> | Certification goal system — users set a target cert for personalized readiness scoring |
-| <span class="cl-tag cl-design">design</span> | App rebranded to "Good Better Best" with custom SVG logo and favicon |
-| <span class="cl-tag cl-design">design</span> | Icon-only sidebar navigation with hover popovers, grouped into Learn and Data categories |
-| <span class="cl-tag cl-design">design</span> | Shared nav component injected on all pages — consistent navigation everywhere |
-| <span class="cl-tag cl-design">design</span> | Mobile navigation — 4 primary tabs with slide-up More menu for secondary pages |
-| <span class="cl-tag cl-design">design</span> | Two-column desktop layout — sidebar for recent topics, nav pinned to content edge |
-| <span class="cl-tag cl-design">design</span> | Added "GoPackGo" theme, renamed default to "Hoist the Cone" |
-| <span class="cl-tag cl-fix">fix</span> | Achievement toasts only fire for newly earned badges, not all existing ones |
-| <span class="cl-tag cl-fix">fix</span> | Nav popover hover bridge — invisible padding gap so mouse can travel to submenu |
-| <span class="cl-tag cl-fix">fix</span> | Theme persistence across all pages via shared early-load theme script |
-| <span class="cl-tag cl-fix">fix</span> | Changelog rebuilt with 80+ accurate entries, sorted newest-first |
-| <span class="cl-tag cl-fix">fix</span> | Recent topics limited to 5, footer spacing normalized |
-| <span class="cl-tag cl-infra">infra</span> | Service worker switched to network-first caching to prevent stale UI |
-| <span class="cl-tag cl-infra">infra</span> | CI builds fixed — test mode skips server.listen |
+| <span class="cl-tag cl-feat">feature</span> | Added dynamic certification catalog with filtering by area, level, and certification type. |
+| <span class="cl-tag cl-feat">feature</span> | Added certification goal system with personalized readiness scoring. |
+| <span class="cl-tag cl-design">design</span> | Rebranded to "Good Better Best" with a custom logo, favicon, and new brand styling. |
+| <span class="cl-tag cl-design">design</span> | Added icon-only sidebar navigation with hover popovers and grouped menu sections. |
+| <span class="cl-tag cl-design">design</span> | Injected shared navigation across all pages for consistent experience. |
+| <span class="cl-tag cl-design">design</span> | Implemented a mobile navigation layout with 4 primary tabs and a slide-up More menu. |
+| <span class="cl-tag cl-design">design</span> | Added two-column desktop layout with pinned sidebar for recent topics. |
+| <span class="cl-tag cl-design">design</span> | Added the GoPackGo theme and renamed the default theme to Hoist the Cone. |
+| <span class="cl-tag cl-fix">fix</span> | Fixed achievement toasts so they only fire when new badges are earned. |
+| <span class="cl-tag cl-fix">fix</span> | Fixed nav popover hover gap by adding an invisible padding bridge. |
+| <span class="cl-tag cl-fix">fix</span> | Preserved theme persistence across all pages using early-load theme script. |
+| <span class="cl-tag cl-fix">fix</span> | Rebuilt changelog with accurate entries and newest-first sorting. |
+| <span class="cl-tag cl-fix">fix</span> | Limited recent topics display to 5 cards and normalized footer spacing. |
+| <span class="cl-tag cl-infra">infra</span> | Switched service worker to network-first caching to prevent stale UI. |
+| <span class="cl-tag cl-infra">infra</span> | Fixed CI builds to skip server.listen in test mode. |
 
 ---
 
 ## v2.2.0 — 2026-04-12
 
-Gamification, AI coaching, spaced repetition, and 50 prioritized improvements.
+Gamification, AI coaching, spaced repetition, and advanced study workflows.
 
 | | |
 |---|---|
-| <span class="cl-tag cl-feat">feature</span> | Spaced repetition with SM-2 algorithm — review page, due cards banner, quality-based scheduling |
-| <span class="cl-tag cl-feat">feature</span> | 29 unlockable badges across 6 categories — milestones, streaks, performance, knowledge, features, XP tiers |
-| <span class="cl-tag cl-feat">feature</span> | Socratic Mode — conversational AI coaching with guided dialogue |
-| <span class="cl-tag cl-feat">feature</span> | AI-powered weakness reports — analyzes wrong-answer patterns for personalized study plans |
-| <span class="cl-tag cl-feat">feature</span> | AI-powered certification readiness scoring with targeted assessment |
-| <span class="cl-tag cl-feat">feature</span> | Teach-back mode — users explain concepts, AI evaluates understanding |
-| <span class="cl-tag cl-feat">feature</span> | Multiple question types — true/false, fill-in-the-blank, scenario-based, multiple choice |
-| <span class="cl-tag cl-feat">feature</span> | Streaks, XP system, and tiered leaderboard (Bronze/Silver/Gold/Platinum) |
-| <span class="cl-tag cl-feat">feature</span> | Daily challenges with themed topics and bonus XP |
-| <span class="cl-tag cl-feat">feature</span> | Study goals — weekly and monthly session targets |
-| <span class="cl-tag cl-feat">feature</span> | Hints system — eliminates two wrong answers on demand |
-| <span class="cl-tag cl-feat">feature</span> | Timed mode — optional countdown timer for exam simulation |
-| <span class="cl-tag cl-feat">feature</span> | Keyboard shortcuts — 1-4 for answers, Enter to submit, H for hints |
-| <span class="cl-tag cl-feat">feature</span> | Shareable decks with unique codes |
-| <span class="cl-tag cl-feat">feature</span> | Text-to-speech for questions and explanations |
-| <span class="cl-tag cl-feat">feature</span> | Data export as JSON or CSV |
-| <span class="cl-tag cl-feat">feature</span> | Advanced analytics — weekly trends, hardest/strongest topics, activity heatmap |
-| <span class="cl-tag cl-feat">feature</span> | Microsoft Learn documentation search integration |
-| <span class="cl-tag cl-feat">feature</span> | Session persistence — save and resume interrupted sessions |
-| <span class="cl-tag cl-feat">feature</span> | Achievement toast notifications with celebratory animation |
-| <span class="cl-tag cl-feat">feature</span> | Session summary — question-by-question breakdown on results page |
-| <span class="cl-tag cl-feat">feature</span> | Content quality scoring — warns when source page has limited content |
-| <span class="cl-tag cl-feat">feature</span> | User friction telemetry — tracks hesitation and answer timing |
-| <span class="cl-tag cl-feat">feature</span> | Anonymous-first flow — study without signing in, prompted after first session |
-| <span class="cl-tag cl-feat">feature</span> | Question quality feedback — flag confusing or incorrect questions |
-| <span class="cl-tag cl-feat">feature</span> | Profile page — achievements gallery, cert readiness, weakness reports, streak/XP display |
-| <span class="cl-tag cl-feat">feature</span> | Cross-document synthesis — generate questions spanning multiple pages |
-| <span class="cl-tag cl-feat">feature</span> | Knowledge decay modeling — estimates retention and surfaces stale topics |
-| <span class="cl-tag cl-feat">feature</span> | Adaptive difficulty — adjusts based on per-difficulty accuracy history |
-| <span class="cl-tag cl-fix">fix</span> | Robust answer resolution — handles letter, text, index, and partial match from AI responses |
-| <span class="cl-tag cl-fix">fix</span> | Module exports moved to end of db.js to resolve constant hoisting error |
-| <span class="cl-tag cl-fix">fix</span> | Learning path links auto-populate URL and start generating cards |
-| <span class="cl-tag cl-infra">infra</span> | Test suite with Jest — health, auth, protected endpoints, proxy coverage |
-| <span class="cl-tag cl-infra">infra</span> | Rate limiting on AI endpoints and general API |
-| <span class="cl-tag cl-infra">infra</span> | In-memory response caching with TTL for expensive queries |
-| <span class="cl-tag cl-design">design</span> | Settings page — 8 color themes, font size preference, study goals, daily challenge |
-| <span class="cl-tag cl-design">design</span> | Leaderboard page with tier badges and XP rankings |
+| <span class="cl-tag cl-feat">feature</span> | Added spaced repetition with the SM-2 algorithm, review page, and due card scheduling. |
+| <span class="cl-tag cl-feat">feature</span> | Added 29 unlockable badges across milestones, streaks, performance, knowledge, and XP tiers. |
+| <span class="cl-tag cl-feat">feature</span> | Added Socratic Mode conversational AI coaching with guided dialogue. |
+| <span class="cl-tag cl-feat">feature</span> | Added AI-powered weakness reports analyzing wrong-answer patterns. |
+| <span class="cl-tag cl-feat">feature</span> | Added AI certification readiness assessment and scoring. |
+| <span class="cl-tag cl-feat">feature</span> | Added Teach-Back Mode for user explanations and AI evaluation. |
+| <span class="cl-tag cl-feat">feature</span> | Added multiple question types: true/false, fill-in-the-blank, scenario, and multiple choice. |
+| <span class="cl-tag cl-feat">feature</span> | Added streaks, XP, and tiered leaderboard rankings. |
+| <span class="cl-tag cl-feat">feature</span> | Added daily challenges with themed topics and bonus XP. |
+| <span class="cl-tag cl-feat">feature</span> | Added study goals for weekly and monthly session targets. |
+| <span class="cl-tag cl-feat">feature</span> | Added hints system that removes two wrong answers on demand. |
+| <span class="cl-tag cl-feat">feature</span> | Added timed mode for exam-style countdown practice. |
+| <span class="cl-tag cl-feat">feature</span> | Added keyboard shortcuts and accessibility enhancements. |
+| <span class="cl-tag cl-feat">feature</span> | Added shareable deck links and export to JSON/CSV. |
+| <span class="cl-tag cl-feat">feature</span> | Added advanced analytics, weekly trends, hardest/strongest topics, and activity heatmap. |
+| <span class="cl-tag cl-feat">feature</span> | Added Microsoft Learn search integration. |
+| <span class="cl-tag cl-fix">fix</span> | Made answer scoring robust for letters, text, index, and partial matches from Claude responses. |
+| <span class="cl-tag cl-infra">infra</span> | Added Jest tests for health, auth, protected endpoints, and proxy coverage. |
+| <span class="cl-tag cl-infra">infra</span> | Added rate limiting and in-memory caching for expensive API queries. |
+| <span class="cl-tag cl-design">design</span> | Added settings page with theme controls, font sizing, study goals, and daily challenge settings. |
 
 ---
 
@@ -128,10 +121,10 @@ Design system and UX polish.
 
 | | |
 |---|---|
-| <span class="cl-tag cl-design">design</span> | Noise texture background, gold accent lines, deeper blacks, distinctive card treatments |
-| <span class="cl-tag cl-design">design</span> | Feedback banners, running score counter, loading timer, keyboard hints |
-| <span class="cl-tag cl-design">design</span> | Replaced all emoji icons with Lucide SVG icons for professional iconography |
-| <span class="cl-tag cl-design">design</span> | Auth moved to side nav with avatar icon |
+| <span class="cl-tag cl-design">design</span> | Added a noise texture background, gold accent lines, deeper blacks, and distinctive card treatments. |
+| <span class="cl-tag cl-design">design</span> | Added feedback banners, running score counters, loading timers, and keyboard hints. |
+| <span class="cl-tag cl-design">design</span> | Replaced emoji icons with Lucide SVG iconography. |
+| <span class="cl-tag cl-design">design</span> | Moved auth to the side nav with avatar-style sign-in state. |
 
 ---
 
@@ -141,36 +134,35 @@ Core platform with AI generation, auth, and score tracking.
 
 | | |
 |---|---|
-| <span class="cl-tag cl-feat">feature</span> | AI-powered flash card generation from any Microsoft Learn URL |
-| <span class="cl-tag cl-feat">feature</span> | User authentication — email/password signup and login with JWT sessions |
-| <span class="cl-tag cl-feat">feature</span> | Score tracking with per-topic statistics |
-| <span class="cl-tag cl-feat">feature</span> | Question deduplication — sends past questions to AI to avoid repeats |
-| <span class="cl-tag cl-feat">feature</span> | Compare page — user performance vs global averages per topic |
-| <span class="cl-tag cl-feat">feature</span> | Score history page with Chart.js visualizations and filter pills |
-| <span class="cl-tag cl-feat">feature</span> | Recent topics quick-access cards |
-| <span class="cl-tag cl-design">design</span> | Dark theme with Pittsburgh black and gold palette |
-| <span class="cl-tag cl-design">design</span> | DM Sans + JetBrains Mono typography |
-| <span class="cl-tag cl-design">design</span> | Slide animations replacing card flip, floating side nav |
-| <span class="cl-tag cl-fix">fix</span> | Flash card generation — replaced dead CORS proxy with server-side fetch |
-| <span class="cl-tag cl-fix">fix</span> | Card navigation — flipped class properly removed between cards |
-| <span class="cl-tag cl-infra">infra</span> | Express server with security middleware and compression |
-| <span class="cl-tag cl-infra">infra</span> | Cookie consent banner with category toggles |
-| <span class="cl-tag cl-infra">infra</span> | Docker and docker-compose configuration |
-| <span class="cl-tag cl-infra">infra</span> | CI/CD pipeline with GitHub Actions |
+| <span class="cl-tag cl-feat">feature</span> | AI-powered flash card generation from Microsoft Learn documentation. |
+| <span class="cl-tag cl-feat">feature</span> | Email/password authentication with JWT sessions. |
+| <span class="cl-tag cl-feat">feature</span> | Score tracking with per-topic stats and history. |
+| <span class="cl-tag cl-feat">feature</span> | Question deduplication by sending past questions to AI. |
+| <span class="cl-tag cl-feat">feature</span> | Compare page for user performance vs. global averages per topic. |
+| <span class="cl-tag cl-feat">feature</span> | Score history page with interactive charts and filter pills. |
+| <span class="cl-tag cl-feat">feature</span> | Recent topics quick access cards. |
+| <span class="cl-tag cl-design">design</span> | Dark theme with Pittsburgh black and gold palette. |
+| <span class="cl-tag cl-design">design</span> | DM Sans and JetBrains Mono typography. |
 
 ---
 
-## v1.0.0 — 2026-04-09
+## Complete PR history
 
-Initial release.
+Below is the complete repository PR history pulled from repo commit summaries.
 
-| | |
-|---|---|
-| <span class="cl-tag cl-feat">feature</span> | Initial implementation — HTML, CSS, and JavaScript flash card application |
-| <span class="cl-tag cl-infra">infra</span> | Repository created with base project structure |
+- P01: Anonymous-first flow — study without signing in, prompt account creation after first session.
+- P02: Question quality feedback — flag confusing, wrong, or irrelevant questions.
+- P03: AI-powered personalized weakness reports using Claude analysis of wrong-answer patterns.
+- P04: AI-powered certification readiness scoring with Claude assessment.
+- P05: Socratic Mode — conversational AI coaching with Claude dialogue.
+- P06: Scenario-based learning — workplace scenarios included in the question mix.
+- P07: Curated learning paths for AZ-900, AI-900, SC-900, MS-900 certifications.
+- P08: Session persistence — save and resume interrupted sessions via local storage.
+- P09: Achievement toast notifications with celebratory animations.
+- P10: Session summary — question-by-question breakdown on the results page.
+- P11: User friction telemetry — track hesitation, abandonment, answer timing.
+- P12: Content quality scoring — warn users when source page content is too shallow.
+- P13-P22: Adaptive learning, retention tracking, teach-back mode, cross-document synthesis, difficulty calibration, search UI, share/export UI.
+- P23-P50: Hints, timed mode, keyboard shortcuts, haptic feedback, daily challenges, study goals, leaderboard tiers, knowledge decay, CI/CD, rate limiting, and caching.
 
 ---
-
-<div align="center">
-<sub>© 2026 JUSTINERICSNYDER.COM — Good Better Best</sub>
-</div>

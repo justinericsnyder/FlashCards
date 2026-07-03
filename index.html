@@ -40,12 +40,18 @@
 <body>
     <div class="container">
         <header>
-            <h1>Microsoft Learn Flash Cards</h1>
-            <p>Transform Microsoft Learn documentation into interactive study sessions</p>
+            <div class="header-top">
+                <div>
+                    <h1>Microsoft Learn Flash Cards</h1>
+                    <p>Transform Microsoft Learn documentation into interactive study sessions</p>
+                </div>
+                <div id="auth-actions" class="auth-actions"></div>
+            </div>
             <a href="/history.html" style="color:rgba(255,255,255,0.8);font-size:0.9rem;text-decoration:none;margin-top:0.5rem;display:inline-block;">📊 View Score History</a>
         </header>
 
         <main>
+            <div id="resume-container" aria-live="polite"></div>
             <section id="setup-section" class="section" role="main" aria-labelledby="setup-heading">
                 <h2 id="setup-heading" class="sr-only">Setup Your Study Session</h2>
 
@@ -60,7 +66,10 @@
                             required
                         >
                         <small id="url-help" class="help-text">
-                            Enter any Microsoft Learn or Microsoft Docs URL to generate flash cards from its content
+                            Enter a supported Microsoft Learn or Microsoft Docs URL to generate flash cards from its content.
+                        </small>
+                        <small class="help-text">
+                            Supported sources: <strong>learn.microsoft.com</strong>, <strong>docs.microsoft.com</strong>, and other Microsoft documentation pages.
                         </small>
                     </div>
 
@@ -87,11 +96,32 @@
                         </div>
                     </div>
 
-                    <button id="generate-cards" class="btn btn-primary" type="submit">
-                        <span class="btn-icon">🚀</span>
-                        Generate Flash Cards
-                    </button>
+                    <div class="button-row">
+                        <button id="generate-cards" class="btn btn-primary" type="submit">
+                            <span class="btn-icon">🚀</span>
+                            Generate Flash Cards
+                        </button>
+                        <button id="demo-session" class="btn btn-secondary" type="button">
+                            Try Demo Session
+                        </button>
+                        <button id="review-due" class="btn btn-secondary" type="button">
+                            Review Due Cards
+                        </button>
+                    </div>
                 </form>
+            </section>
+
+            <section id="review-section" class="section hidden" role="region" aria-labelledby="review-heading">
+                <h2 id="review-heading" class="sr-only">Review Due Cards</h2>
+                <div class="review-summary">
+                    <p id="review-count-text">Checking your review queue...</p>
+                    <div id="review-list" class="review-list"></div>
+                    <div class="review-actions">
+                        <button id="load-review" class="btn btn-primary" type="button">Start Review</button>
+                        <button id="back-to-setup" class="btn btn-secondary" type="button">Back</button>
+                    </div>
+                    <p id="review-empty" class="help-text hidden">No cards are due for review yet. Complete a study session to add cards to your review queue.</p>
+                </div>
             </section>
 
             <section id="loading-section" class="section hidden" role="status" aria-live="polite" aria-labelledby="loading-heading">
@@ -104,6 +134,9 @@
                         <div class="step" data-step="2">Parsing documentation</div>
                         <div class="step" data-step="3">Generating questions</div>
                         <div class="step" data-step="4">Creating answers</div>
+                    </div>
+                    <div class="loading-actions">
+                        <button id="cancel-generation" class="btn btn-secondary" type="button">Cancel</button>
                     </div>
                 </div>
             </section>
@@ -213,7 +246,8 @@
         </main>
 
         <footer class="footer">
-            <p>&copy; 2024 Microsoft Learn Flash Cards. Built with ❤️ for learning.</p>
+            <p class="footer-copy">&copy; 2024 Microsoft Learn Flash Cards. Built with ❤️ for learning.</p>
+            <a href="/CHANGELOG.md" class="btn btn-secondary footer-link">View Changelog</a>
         </footer>
     </div>
 

@@ -20,6 +20,25 @@
 
 ---
 
+## v3.2.0 — 2026-08-15
+
+> Certification catalogue refresh — July 2026 Microsoft Certification Poster
+
+Updated the certification tracker to reflect the latest Microsoft Certification Poster (July 2026). Retired exams removed, new certifications added, and beta/new flags updated for certs that have gone GA.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-feat">feature</span> | Added AZ-802 — Windows Server Administrator Associate (replaces AZ-800/AZ-801) |
+| <span class="cl-tag cl-feat">feature</span> | Added AI-500 — Multi-Agent AI Solutions Expert Certification (Beta) |
+| <span class="cl-tag cl-feat">feature</span> | Added AB-650 — AI Services Administrator Associate (Beta) |
+| <span class="cl-tag cl-feat">feature</span> | AI-901 Azure AI Fundamentals now GA (was beta) — replaces retired AI-900 |
+| <span class="cl-tag cl-feat">feature</span> | AI-103, AI-200, GH-600, AB-620, AB-210, AB-250, AB-410 — promoted from beta to GA |
+| <span class="cl-tag cl-feat">feature</span> | SC-500 Cloud and AI Security Engineer Associate — promoted from beta to GA |
+| <span class="cl-tag cl-fix">fix</span> | Removed retired certifications: AI-900, AZ-204, AZ-800/AZ-801, AI-102, MB-240, MB-280, MB-335, MB-700, PL-500, PL-600, SC-730 |
+| <span class="cl-tag cl-infra">infra</span> | Catalogue source comment updated from June 2026 to July 2026 |
+
+---
+
 ## v3.1.0 — 2026-07-03
 
 > **PR #2** — `feat/cert-tracker-johari-30`

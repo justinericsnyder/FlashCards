@@ -9,167 +9,492 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@1.23.0"></script>
     <style>
-        .changelog-container { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .changelog-container { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
         .back-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-weight: 500; font-size: 0.85rem; opacity: 0.8; }
         .back-link:hover { opacity: 1; }
-        .changelog-date-group { margin-bottom: 1.5rem; }
-        .changelog-date { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border-subtle); font-family: var(--font-mono); }
-        .changelog-entry { display: flex; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border-subtle); }
-        .changelog-entry:last-child { border-bottom: none; }
-        .changelog-tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.15rem 0.45rem; border-radius: 4px; flex-shrink: 0; height: fit-content; margin-top: 0.15rem; }
-        .tag-feature { background: rgba(245,197,24,0.12); color: var(--primary); }
-        .tag-fix { background: rgba(52,211,153,0.12); color: var(--success); }
-        .tag-design { background: rgba(129,140,248,0.12); color: #818cf8; }
-        .tag-infra { background: rgba(148,163,184,0.12); color: var(--text-dim); }
-        .changelog-text { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
-        .changelog-summary { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+
+        /* Header */
+        .changelog-header { margin-bottom: 1.5rem; }
+        .changelog-header h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
+        .changelog-header p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+
+        /* Summary stats */
+        .changelog-summary { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; }
         .summary-stat { text-align: center; }
         .summary-stat .num { font-size: 1.25rem; font-weight: 800; color: var(--primary); font-family: var(--font-mono); }
-        .summary-stat .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+        .summary-stat .label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+        /* Filter controls */
+        .changelog-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; }
+        .changelog-search { flex: 1; min-width: 180px; padding: 0.5rem 0.75rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.8rem; font-family: inherit; outline: none; transition: border-color 0.2s; }
+        .changelog-search:focus { border-color: var(--primary); }
+        .changelog-search::placeholder { color: var(--text-muted); }
+        .filter-chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+        .filter-chip { padding: 0.3rem 0.6rem; border-radius: 20px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.15s; user-select: none; }
+        .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
+        .filter-chip.active { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+
+        /* Version groups */
+        .version-group { margin-bottom: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.2s; }
+        .version-group.collapsed .version-entries { display: none; }
+        .version-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; cursor: pointer; user-select: none; transition: background 0.15s; }
+        .version-header:hover { background: rgba(255,255,255,0.03); }
+        .version-badge { background: var(--primary); color: var(--bg); font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: var(--font-mono); white-space: nowrap; }
+        .version-title { flex: 1; font-size: 0.82rem; font-weight: 600; color: var(--text); }
+        .version-date { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono); }
+        .version-chevron { color: var(--text-muted); transition: transform 0.2s; width: 16px; height: 16px; }
+        .version-group.collapsed .version-chevron { transform: rotate(-90deg); }
+        .version-pr { font-size: 0.65rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 0.1rem 0.4rem; border-radius: 3px; font-family: var(--font-mono); }
+        .version-count { font-size: 0.6rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 0.15rem 0.4rem; border-radius: 10px; }
+
+        /* Entries */
+        .version-entries { border-top: 1px solid var(--border); }
+        .version-description { padding: 0.5rem 1rem; font-size: 0.75rem; color: var(--text-muted); font-style: italic; border-bottom: 1px solid var(--border); }
+        .changelog-entry { display: flex; gap: 0.6rem; padding: 0.55rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.03); align-items: flex-start; transition: background 0.1s; }
+        .changelog-entry:last-child { border-bottom: none; }
+        .changelog-entry:hover { background: rgba(255,255,255,0.02); }
+        .changelog-tag { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.15rem 0.4rem; border-radius: 4px; flex-shrink: 0; margin-top: 0.15rem; white-space: nowrap; }
+        .tag-feature { background: rgba(245,197,24,0.12); color: var(--primary); }
+        .tag-fix { background: rgba(52,211,153,0.12); color: var(--success, #34d399); }
+        .tag-design { background: rgba(129,140,248,0.12); color: #818cf8; }
+        .tag-infra { background: rgba(148,163,184,0.12); color: var(--text-dim); }
+        .tag-docs { background: rgba(14,165,233,0.12); color: #0ea5e9; }
+        .tag-security { background: rgba(248,113,113,0.12); color: #f87171; }
+        .tag-a11y { background: rgba(168,85,247,0.12); color: #a855f7; }
+        .changelog-text { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
+
+        /* Empty state */
+        .changelog-empty { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .changelog-summary { gap: 1rem; justify-content: center; }
+            .changelog-controls { flex-direction: column; }
+            .changelog-search { width: 100%; }
+            .filter-chips { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.25rem; }
+            .version-header { padding: 0.7rem 0.75rem; gap: 0.5rem; }
+            .changelog-entry { padding: 0.45rem 0.75rem; }
+            .version-title { font-size: 0.75rem; }
+        }
     </style>
 </head>
 <body>
     <div class="changelog-container">
-        <a href="/" class="back-link">← Back</a>
-        <header>
+        <a href="/" class="back-link"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> Back</a>
+        <header class="changelog-header">
             <h1><i data-lucide="file-text" style="display:inline;vertical-align:-3px;width:1.2em;height:1.2em;stroke:var(--primary)"></i> Changelog</h1>
-            <p>What's new and improved</p>
+            <p>What's new and improved in Good Better Best</p>
         </header>
+        <div id="changelog-summary"></div>
+        <div id="changelog-controls"></div>
         <div id="changelog-content"></div>
     </div>
     <script>
-        const entries = [
-            // ── April 15, 2026 ──────────────────────────
-            { date: '2026-04-15', tag: 'feature', text: "New hyperscaler themes: Clippy's Revenge (Microsoft blue), Bezos' Smile (AWS orange), Don't Be Evil (Google blue/multicolor)" },
-            { date: '2026-04-15', tag: 'feature', text: "Light mode variants: Clippy's Day Off (Microsoft), Bezos' Grin (AWS), Be Mostly Good (Google)" },
-            { date: '2026-04-15', tag: 'fix', text: 'Theme applyTheme now sets textDim, textMuted, and border-focus CSS vars consistently' },
-            { date: '2026-04-15', tag: 'fix', text: 'Skills Tested modal now extracts exam code from cert page and fetches the actual study guide for detailed sub-skills (60+ skills for AZ-900, 87 for AZ-104, etc.)' },
-            { date: '2026-04-15', tag: 'fix', text: 'Study guide URL derived from exam code (examUid) instead of broken href scraping' },
-
-            // ── April 13, 2026 ──────────────────────────
-            { date: '2026-04-13', tag: 'fix', text: 'Changelog accessible from desktop nav Data popover' },
-            { date: '2026-04-13', tag: 'fix', text: 'Footer spacing consistent with page layout' },
-            { date: '2026-04-13', tag: 'fix', text: 'Recent topics limited to 5 items' },
-            { date: '2026-04-13', tag: 'fix', text: 'Sidebar height constrained to main column — no scrolling' },
-            { date: '2026-04-13', tag: 'infra', text: 'Shared theme.js applies saved theme on all pages instantly' },
-            { date: '2026-04-13', tag: 'design', text: 'Renamed default theme to "Hoist the Cone"' },
-            { date: '2026-04-13', tag: 'feature', text: 'GoPackGo theme: Green Bay Packers-inspired green and gold' },
-            { date: '2026-04-13', tag: 'fix', text: 'Achievement toasts only show for newly earned badges, not all' },
-            { date: '2026-04-13', tag: 'fix', text: 'Mobile hamburger menu now opens correctly' },
-            { date: '2026-04-13', tag: 'design', text: 'Nav revamp: icon-only with hover popovers, grouped items, tooltips — never scrolls' },
-            { date: '2026-04-13', tag: 'infra', text: 'Shared nav.js component injected on all pages' },
-            { date: '2026-04-13', tag: 'design', text: 'Nav dynamically aligns top and left with first content block on each page' },
-            { date: '2026-04-13', tag: 'design', text: 'Two-column layout: main quiz + sidebar for recent topics on desktop' },
-            { date: '2026-04-13', tag: 'design', text: 'Rebranded to "Good Better Best" with custom logo and favicon' },
-            { date: '2026-04-13', tag: 'feature', text: 'Settings page: 9 color themes, font size toggle, study goals, daily challenge, data export' },
-            { date: '2026-04-13', tag: 'feature', text: 'Leaderboard page with Bronze/Silver/Gold/Platinum tiers' },
-            { date: '2026-04-13', tag: 'feature', text: 'Explanation text-to-speech button' },
-            { date: '2026-04-13', tag: 'feature', text: 'Hint system: eliminate two wrong answers' },
-            { date: '2026-04-13', tag: 'feature', text: 'Timed mode: 30/60/90 second timer per card for exam simulation' },
-            { date: '2026-04-13', tag: 'feature', text: 'Keyboard shortcuts modal (press ? to view)' },
-            { date: '2026-04-13', tag: 'feature', text: 'Haptic feedback on mobile for correct/incorrect answers' },
-            { date: '2026-04-13', tag: 'infra', text: 'API rate limiting, server-side response caching, input sanitization' },
-            { date: '2026-04-13', tag: 'infra', text: 'CI/CD pipeline with GitHub Actions' },
-            { date: '2026-04-13', tag: 'fix', text: 'Robust correct answer resolution for all question types from Claude' },
-            { date: '2026-04-13', tag: 'feature', text: 'Adaptive learning: AI adjusts question difficulty based on your performance' },
-            { date: '2026-04-13', tag: 'feature', text: 'Learning retention tracking: compare first vs latest attempts' },
-            { date: '2026-04-13', tag: 'feature', text: 'Teach-Back Mode: explain concepts in your own words, AI evaluates' },
-            { date: '2026-04-13', tag: 'feature', text: 'Cross-document synthesis questions from multiple pages' },
-            { date: '2026-04-13', tag: 'feature', text: 'Microsoft Learn search bar on home page' },
-            { date: '2026-04-13', tag: 'feature', text: 'Share Deck button with unique shareable links' },
-            { date: '2026-04-13', tag: 'feature', text: 'Export study data as JSON or CSV' },
-            { date: '2026-04-13', tag: 'feature', text: 'Daily challenges with themed topics and bonus XP' },
-            { date: '2026-04-13', tag: 'feature', text: 'Study goals: set and track weekly/monthly session targets' },
-            { date: '2026-04-13', tag: 'feature', text: 'Knowledge decay modeling: estimated retention per topic' },
-            { date: '2026-04-13', tag: 'fix', text: 'Service worker switched to network-first caching' },
-
-            // ── April 12, 2026 ──────────────────────────
-            { date: '2026-04-12', tag: 'feature', text: '29 unlockable achievement badges across 6 categories' },
-            { date: '2026-04-12', tag: 'feature', text: 'Profile page: achievements gallery, certification readiness, AI weakness reports' },
-            { date: '2026-04-12', tag: 'feature', text: 'Content quality scoring: warns when source page has limited content' },
-            { date: '2026-04-12', tag: 'fix', text: 'Learning path links auto-populate URL and start generating' },
-            { date: '2026-04-12', tag: 'feature', text: 'User friction telemetry: track hesitation, abandonment, answer timing' },
-            { date: '2026-04-12', tag: 'feature', text: 'Session summary: question-by-question breakdown on results page' },
-            { date: '2026-04-12', tag: 'feature', text: 'Achievement toast notifications with gold-glow animation' },
-            { date: '2026-04-12', tag: 'feature', text: 'Session persistence: save and resume interrupted sessions' },
-            { date: '2026-04-12', tag: 'feature', text: 'Curated learning paths for AZ-900, AI-900, SC-900, MS-900' },
-            { date: '2026-04-12', tag: 'feature', text: 'Scenario-based questions: realistic workplace problem-solving' },
-            { date: '2026-04-12', tag: 'feature', text: 'Socratic Mode: conversational AI coaching with Claude' },
-            { date: '2026-04-12', tag: 'feature', text: 'AI-powered certification readiness score' },
-            { date: '2026-04-12', tag: 'feature', text: 'AI-powered personalized weakness reports' },
-            { date: '2026-04-12', tag: 'feature', text: 'Question quality feedback: flag confusing or wrong questions' },
-            { date: '2026-04-12', tag: 'feature', text: 'Anonymous-first flow: study without signing in' },
-            { date: '2026-04-12', tag: 'feature', text: 'Public changelog page' },
-            { date: '2026-04-12', tag: 'infra', text: 'Jest test suite: 12 automated tests' },
-            { date: '2026-04-12', tag: 'feature', text: 'Microsoft Learn documentation search API' },
-            { date: '2026-04-12', tag: 'feature', text: 'Advanced analytics: weekly trends, hardest/strongest topics, activity heatmap' },
-            { date: '2026-04-12', tag: 'feature', text: 'Text-to-speech for questions using Web Speech API' },
-            { date: '2026-04-12', tag: 'feature', text: 'Shareable decks with unique codes' },
-            { date: '2026-04-12', tag: 'feature', text: 'Offline mode with service worker caching' },
-            { date: '2026-04-12', tag: 'feature', text: 'Gamification: streaks, XP, achievement badges, leaderboard' },
-            { date: '2026-04-12', tag: 'feature', text: 'Multiple question types: true/false, fill-in-the-blank, scenario, multiple choice' },
-            { date: '2026-04-12', tag: 'feature', text: 'Spaced repetition with SM-2 algorithm and dedicated review page' },
-
-            // ── April 10, 2026 ──────────────────────────
-            { date: '2026-04-10', tag: 'design', text: 'Lucide SVG icons replace all emoji for professional iconography' },
-            { date: '2026-04-10', tag: 'design', text: 'UX overhaul: feedback banners, running score, loading timer, keyboard hints' },
-            { date: '2026-04-10', tag: 'design', text: 'Design overhaul: noise texture, gold accents, deeper blacks, distinctive cards' },
-            { date: '2026-04-10', tag: 'design', text: 'Auth moved to side nav with avatar display' },
-
-            // ── April 9, 2026 ───────────────────────────
-            { date: '2026-04-09', tag: 'design', text: 'Pittsburgh black and gold dark theme' },
-            { date: '2026-04-09', tag: 'feature', text: 'User authentication: signup, login, JWT sessions, user-scoped data' },
-            { date: '2026-04-09', tag: 'feature', text: 'Recent topics quick-access cards on home page' },
-            { date: '2026-04-09', tag: 'design', text: 'Chart.js font improvements and filter pills on history page' },
-            { date: '2026-04-09', tag: 'fix', text: 'Must answer before proceeding — no skipping questions' },
-            { date: '2026-04-09', tag: 'design', text: 'Slide animations replace card flip, floating side nav, mobile bottom bar' },
-            { date: '2026-04-09', tag: 'feature', text: 'AI model disclaimer in footer for transparency' },
-            { date: '2026-04-09', tag: 'feature', text: 'Compare page: your performance vs all users per topic' },
-            { date: '2026-04-09', tag: 'feature', text: 'Smart question deduplication via Claude' },
-            { date: '2026-04-09', tag: 'design', text: 'DM Sans + JetBrains Mono fonts' },
-            { date: '2026-04-09', tag: 'feature', text: 'Individual question answer logging with per-topic stats' },
-            { date: '2026-04-09', tag: 'feature', text: 'Cookie consent banner with granular category controls' },
-            { date: '2026-04-09', tag: 'design', text: 'Dark theme with compact layout' },
-            { date: '2026-04-09', tag: 'feature', text: 'AI-powered flash card generation using Claude' },
-            { date: '2026-04-09', tag: 'feature', text: 'Score tracking and history page with charts' },
-            { date: '2026-04-09', tag: 'infra', text: 'Deployed to Vercel (frontend) + Railway (API + PostgreSQL)' },
-            { date: '2026-04-09', tag: 'fix', text: 'Replaced dead CORS proxy with server-side fetch, fixed card navigation' },
-            { date: '2026-04-09', tag: 'infra', text: 'Initial release: flash card generation from Microsoft Learn documentation' },
+        const releases = [
+            {
+                version: 'v3.2.0',
+                date: '2026-08-15',
+                pr: null,
+                branch: 'main',
+                description: 'Certification catalogue refresh — July 2026 Microsoft Certification Poster.',
+                entries: [
+                    { tag: 'feature', text: 'Added AZ-802 — Windows Server Administrator Associate (replaces AZ-800/AZ-801)' },
+                    { tag: 'feature', text: 'Added AI-500 — Multi-Agent AI Solutions Expert Certification (Beta)' },
+                    { tag: 'feature', text: 'Added AB-650 — AI Services Administrator Associate (Beta)' },
+                    { tag: 'feature', text: 'AI-901 Azure AI Fundamentals now GA (was beta) — replaces retired AI-900' },
+                    { tag: 'feature', text: 'AI-103, AI-200, GH-600, AB-620, AB-210, AB-250, AB-410 — promoted from beta to GA' },
+                    { tag: 'feature', text: 'SC-500 Cloud and AI Security Engineer Associate — promoted from beta to GA' },
+                    { tag: 'fix', text: 'Removed retired certifications: AI-900, AZ-204, AZ-800/AZ-801, AI-102, MB-240, MB-280, MB-335, MB-700, PL-500, PL-600, SC-730' },
+                    { tag: 'infra', text: 'Catalogue source comment updated from June 2026 to July 2026' },
+                ]
+            },
+            {
+                version: 'v3.1.0',
+                date: '2026-07-03',
+                pr: 'PR #2',
+                branch: 'feat/cert-tracker-johari-30',
+                description: '30 Johari-framework improvements — architecture, accessibility, capability surfacing, risk mitigation.',
+                entries: [
+                    { tag: 'infra', text: 'Extracted certification catalogue to certs-data.js (data/view split) with CATALOGUE_UPDATED freshness date' },
+                    { tag: 'infra', text: 'Extracted pure logic to cert-logic.js — slugify, date helpers, legacy migration, non-destructive merge, metrics math' },
+                    { tag: 'infra', text: '21 unit tests for cert-logic module (tests/cert-logic.test.js)' },
+                    { tag: 'design', text: 'Debounced search with "no results" empty state' },
+                    { tag: 'design', text: 'Persisted UI state + shareable URL (filters, search, scroll position)' },
+                    { tag: 'design', text: 'Incremental single-card render — no full rebuild on status change' },
+                    { tag: 'design', text: 'Undoable reset toast — undo accidental progress wipes' },
+                    { tag: 'design', text: 'Sync status chip showing last-sync time' },
+                    { tag: 'design', text: 'Accessible progress bars with ARIA labels' },
+                    { tag: 'a11y', text: 'Focus restored after every interaction' },
+                    { tag: 'a11y', text: 'aria-live announcements for dynamic content changes' },
+                    { tag: 'a11y', text: 'Clearer assistive-tech semantics throughout tracker' },
+                    { tag: 'a11y', text: 'Higher-contrast inactive chips and hover affordance' },
+                    { tag: 'a11y', text: 'Larger touch targets for mobile interaction' },
+                    { tag: 'feature', text: 'Status legend for Targeting / Awaiting states' },
+                    { tag: 'feature', text: 'Guest → account migration notice' },
+                    { tag: 'feature', text: 'ETA-model tooltip with estimated completion timeline' },
+                    { tag: 'feature', text: 'Catalogue-freshness badge showing data recency' },
+                    { tag: 'feature', text: '"Not yet earnable" copy for upcoming certifications' },
+                    { tag: 'fix', text: 'Non-destructive merge that never silently drops earned progress' },
+                    { tag: 'security', text: 'keepalive + pagehide sync flush — no lost writes on tab close' },
+                    { tag: 'security', text: 'Pinned Lucide to 1.23.0 with SRI hashes (was @latest)' },
+                    { tag: 'feature', text: 'PWA manifest and service-worker registration for offline tracker' },
+                    { tag: 'feature', text: 'CSV/JSON export of certification progress data' },
+                    { tag: 'feature', text: 'Local, privacy-respecting usage counters' },
+                ]
+            },
+            {
+                version: 'v3.0.0',
+                date: '2026-07-03',
+                pr: 'PR #1',
+                branch: 'feat/auth-and-review-sessions',
+                description: 'User auth hardening, spaced-repetition review sessions, and hardened backend.',
+                entries: [
+                    { tag: 'feature', text: 'localStorage-backed auth — login/signup modal, token validation on load, automatic 401 handling' },
+                    { tag: 'feature', text: '"Review Due" spaced-repetition sessions with guest demo flow' },
+                    { tag: 'feature', text: 'Per-user question logging on each answer' },
+                    { tag: 'feature', text: 'Cancelable card generation — abort mid-stream AI requests' },
+                    { tag: 'infra', text: 'config.js — env-driven configuration with production JWT guard' },
+                    { tag: 'infra', text: 'logger.js — structured logging with Pino' },
+                    { tag: 'infra', text: 'validators.js — Joi request validation schemas' },
+                ]
+            },
+            {
+                version: 'v2.8.0',
+                date: '2026-06-23',
+                pr: 'PR #1',
+                branch: 'feat/auth-and-review-sessions',
+                description: 'Credential tracker expansion — Applied Skills, level filters, statuses, per-user sync.',
+                entries: [
+                    { tag: 'feature', text: 'Applied Skills mode — switch between Certifications and Applied Skills views (38 items)' },
+                    { tag: 'feature', text: 'Level filter chips — rescope rendered list and all metrics per family' },
+                    { tag: 'feature', text: 'Per-item statuses — Targeting, Taken (awaiting results), and Earned with mutually exclusive states' },
+                    { tag: 'feature', text: 'Per-user persistence — namespaced localStorage with legacy/guest migration' },
+                    { tag: 'feature', text: 'Server sync — new cert_progress table (JSONB) with auth-protected GET/PUT endpoints' },
+                    { tag: 'feature', text: 'Server-wins merge on load with debounced push on change' },
+                    { tag: 'design', text: 'Certification tracker palette follows active app theme' },
+                    { tag: 'design', text: 'Exam-code chip inverts for legibility on light and dark themes' },
+                    { tag: 'design', text: 'Category accents (Cloud/AI/Security) kept fixed as poster identity' },
+                    { tag: 'infra', text: 'Fixed stale app-name test — restores CI to green (12/12)' },
+                    { tag: 'infra', text: 'Removed broken GitHub Pages deploy workflow (redundant with Vercel + Railway)' },
+                ]
+            },
+            {
+                version: 'v2.7.0',
+                date: '2026-06-23',
+                pr: 'PR #1',
+                branch: 'feat/auth-and-review-sessions',
+                description: 'Fluent 2 certification tracker — the initial page build.',
+                entries: [
+                    { tag: 'feature', text: '/certifications.html — Microsoft & GitHub certification progress tracker in Fluent 2 design' },
+                    { tag: 'feature', text: 'All 64 certifications across Cloud & AI, AI Business Solutions, and Security columns' },
+                    { tag: 'feature', text: 'Click-to-earn with green earned-state and editable date picker' },
+                    { tag: 'feature', text: 'Top metrics — overall %, earned/remaining, velocity (certs/mo), recent activity, estimated finish' },
+                    { tag: 'feature', text: 'Per-category completion % with progress bars' },
+                    { tag: 'feature', text: 'Search and hide-completed filters with reset control' },
+                    { tag: 'feature', text: 'Beta/New/Expert/Prereq badges and Microsoft Learn deep links' },
+                    { tag: 'design', text: 'Wired into Learn popover and mobile More menu via nav.js' },
+                ]
+            },
+            {
+                version: 'v2.6.0',
+                date: '2026-04-19',
+                pr: null,
+                branch: 'main',
+                description: 'Documentation and architecture diagrams.',
+                entries: [
+                    { tag: 'docs', text: '7 Mermaid architecture diagrams — system overview, user flow, AI integration, ER data model, SM-2 state machine, gamification pipeline, page map, deployment' },
+                    { tag: 'security', text: 'Hardened README — removed endpoint maps, database schema details, package versions, and deployment specifics' },
+                    { tag: 'docs', text: 'Comprehensive README rewrite with technical architecture overview, services table, and tech stack summary' },
+                    { tag: 'docs', text: 'Portfolio-ready CHANGELOG.md with versioned entries, dark-mode styling, and professional tags' },
+                ]
+            },
+            {
+                version: 'v2.5.0',
+                date: '2026-04-15',
+                pr: null,
+                branch: 'main',
+                description: 'Certification skills extraction, hyperscaler themes, mobile hardening.',
+                entries: [
+                    { tag: 'feature', text: 'Skills Tested modal — extracts exam code from cert pages and fetches study guides for detailed competency lists (60–90 skills per certification)' },
+                    { tag: 'feature', text: 'Study settings modal on Learning Paths — choose card count, difficulty, and timer before starting' },
+                    { tag: 'feature', text: 'Applied Skills included in certification catalog from Microsoft Catalog API (37+ items) with type filter' },
+                    { tag: 'feature', text: '6 new color themes — dark and light variants for each major cloud hyperscaler' },
+                    { tag: 'fix', text: 'Study guide URL derived from exam code pattern instead of broken href scraping' },
+                    { tag: 'fix', text: 'Sidebar max-height constraint removed — recent topics no longer clipped on desktop' },
+                    { tag: 'fix', text: 'Mobile responsive — force single-column controls, px font sizes, comprehensive stacking' },
+                    { tag: 'fix', text: 'Extreme narrow support down to 240px — min-width:0 on all flex children' },
+                    { tag: 'fix', text: 'Recent topics grid forced to single column, overflow hidden on mobile' },
+                    { tag: 'fix', text: 'Service worker auto-updates and reloads clients on mobile without manual refresh' },
+                    { tag: 'fix', text: 'Mobile portrait layout — tighter padding, word-break, overflow fixes' },
+                ]
+            },
+            {
+                version: 'v2.4.0',
+                date: '2026-04-13',
+                pr: null,
+                branch: 'main',
+                description: 'Navigation overhaul, branding, dynamic certification catalog.',
+                entries: [
+                    { tag: 'feature', text: 'Dynamic certification catalog — fetches full Microsoft Learn Catalog API with filtering by area, level, and type' },
+                    { tag: 'feature', text: 'Certification goal system — users set a target cert for personalized readiness scoring' },
+                    { tag: 'design', text: 'App rebranded to "Good Better Best" with custom SVG logo and favicon' },
+                    { tag: 'design', text: 'Icon-only sidebar navigation with hover popovers, grouped into Learn and Data categories' },
+                    { tag: 'design', text: 'Shared nav component injected on all pages — consistent navigation everywhere' },
+                    { tag: 'design', text: 'Mobile navigation — 4 primary tabs with slide-up More menu for secondary pages' },
+                    { tag: 'design', text: 'Two-column desktop layout — sidebar for recent topics, nav pinned to content edge' },
+                    { tag: 'design', text: 'Added "GoPackGo" theme, renamed default to "Hoist the Cone"' },
+                    { tag: 'fix', text: 'Achievement toasts only fire for newly earned badges, not all existing ones' },
+                    { tag: 'fix', text: 'Nav popover hover bridge — invisible padding gap so mouse can travel to submenu' },
+                    { tag: 'fix', text: 'Theme persistence across all pages via shared early-load theme script' },
+                    { tag: 'fix', text: 'Changelog rebuilt with 80+ accurate entries, sorted newest-first' },
+                    { tag: 'fix', text: 'Recent topics limited to 5, footer spacing normalized' },
+                    { tag: 'infra', text: 'Service worker switched to network-first caching to prevent stale UI' },
+                    { tag: 'infra', text: 'CI builds fixed — test mode skips server.listen' },
+                ]
+            },
+            {
+                version: 'v2.3.0',
+                date: '2026-04-12',
+                pr: null,
+                branch: 'main',
+                description: 'Gamification, AI coaching, spaced repetition, and 50 prioritized improvements.',
+                entries: [
+                    { tag: 'feature', text: 'Spaced repetition with SM-2 algorithm — review page, due cards banner, quality-based scheduling' },
+                    { tag: 'feature', text: '29 unlockable badges across 6 categories — milestones, streaks, performance, knowledge, features, XP tiers' },
+                    { tag: 'feature', text: 'Socratic Mode — conversational AI coaching with guided dialogue' },
+                    { tag: 'feature', text: 'AI-powered weakness reports — analyzes wrong-answer patterns for personalized study plans' },
+                    { tag: 'feature', text: 'AI-powered certification readiness scoring with targeted assessment' },
+                    { tag: 'feature', text: 'Teach-back mode — users explain concepts, AI evaluates understanding' },
+                    { tag: 'feature', text: 'Multiple question types — true/false, fill-in-the-blank, scenario-based, multiple choice' },
+                    { tag: 'feature', text: 'Streaks, XP system, and tiered leaderboard (Bronze/Silver/Gold/Platinum)' },
+                    { tag: 'feature', text: 'Daily challenges with themed topics and bonus XP' },
+                    { tag: 'feature', text: 'Study goals — weekly and monthly session targets' },
+                    { tag: 'feature', text: 'Hints system — eliminates two wrong answers on demand' },
+                    { tag: 'feature', text: 'Timed mode — optional countdown timer for exam simulation' },
+                    { tag: 'feature', text: 'Keyboard shortcuts — 1-4 for answers, Enter to submit, H for hints' },
+                    { tag: 'feature', text: 'Shareable decks with unique codes' },
+                    { tag: 'feature', text: 'Text-to-speech for questions and explanations' },
+                    { tag: 'feature', text: 'Data export as JSON or CSV' },
+                    { tag: 'feature', text: 'Advanced analytics — weekly trends, hardest/strongest topics, activity heatmap' },
+                    { tag: 'feature', text: 'Microsoft Learn documentation search integration' },
+                    { tag: 'feature', text: 'Session persistence — save and resume interrupted sessions' },
+                    { tag: 'feature', text: 'Achievement toast notifications with celebratory animation' },
+                    { tag: 'feature', text: 'Session summary — question-by-question breakdown on results page' },
+                    { tag: 'feature', text: 'Content quality scoring — warns when source page has limited content' },
+                    { tag: 'feature', text: 'User friction telemetry — tracks hesitation and answer timing' },
+                    { tag: 'feature', text: 'Anonymous-first flow — study without signing in, prompted after first session' },
+                    { tag: 'feature', text: 'Question quality feedback — flag confusing or incorrect questions' },
+                    { tag: 'feature', text: 'Profile page — achievements gallery, cert readiness, weakness reports, streak/XP display' },
+                    { tag: 'feature', text: 'Cross-document synthesis — generate questions spanning multiple pages' },
+                    { tag: 'feature', text: 'Knowledge decay modeling — estimates retention and surfaces stale topics' },
+                    { tag: 'feature', text: 'Adaptive difficulty — adjusts based on per-difficulty accuracy history' },
+                    { tag: 'fix', text: 'Robust answer resolution — handles letter, text, index, and partial match from AI responses' },
+                    { tag: 'fix', text: 'Module exports moved to end of db.js to resolve constant hoisting error' },
+                    { tag: 'fix', text: 'Learning path links auto-populate URL and start generating cards' },
+                    { tag: 'infra', text: 'Test suite with Jest — health, auth, protected endpoints, proxy coverage' },
+                    { tag: 'infra', text: 'Rate limiting on AI endpoints and general API' },
+                    { tag: 'infra', text: 'In-memory response caching with TTL for expensive queries' },
+                    { tag: 'design', text: 'Settings page — 8 color themes, font size preference, study goals, daily challenge' },
+                    { tag: 'design', text: 'Leaderboard page with tier badges and XP rankings' },
+                ]
+            },
+            {
+                version: 'v2.2.0',
+                date: '2026-04-10',
+                pr: null,
+                branch: 'main',
+                description: 'Design system and UX polish.',
+                entries: [
+                    { tag: 'design', text: 'Noise texture background, gold accent lines, deeper blacks, distinctive card treatments' },
+                    { tag: 'design', text: 'Feedback banners, running score counter, loading timer, keyboard hints' },
+                    { tag: 'design', text: 'Replaced all emoji icons with Lucide SVG icons for professional iconography' },
+                    { tag: 'design', text: 'Auth moved to side nav with avatar icon' },
+                ]
+            },
+            {
+                version: 'v2.1.0',
+                date: '2026-04-09',
+                pr: null,
+                branch: 'main',
+                description: 'Core platform with AI generation, auth, and score tracking.',
+                entries: [
+                    { tag: 'feature', text: 'AI-powered flash card generation from any Microsoft Learn URL' },
+                    { tag: 'feature', text: 'User authentication — email/password signup and login with JWT sessions' },
+                    { tag: 'feature', text: 'Score tracking with per-topic statistics' },
+                    { tag: 'feature', text: 'Question deduplication — sends past questions to AI to avoid repeats' },
+                    { tag: 'feature', text: 'Compare page — user performance vs global averages per topic' },
+                    { tag: 'feature', text: 'Score history page with Chart.js visualizations and filter pills' },
+                    { tag: 'feature', text: 'Recent topics quick-access cards' },
+                    { tag: 'design', text: 'Dark theme with Pittsburgh black and gold palette' },
+                    { tag: 'design', text: 'DM Sans + JetBrains Mono typography' },
+                    { tag: 'design', text: 'Slide animations replacing card flip, floating side nav' },
+                    { tag: 'fix', text: 'Flash card generation — replaced dead CORS proxy with server-side fetch' },
+                    { tag: 'fix', text: 'Card navigation — flipped class properly removed between cards' },
+                    { tag: 'infra', text: 'Express server with security middleware and compression' },
+                    { tag: 'infra', text: 'Cookie consent banner with category toggles' },
+                    { tag: 'infra', text: 'Docker and docker-compose configuration' },
+                    { tag: 'infra', text: 'CI/CD pipeline with GitHub Actions' },
+                ]
+            },
+            {
+                version: 'v1.0.0',
+                date: '2026-04-09',
+                pr: null,
+                branch: 'main',
+                description: 'Initial release.',
+                entries: [
+                    { tag: 'feature', text: 'Initial implementation — HTML, CSS, and JavaScript flash card application' },
+                    { tag: 'infra', text: 'Repository created with base project structure' },
+                ]
+            },
         ];
 
-        function render() {
-            const container = document.getElementById('changelog-content');
-            const features = entries.filter(e => e.tag === 'feature').length;
-            const fixes = entries.filter(e => e.tag === 'fix').length;
-            const design = entries.filter(e => e.tag === 'design').length;
-            const infra = entries.filter(e => e.tag === 'infra').length;
+        // State
+        let activeFilter = 'all';
+        let searchQuery = '';
+        let collapsedVersions = new Set();
 
-            let html = `<div class="changelog-summary">
-                <div class="summary-stat"><div class="num">${entries.length}</div><div class="label">Updates</div></div>
-                <div class="summary-stat"><div class="num">${features}</div><div class="label">Features</div></div>
-                <div class="summary-stat"><div class="num">${design}</div><div class="label">Design</div></div>
-                <div class="summary-stat"><div class="num">${fixes}</div><div class="label">Fixes</div></div>
-                <div class="summary-stat"><div class="num">${infra}</div><div class="label">Infra</div></div>
-            </div>`;
+        // Tag config
+        const tagConfig = {
+            feature: { cls: 'tag-feature', label: 'feature' },
+            fix: { cls: 'tag-fix', label: 'fix' },
+            design: { cls: 'tag-design', label: 'design' },
+            infra: { cls: 'tag-infra', label: 'infra' },
+            docs: { cls: 'tag-docs', label: 'docs' },
+            security: { cls: 'tag-security', label: 'security' },
+            a11y: { cls: 'tag-a11y', label: 'a11y' },
+        };
 
-            const grouped = {};
-            entries.forEach(e => { if (!grouped[e.date]) grouped[e.date] = []; grouped[e.date].push(e); });
-            const tagCls = { feature: 'tag-feature', fix: 'tag-fix', design: 'tag-design', infra: 'tag-infra' };
-
-            for (const [date, items] of Object.entries(grouped)) {
-                const d = new Date(date + 'T12:00:00');
-                const fmt = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                html += `<div class="changelog-date-group"><div class="changelog-date">${fmt}</div>`;
-                for (const item of items) {
-                    html += `<div class="changelog-entry"><span class="changelog-tag ${tagCls[item.tag] || 'tag-infra'}">${item.tag}</span><div class="changelog-text">${item.text}</div></div>`;
-                }
-                html += '</div>';
-            }
-            container.innerHTML = html;
+        function getAllEntries() {
+            return releases.flatMap(r => r.entries);
         }
-        render();
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr + 'T12:00:00');
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function renderSummary() {
+            const all = getAllEntries();
+            const counts = { total: all.length };
+            Object.keys(tagConfig).forEach(t => { counts[t] = all.filter(e => e.tag === t).length; });
+
+            document.getElementById('changelog-summary').innerHTML = `
+                <div class="changelog-summary">
+                    <div class="summary-stat"><div class="num">${releases.length}</div><div class="label">Releases</div></div>
+                    <div class="summary-stat"><div class="num">${counts.total}</div><div class="label">Changes</div></div>
+                    <div class="summary-stat"><div class="num">${counts.feature}</div><div class="label">Features</div></div>
+                    <div class="summary-stat"><div class="num">${counts.design + (counts.a11y || 0)}</div><div class="label">Design</div></div>
+                    <div class="summary-stat"><div class="num">${counts.fix}</div><div class="label">Fixes</div></div>
+                    <div class="summary-stat"><div class="num">${counts.infra}</div><div class="label">Infra</div></div>
+                </div>`;
+        }
+
+        function renderControls() {
+            const filters = ['all', 'feature', 'fix', 'design', 'a11y', 'infra', 'docs', 'security'];
+            document.getElementById('changelog-controls').innerHTML = `
+                <div class="changelog-controls">
+                    <input type="text" class="changelog-search" placeholder="Search changes..." id="search-input" value="${searchQuery}">
+                    <div class="filter-chips">
+                        ${filters.map(f => `<button class="filter-chip ${activeFilter === f ? 'active' : ''}" data-filter="${f}">${f}</button>`).join('')}
+                    </div>
+                </div>`;
+
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                renderContent();
+            });
+
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    activeFilter = chip.dataset.filter;
+                    renderControls();
+                    renderContent();
+                });
+            });
+        }
+
+        function renderContent() {
+            const container = document.getElementById('changelog-content');
+            let html = '';
+            let visibleReleases = 0;
+
+            for (const release of releases) {
+                let filteredEntries = release.entries;
+
+                // Apply tag filter
+                if (activeFilter !== 'all') {
+                    filteredEntries = filteredEntries.filter(e => e.tag === activeFilter);
+                }
+
+                // Apply search
+                if (searchQuery) {
+                    filteredEntries = filteredEntries.filter(e =>
+                        e.text.toLowerCase().includes(searchQuery) ||
+                        e.tag.toLowerCase().includes(searchQuery)
+                    );
+                }
+
+                if (filteredEntries.length === 0) continue;
+                visibleReleases++;
+
+                const isCollapsed = collapsedVersions.has(release.version);
+                const prBadge = release.pr ? `<span class="version-pr">${release.pr}</span>` : '';
+
+                html += `<div class="version-group ${isCollapsed ? 'collapsed' : ''}" data-version="${release.version}">`;
+                html += `<div class="version-header" data-version="${release.version}">
+                    <span class="version-badge">${release.version}</span>
+                    <span class="version-title">${release.description}</span>
+                    ${prBadge}
+                    <span class="version-count">${filteredEntries.length}</span>
+                    <span class="version-date">${formatDate(release.date)}</span>
+                    <svg class="version-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>`;
+                html += `<div class="version-entries">`;
+
+                for (const entry of filteredEntries) {
+                    const cfg = tagConfig[entry.tag] || tagConfig.infra;
+                    html += `<div class="changelog-entry">
+                        <span class="changelog-tag ${cfg.cls}">${cfg.label}</span>
+                        <div class="changelog-text">${highlightSearch(entry.text)}</div>
+                    </div>`;
+                }
+
+                html += '</div></div>';
+            }
+
+            if (visibleReleases === 0) {
+                html = '<div class="changelog-empty">No changes match your filter.</div>';
+            }
+
+            container.innerHTML = html;
+
+            // Bind collapse/expand
+            document.querySelectorAll('.version-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const version = header.dataset.version;
+                    if (collapsedVersions.has(version)) {
+                        collapsedVersions.delete(version);
+                    } else {
+                        collapsedVersions.add(version);
+                    }
+                    renderContent();
+                });
+            });
+        }
+
+        function highlightSearch(text) {
+            if (!searchQuery) return text;
+            const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<mark style="background:rgba(245,197,24,0.25);color:inherit;border-radius:2px;padding:0 2px">$1</mark>');
+        }
+
+        // Initial render
+        renderSummary();
+        renderControls();
+        renderContent();
     </script>
     <script src="config.js"></script>
     <script src="consent.js"></script>

@@ -7,7 +7,6 @@
 </div>
 
 <style>
-  /* Dark-mode ready — inherits from GitHub's native dark theme */
   .cl-entry { padding: 0.5em 0; border-bottom: 1px solid #30363d; }
   .cl-tag { display: inline-block; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.15em 0.5em; border-radius: 4px; vertical-align: middle; margin-right: 0.3em; }
   .cl-feat { background: rgba(245,197,24,0.15); color: #f5c518; }
@@ -16,23 +15,141 @@
   .cl-infra { background: rgba(148,163,184,0.15); color: #8b949e; }
   .cl-docs { background: rgba(14,165,233,0.15); color: #0ea5e9; }
   .cl-security { background: rgba(248,113,113,0.15); color: #f87171; }
+  .cl-a11y { background: rgba(168,85,247,0.15); color: #a855f7; }
 </style>
 
 ---
 
-## v2.5.0 — 2026-04-19
+## v3.2.0 — 2026-08-15
 
-Documentation and architecture.
+> Certification catalogue refresh — July 2026 Microsoft Certification Poster
+
+Updated the certification tracker to reflect the latest Microsoft Certification Poster (July 2026). Retired exams removed, new certifications added, and beta/new flags updated for certs that have gone GA.
 
 | | |
 |---|---|
-| <span class="cl-tag cl-docs">docs</span> | Added 7 Mermaid architecture diagrams to README — system overview, user flow, AI integration, ER data model, SM-2 state machine, gamification pipeline, page map, deployment |
-| <span class="cl-tag cl-security">security</span> | Hardened README — removed endpoint maps, database schema details, package versions, and deployment specifics to reduce supply chain attack surface |
-| <span class="cl-tag cl-docs">docs</span> | Comprehensive README rewrite with technical architecture overview, services table, and tech stack summary |
+| <span class="cl-tag cl-feat">feature</span> | Added AZ-802 — Windows Server Administrator Associate (replaces AZ-800/AZ-801) |
+| <span class="cl-tag cl-feat">feature</span> | Added AI-500 — Multi-Agent AI Solutions Expert Certification (Beta) |
+| <span class="cl-tag cl-feat">feature</span> | Added AB-650 — AI Services Administrator Associate (Beta) |
+| <span class="cl-tag cl-feat">feature</span> | AI-901 Azure AI Fundamentals now GA (was beta) — replaces retired AI-900 |
+| <span class="cl-tag cl-feat">feature</span> | AI-103, AI-200, GH-600, AB-620, AB-210, AB-250, AB-410 — promoted from beta to GA |
+| <span class="cl-tag cl-feat">feature</span> | SC-500 Cloud and AI Security Engineer Associate — promoted from beta to GA |
+| <span class="cl-tag cl-fix">fix</span> | Removed retired certifications: AI-900, AZ-204, AZ-800/AZ-801, AI-102, MB-240, MB-280, MB-335, MB-700, PL-500, PL-600, SC-730 |
+| <span class="cl-tag cl-infra">infra</span> | Catalogue source comment updated from June 2026 to July 2026 |
 
 ---
 
-## v2.4.0 — 2026-04-15
+## v3.1.0 — 2026-07-03
+
+> **PR #2** — `feat/cert-tracker-johari-30`
+
+30 Johari-framework improvements to the credential tracker — architecture extraction, accessibility, hidden capability surfacing, and latent risk mitigation.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-infra">infra</span> | Extracted certification catalogue to `certs-data.js` (data/view split) with `CATALOGUE_UPDATED` freshness date |
+| <span class="cl-tag cl-infra">infra</span> | Extracted pure logic to `cert-logic.js` — slugify, date helpers, legacy migration, non-destructive local⇄server merge, metrics math |
+| <span class="cl-tag cl-infra">infra</span> | 21 unit tests for cert-logic module (`tests/cert-logic.test.js`) |
+| <span class="cl-tag cl-design">design</span> | Debounced search with "no results" empty state |
+| <span class="cl-tag cl-design">design</span> | Persisted UI state + shareable URL (filters, search, scroll position) |
+| <span class="cl-tag cl-design">design</span> | Incremental single-card render — no full rebuild on status change |
+| <span class="cl-tag cl-design">design</span> | Undoable reset toast — undo accidental progress wipes |
+| <span class="cl-tag cl-design">design</span> | Sync status chip showing last-sync time |
+| <span class="cl-tag cl-design">design</span> | Accessible progress bars with ARIA labels |
+| <span class="cl-tag cl-a11y">a11y</span> | Focus restored after every interaction |
+| <span class="cl-tag cl-a11y">a11y</span> | `aria-live` announcements for dynamic content changes |
+| <span class="cl-tag cl-a11y">a11y</span> | Clearer assistive-tech semantics throughout tracker |
+| <span class="cl-tag cl-a11y">a11y</span> | Higher-contrast inactive chips and hover affordance |
+| <span class="cl-tag cl-a11y">a11y</span> | Larger touch targets for mobile interaction |
+| <span class="cl-tag cl-feat">feature</span> | Status legend for Targeting / Awaiting states |
+| <span class="cl-tag cl-feat">feature</span> | Guest → account migration notice |
+| <span class="cl-tag cl-feat">feature</span> | ETA-model tooltip with estimated completion timeline |
+| <span class="cl-tag cl-feat">feature</span> | Catalogue-freshness badge showing data recency |
+| <span class="cl-tag cl-feat">feature</span> | "Not yet earnable" copy for upcoming certifications |
+| <span class="cl-tag cl-fix">fix</span> | Non-destructive merge that never silently drops earned progress |
+| <span class="cl-tag cl-security">security</span> | `keepalive` + `pagehide` sync flush — no lost writes on tab close |
+| <span class="cl-tag cl-security">security</span> | Pinned Lucide to `1.23.0` with SRI hashes (was `@latest`) |
+| <span class="cl-tag cl-feat">feature</span> | PWA manifest and service-worker registration for offline tracker |
+| <span class="cl-tag cl-feat">feature</span> | CSV/JSON export of certification progress data |
+| <span class="cl-tag cl-feat">feature</span> | Local, privacy-respecting usage counters |
+
+---
+
+## v3.0.0 — 2026-07-03
+
+> **PR #1** — `feat/auth-and-review-sessions`
+
+User auth hardening, spaced-repetition review sessions, and the new Fluent 2 certification tracker.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-feat">feature</span> | localStorage-backed auth — login/signup modal, token validation on load, automatic 401 handling |
+| <span class="cl-tag cl-feat">feature</span> | "Review Due" spaced-repetition sessions with guest demo flow |
+| <span class="cl-tag cl-feat">feature</span> | Per-user question logging on each answer |
+| <span class="cl-tag cl-feat">feature</span> | Cancelable card generation — abort mid-stream AI requests |
+| <span class="cl-tag cl-infra">infra</span> | `config.js` — env-driven configuration with production JWT guard |
+| <span class="cl-tag cl-infra">infra</span> | `logger.js` — structured logging with Pino |
+| <span class="cl-tag cl-infra">infra</span> | `validators.js` — Joi request validation schemas |
+
+---
+
+## v2.8.0 — 2026-06-23
+
+> **PR #1** — `feat/auth-and-review-sessions`
+
+Credential tracker expansion — Applied Skills, level filters, statuses, and per-user sync.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-feat">feature</span> | Applied Skills mode — switch between Certifications and Applied Skills views (38 items) |
+| <span class="cl-tag cl-feat">feature</span> | Level filter chips — rescope rendered list and all metrics per family |
+| <span class="cl-tag cl-feat">feature</span> | Per-item statuses — Targeting, Taken (awaiting results), and Earned with mutually exclusive states |
+| <span class="cl-tag cl-feat">feature</span> | Per-user persistence — namespaced localStorage with legacy/guest migration |
+| <span class="cl-tag cl-feat">feature</span> | Server sync — new `cert_progress` table (JSONB) with auth-protected GET/PUT endpoints |
+| <span class="cl-tag cl-feat">feature</span> | Server-wins merge on load with debounced push on change |
+| <span class="cl-tag cl-design">design</span> | Certification tracker palette follows active app theme |
+| <span class="cl-tag cl-design">design</span> | Exam-code chip inverts for legibility on light and dark themes |
+| <span class="cl-tag cl-design">design</span> | Category accents (Cloud/AI/Security) kept fixed as poster identity |
+| <span class="cl-tag cl-infra">infra</span> | Fixed stale app-name test — restores CI to green (12/12) |
+| <span class="cl-tag cl-infra">infra</span> | Removed broken GitHub Pages deploy workflow (redundant with Vercel + Railway) |
+
+---
+
+## v2.7.0 — 2026-06-23
+
+> **PR #1** — `feat/auth-and-review-sessions`
+
+Fluent 2 certification tracker — the initial page build.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-feat">feature</span> | `/certifications.html` — Microsoft & GitHub certification progress tracker in Fluent 2 design |
+| <span class="cl-tag cl-feat">feature</span> | All 64 certifications across Cloud & AI, AI Business Solutions, and Security columns |
+| <span class="cl-tag cl-feat">feature</span> | Click-to-earn with green earned-state and editable date picker |
+| <span class="cl-tag cl-feat">feature</span> | Top metrics — overall %, earned/remaining, velocity (certs/mo), recent activity, estimated finish |
+| <span class="cl-tag cl-feat">feature</span> | Per-category completion % with progress bars |
+| <span class="cl-tag cl-feat">feature</span> | Search and hide-completed filters with reset control |
+| <span class="cl-tag cl-feat">feature</span> | Beta/New/Expert/Prereq badges and Microsoft Learn deep links |
+| <span class="cl-tag cl-design">design</span> | Wired into Learn popover and mobile More menu via `nav.js` |
+
+---
+
+## v2.6.0 — 2026-04-19
+
+> Commits on `main`
+
+Documentation and architecture diagrams.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-docs">docs</span> | 7 Mermaid architecture diagrams — system overview, user flow, AI integration, ER data model, SM-2 state machine, gamification pipeline, page map, deployment |
+| <span class="cl-tag cl-security">security</span> | Hardened README — removed endpoint maps, database schema details, package versions, and deployment specifics |
+| <span class="cl-tag cl-docs">docs</span> | Comprehensive README rewrite with technical architecture overview, services table, and tech stack summary |
+| <span class="cl-tag cl-docs">docs</span> | Portfolio-ready CHANGELOG.md with versioned entries, dark-mode styling, and professional tags |
+
+---
+
+## v2.5.0 — 2026-04-15
 
 Certification skills extraction, hyperscaler themes, mobile hardening.
 
@@ -52,7 +169,7 @@ Certification skills extraction, hyperscaler themes, mobile hardening.
 
 ---
 
-## v2.3.0 — 2026-04-13
+## v2.4.0 — 2026-04-13
 
 Navigation overhaul, branding, dynamic certification catalog.
 
@@ -76,7 +193,7 @@ Navigation overhaul, branding, dynamic certification catalog.
 
 ---
 
-## v2.2.0 — 2026-04-12
+## v2.3.0 — 2026-04-12
 
 Gamification, AI coaching, spaced repetition, and 50 prioritized improvements.
 
@@ -122,7 +239,7 @@ Gamification, AI coaching, spaced repetition, and 50 prioritized improvements.
 
 ---
 
-## v2.1.0 — 2026-04-10
+## v2.2.0 — 2026-04-10
 
 Design system and UX polish.
 
@@ -135,7 +252,7 @@ Design system and UX polish.
 
 ---
 
-## v2.0.0 — 2026-04-09
+## v2.1.0 — 2026-04-09
 
 Core platform with AI generation, auth, and score tracking.
 

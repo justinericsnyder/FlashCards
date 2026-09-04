@@ -36,12 +36,12 @@
 
         { code: "AZ-104", title: "Azure Administrator Associate", cat: "cloud", level: "Role-based", provider: "tech" },
         { code: "AZ-802", title: "Windows Server Administrator Associate", cat: "cloud", level: "Role-based", provider: "tech", isNew: true },
-        { code: "AZ-305", title: "Azure Solutions Architect Expert", cat: "cloud", level: "Role-based", provider: "tech", expert: true, prereq: true },
-        { code: "AZ-400", title: "DevOps Engineer Expert", cat: "cloud", level: "Role-based", provider: "tech", expert: true, prereq: true },
+        { code: "AZ-305", title: "Azure Solutions Architect Expert", cat: "cloud", level: "Role-based", provider: "tech", expert: true, prereq: true, prereqs: ["AZ-104"] },
+        { code: "AZ-400", title: "DevOps Engineer Expert", cat: "cloud", level: "Role-based", provider: "tech", expert: true, prereq: true, prereqs: ["AZ-104"] },
         { code: "AZ-700", title: "Azure Network Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
         { code: "AI-103", title: "Azure AI Apps and Agents Developer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
         { code: "AI-200", title: "Azure AI Cloud Developer Associate Certification", cat: "cloud", level: "Role-based", provider: "tech", isNew: true },
-        { code: "AI-500", title: "Multi-Agent AI Solutions Expert Certification (Beta)", cat: "cloud", level: "Role-based", provider: "tech", expert: true, beta: true, isNew: true },
+        { code: "AI-500", title: "Multi-Agent AI Solutions Expert Certification (Beta)", cat: "cloud", level: "Role-based", provider: "tech", expert: true, beta: true, isNew: true, prereqs: ["AI-103", "AI-200"] },
         { code: "AI-300", title: "Machine Learning Operations Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
         { code: "DP-300", title: "Azure Database Administrator Associate", cat: "cloud", level: "Role-based", provider: "tech" },
         { code: "DP-600", title: "Fabric Analytics Engineer Associate", cat: "cloud", level: "Role-based", provider: "tech" },
@@ -64,7 +64,7 @@
         { code: "PL-900", title: "Power Platform Fundamentals", cat: "aibiz", level: "Fundamentals", provider: "tech" },
 
         { code: "MD-102", title: "Endpoint Administrator Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
-        { code: "MS-102", title: "Administrator Expert", cat: "aibiz", level: "Role-based", provider: "tech", expert: true, prereq: true },
+        { code: "MS-102", title: "Administrator Expert", cat: "aibiz", level: "Role-based", provider: "tech", expert: true, prereq: true, prereqs: ["MD-102", "MS-700", "MS-721"] },
         { code: "MS-721", title: "Collaboration Communications Systems Engineer Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
         { code: "MS-700", title: "Teams Administrator Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
         { code: "MB-230", title: "Dynamics 365 Customer Service Functional Consultant Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
@@ -75,7 +75,7 @@
         { code: "MB-820", title: "Dynamics 365 Business Central Developer Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
         { code: "PL-200", title: "Power Platform Functional Consultant Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
         { code: "PL-400", title: "Power Platform Developer Associate", cat: "aibiz", level: "Role-based", provider: "tech" },
-        { code: "AB-100", title: "Agentic AI Business Solutions Architect", cat: "aibiz", level: "Role-based", provider: "business", expert: true, prereq: true, isNew: true },
+        { code: "AB-100", title: "Agentic AI Business Solutions Architect", cat: "aibiz", level: "Role-based", provider: "business", expert: true, prereq: true, isNew: true, prereqs: ["AB-620", "PL-200"] },
         { code: "AB-620", title: "AI Agent Builder Associate", cat: "aibiz", level: "Role-based", provider: "business", isNew: true },
         { code: "AB-650", title: "AI Services Administrator Associate (Beta)", cat: "aibiz", level: "Role-based", provider: "business", beta: true, isNew: true },
         { code: "AB-210", title: "Dynamics 365 Sales AI Consultant Associate", cat: "aibiz", level: "Role-based", provider: "business", isNew: true },
@@ -91,7 +91,7 @@
         { code: "AZ-500", title: "Azure Security Engineer Associate", cat: "security", level: "Role-based", provider: "tech" },
         { code: "SC-401", title: "Information Security Administrator Associate", cat: "security", level: "Role-based", provider: "tech" },
         { code: "SC-500", title: "Cloud and AI Security Engineer Associate Certification", cat: "security", level: "Role-based", provider: "tech", isNew: true },
-        { code: "SC-100", title: "Cybersecurity Architect Expert", cat: "security", level: "Role-based", provider: "tech", expert: true, prereq: true },
+        { code: "SC-100", title: "Cybersecurity Architect Expert", cat: "security", level: "Role-based", provider: "tech", expert: true, prereq: true, prereqs: ["AZ-500", "SC-200", "SC-300", "SC-401"] },
         { code: "SC-200", title: "Security Operations Analyst Associate", cat: "security", level: "Role-based", provider: "tech" },
         { code: "SC-300", title: "Identity and Access Administrator Associate", cat: "security", level: "Role-based", provider: "tech" },
 
@@ -149,5 +149,22 @@
         { title: "Protect information in Microsoft 365 Copilot by using Microsoft Purview", cat: "security", level: "Intermediate", provider: "tech", comingSoon: true },
     ];
 
-    return { CATALOGUE_UPDATED, CATEGORIES, CERT_LEVELS, APPLIED_LEVELS, CERTS, APPLIED_SKILLS };
+    // Credentials removed from the poster in a catalogue update. Earned progress
+    // for these must stay visible and exportable — a catalogue refresh should
+    // never silently erase something the user achieved (Johari-2 #17).
+    const RETIRED = [
+        { code: "AI-900",          title: "Azure AI Fundamentals", retired: "2026-07" },
+        { code: "AZ-204",          title: "Azure Developer Associate", retired: "2026-07" },
+        { code: "AZ-800 / AZ-801", title: "Windows Server Hybrid Administrator Associate", retired: "2026-07" },
+        { code: "AI-102",          title: "Azure AI Engineer Associate", retired: "2026-07" },
+        { code: "MB-240",          title: "Dynamics 365 Field Service Functional Consultant Associate", retired: "2026-07" },
+        { code: "MB-280",          title: "Dynamics 365 Customer Experience Analyst Associate", retired: "2026-07" },
+        { code: "MB-335",          title: "Dynamics 365: Supply Chain Management Functional Consultant Expert", retired: "2026-07" },
+        { code: "MB-700",          title: "Dynamics 365: Finance and Operations Apps Solution Architect Expert", retired: "2026-07" },
+        { code: "PL-500",          title: "Power Automate RPA Developer Associate", retired: "2026-07" },
+        { code: "PL-600",          title: "Power Platform Solution Architect Expert", retired: "2026-07" },
+        { code: "SC-730",          title: "Cybersecurity Business Professional", retired: "2026-07" },
+    ];
+
+    return { CATALOGUE_UPDATED, CATEGORIES, CERT_LEVELS, APPLIED_LEVELS, CERTS, APPLIED_SKILLS, RETIRED };
 });

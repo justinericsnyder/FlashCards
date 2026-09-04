@@ -41,8 +41,24 @@
         return (b - a) / (1000 * 60 * 60 * 24 * 30.44);
     }
 
-    // Coerce stored progress into the canonical { st, date? } shape.
-    // Accepts the legacy "YYYY-MM-DD" string form and upgrades it to earned.
+    function daysBetween(isoA, isoB) {
+        return Math.round((new Date(isoB) - new Date(isoA)) / (1000 * 60 * 60 * 24));
+    }
+
+    // Calendar-aware "same day next year" (Feb 29 clamps to Feb 28).
+    function addYears(iso, n) {
+        const [y, m, d] = iso.split("-").map(Number);
+        const t = new Date(Date.UTC(y + n, m - 1, d));
+        if (t.getUTCMonth() !== m - 1) t.setUTCDate(0);
+        return t.toISOString().slice(0, 10);
+    }
+
+    // Coerce stored progress into the canonical shape:
+    //   earned       → { st: "earned", date }
+    //   target/await → { st, since }   (since = when the status was set — lets the
+    //                                   UI age statuses and nudge stale ones, #20)
+    // Accepts the legacy "YYYY-MM-DD" string form and upgrades it to earned;
+    // pre-#20 statuses without `since` are stamped with today.
     function normalizeMap(m, today) {
         const t = today || todayISO();
         const out = {};
@@ -52,7 +68,7 @@
             } else if (v && typeof v === "object" && STATUSES.includes(v.st)) {
                 out[k] = v.st === "earned"
                     ? { st: "earned", date: (typeof v.date === "string" && DATE_RE.test(v.date)) ? v.date : t }
-                    : { st: v.st };
+                    : { st: v.st, since: (typeof v.since === "string" && DATE_RE.test(v.since)) ? v.since : t };
             }
         }
         return out;
@@ -64,8 +80,13 @@
     //   - "earned" always beats "target"/"await" (a pass is the strongest signal).
     //   - if both sides are earned, keep the EARLIER date (the true first-earned day).
     //   - otherwise the server value wins, but local-only entries are preserved.
-    // Returns { merged, changedLocally } — changedLocally flags that the merged
-    // result differs from `server`, i.e. there are local additions to push back.
+    // Returns { merged, changedLocally, changedFromLocal }:
+    //   changedLocally   — merged differs from `server` (there's something to push back)
+    //   changedFromLocal — how many entries differ from `local` (what a pull changed
+    //                      on this device — lets the UI say "updated N items", #13)
+    function sameEntry(a, b) {
+        return !!a && !!b && a.st === b.st && a.date === b.date && a.since === b.since;
+    }
     function mergeProgress(local, server) {
         const l = local || {}, s = server || {};
         const merged = {};
@@ -80,20 +101,26 @@
                     merged[k] = a;
                 } else if (b.st === "earned") {
                     merged[k] = b;
+                } else if (a.st === b.st) {
+                    // Same status on both sides — keep the earlier "since" (true start).
+                    const since = (a.since && b.since) ? (a.since <= b.since ? a.since : b.since) : (a.since || b.since);
+                    merged[k] = since ? { st: b.st, since } : { st: b.st };
                 } else {
-                    merged[k] = b; // both non-earned → server wins
+                    merged[k] = b; // both non-earned, different → server wins
                 }
             } else {
                 merged[k] = a || b;
             }
         }
-        // Did we end up with anything the server didn't have (or a better value)?
         let changedLocally = false;
         for (const k of Object.keys(merged)) {
-            const b = s[k], mv = merged[k];
-            if (!b || b.st !== mv.st || b.date !== mv.date) { changedLocally = true; break; }
+            if (!sameEntry(s[k], merged[k])) { changedLocally = true; break; }
         }
-        return { merged, changedLocally };
+        let changedFromLocal = 0;
+        for (const k of Object.keys(merged)) {
+            if (!sameEntry(l[k], merged[k])) changedFromLocal++;
+        }
+        return { merged, changedLocally, changedFromLocal };
     }
 
     // Aggregate the numbers the metric cards show. Pure: pass the scoped items,
@@ -129,5 +156,27 @@
         return { total, earned, targeting, awaiting, remaining, pct, perMonth, last90, last30, etaText, etaMonths };
     }
 
-    return { DATE_RE, STATUSES, slugify, todayISO, fmtDate, monthsBetween, normalizeMap, mergeProgress, computeMetrics };
+    // Annual renewal (#16). Microsoft role-based & specialty certifications expire
+    // one year after they're earned; Fundamentals, Business, and Applied Skills
+    // don't. Returns null when renewal doesn't apply, else { due, daysLeft, state }
+    // where state is "ok" | "due" (renewal window, ≤180 days out) | "overdue".
+    function renewal(item, entry, today) {
+        if (!item || item.applied) return null;
+        if (item.level === "Fundamentals" || item.level === "Business") return null;
+        if (!entry || entry.st !== "earned" || !entry.date) return null;
+        const t = today || todayISO();
+        const due = addYears(entry.date, 1);
+        const daysLeft = daysBetween(t, due);
+        const state = daysLeft < 0 ? "overdue" : daysLeft <= 180 ? "due" : "ok";
+        return { due, daysLeft, state };
+    }
+
+    // How long a target/await status has been sitting, in days (#20). Null when
+    // the entry has no aging timestamp (earned entries, or nothing set).
+    function statusAgeDays(entry, today) {
+        if (!entry || entry.st === "earned" || !entry.since) return null;
+        return Math.max(daysBetween(entry.since, today || todayISO()), 0);
+    }
+
+    return { DATE_RE, STATUSES, slugify, todayISO, fmtDate, monthsBetween, daysBetween, addYears, normalizeMap, mergeProgress, computeMetrics, renewal, statusAgeDays };
 });

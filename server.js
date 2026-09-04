@@ -411,8 +411,8 @@ app.get('/api/cert-progress', authMiddleware, async (req, res) => {
     return res.status(503).json({ error: 'Database not configured' });
   }
   try {
-    const data = await db.getCertProgress(req.userId);
-    res.json({ data: data || {} });
+    const { data, rev } = await db.getCertProgress(req.userId);
+    res.json({ data: data || {}, rev });
   } catch (err) {
     console.error('Get cert progress error:', err.message);
     res.status(500).json({ error: 'Failed to fetch cert progress' });
@@ -426,7 +426,7 @@ app.put('/api/cert-progress', authMiddleware, async (req, res) => {
   try {
     const raw = (req.body && typeof req.body.data === 'object' && req.body.data) || {};
     // Sanitize entries, bounded to avoid abuse. Accepts the status-object shape
-    // { st: 'earned'|'target'|'await', date?: 'YYYY-MM-DD' } and the legacy
+    // { st: 'earned'|'target'|'await', date?, since? } and the legacy
     // date-string shape ("YYYY-MM-DD" => earned), normalizing to the object form.
     const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
     const clean = {};
@@ -438,15 +438,29 @@ app.put('/api/cert-progress', authMiddleware, async (req, res) => {
       if (typeof val === 'string' && DATE_RE.test(val)) {
         entry = { st: 'earned', date: val };
       } else if (val && typeof val === 'object') {
-        if (val.st === 'target' || val.st === 'await') entry = { st: val.st };
-        else if (val.st === 'earned' && typeof val.date === 'string' && DATE_RE.test(val.date)) entry = { st: 'earned', date: val.date };
+        if (val.st === 'target' || val.st === 'await') {
+          entry = { st: val.st };
+          if (typeof val.since === 'string' && DATE_RE.test(val.since)) entry.since = val.since;
+        } else if (val.st === 'earned' && typeof val.date === 'string' && DATE_RE.test(val.date)) {
+          entry = { st: 'earned', date: val.date };
+        }
       }
       if (!entry) continue;
       clean[code] = entry;
       count++;
     }
-    await db.saveCertProgress(req.userId, clean);
-    res.json({ ok: true, data: clean });
+    // Optimistic concurrency: a client that has pulled sends the rev it based
+    // this write on. If the row moved since, reject with the current server
+    // state so the client can merge and retry instead of clobbering it.
+    const baseRev = typeof req.body.baseRev === 'string' ? req.body.baseRev : null;
+    if (baseRev !== null) {
+      const current = await db.getCertProgress(req.userId);
+      if (current.rev && current.rev !== baseRev) {
+        return res.status(409).json({ error: 'Progress changed elsewhere', data: current.data, rev: current.rev });
+      }
+    }
+    const saved = await db.saveCertProgress(req.userId, clean);
+    res.json({ ok: true, data: clean, rev: saved.rev });
   } catch (err) {
     console.error('Save cert progress error:', err.message);
     res.status(500).json({ error: 'Failed to save cert progress' });

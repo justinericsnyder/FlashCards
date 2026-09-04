@@ -312,6 +312,72 @@
         .export-menu button:hover { background: var(--f-surface-2); color: var(--f-text); }
         .export-menu button svg { width: 14px; height: 14px; }
 
+        /* ---- Renewal pill (#16): role-based/specialty certs expire yearly ---- */
+        .renew-pill { font-size: 0.62rem; font-weight: 700; padding: 0.08rem 0.4rem; border-radius: 3px; margin-left: auto; display: inline-flex; align-items: center; gap: 0.25rem; }
+        .renew-pill svg { width: 10px; height: 10px; }
+        .renew-pill.r-ok      { color: var(--f-text-3); background: color-mix(in srgb, var(--f-text-3) 14%, transparent); }
+        .renew-pill.r-due     { color: #d9920a; background: rgba(217,146,10,.16); }
+        .renew-pill.r-overdue { color: #b10e1c; background: rgba(177,14,28,.14); }
+
+        /* Stale "awaiting results" (#20) — results shouldn't take a month */
+        .status-pill.stale { outline: 1px dashed #d9920a; outline-offset: 1px; }
+
+        /* Study link (#19): jump into the flash-card generator with the study guide */
+        .study-link {
+            font-size: 0.62rem; font-weight: 700; color: var(--f-brand); text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.08rem 0.35rem;
+            border: 1px solid color-mix(in srgb, var(--f-brand) 35%, transparent); border-radius: 3px;
+        }
+        .study-link:hover { background: color-mix(in srgb, var(--f-brand) 12%, transparent); }
+        .study-link svg { width: 10px; height: 10px; }
+
+        /* ---- Prereq badge states (#1) ---- */
+        .badge.prereq.met { background: color-mix(in srgb, var(--f-success) 16%, transparent); color: var(--f-success); }
+
+        /* ---- Freshness / catalogue-changes panel (#15) ---- */
+        .fresh-wrap { position: relative; display: inline-flex; }
+        button.chip-badge { cursor: pointer; font-family: var(--f-font); }
+        button.chip-badge:hover { border-color: var(--f-text-3); color: var(--f-text-2); }
+        .fresh-panel {
+            position: absolute; left: 0; top: calc(100% + 6px); z-index: 30; width: min(340px, 84vw);
+            background: var(--f-surface); border: 1px solid var(--f-stroke-2); border-radius: var(--f-radius-lg);
+            box-shadow: var(--f-shadow-8); padding: 0.75rem 0.85rem; font-size: 0.75rem;
+        }
+        .fresh-panel[hidden] { display: none; }
+        .fresh-panel h3 { margin: 0 0 0.35rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--f-text-3); }
+        .fresh-panel h3 + h3, .fresh-panel ul + h3 { margin-top: 0.7rem; }
+        .fresh-panel ul { list-style: none; margin: 0; padding: 0; max-height: 200px; overflow-y: auto; }
+        .fresh-panel li { padding: 0.18rem 0; color: var(--f-text-2); display: flex; gap: 0.4rem; align-items: baseline; }
+        .fresh-panel li .fp-code { font-family: var(--font-mono, monospace); font-size: 0.64rem; font-weight: 700; color: var(--f-text); flex-shrink: 0; }
+
+        /* ---- Insights panel: timeline + local activity (#4, #12) ---- */
+        .insights {
+            background: var(--f-surface); border: 1px solid var(--f-stroke); border-radius: var(--f-radius-lg);
+            box-shadow: var(--f-shadow-2); padding: 1rem 1.15rem; margin-bottom: 1.25rem;
+        }
+        .insights[hidden] { display: none; }
+        .insights h2 { font-size: 0.8rem; margin: 0 0 0.6rem; display: flex; align-items: center; gap: 0.4rem; }
+        .insights h2 svg { width: 15px; height: 15px; color: var(--f-brand); }
+        .tl-month { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; color: var(--f-text-3); margin: 0.6rem 0 0.25rem; }
+        .tl-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.22rem 0; font-size: 0.78rem; }
+        .tl-item .tl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .tl-item .tl-date { font-family: var(--font-mono, monospace); font-size: 0.66rem; color: var(--f-text-3); margin-left: auto; flex-shrink: 0; }
+        .tl-empty { color: var(--f-text-3); font-size: 0.78rem; }
+        .act-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .act-chips .ac { font-size: 0.68rem; font-weight: 600; color: var(--f-text-2); background: var(--f-surface-2); border: 1px solid var(--f-stroke); padding: 0.18rem 0.5rem; border-radius: 99px; }
+        .act-chips .ac b { color: var(--f-text); font-variant-numeric: tabular-nums; }
+        .insights .ins-note { font-size: 0.66rem; color: var(--f-text-3); margin-top: 0.5rem; }
+
+        /* ---- Retired credentials you earned (#17) ---- */
+        .retired-sec { margin-top: 1.5rem; border: 1px dashed var(--f-stroke-2); border-radius: var(--f-radius-lg); padding: 0.9rem 1.1rem; }
+        .retired-sec[hidden] { display: none; }
+        .retired-sec h2 { font-size: 0.8rem; margin: 0 0 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+        .retired-sec h2 svg { width: 15px; height: 15px; color: var(--f-text-3); }
+        .retired-sec .rs-sub { font-size: 0.72rem; color: var(--f-text-3); margin: 0 0 0.5rem; }
+        .retired-sec .rs-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0; font-size: 0.78rem; color: var(--f-text-2); }
+        .retired-sec .rs-item .c-code { font-size: 0.62rem; }
+        .retired-sec .rs-item .rs-date { margin-left: auto; font-size: 0.68rem; color: var(--f-success); font-weight: 600; }
+
         /* ---- Toast (undoable reset, migration notice) ---- */
         .toast-host { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
         .toast {
@@ -350,20 +416,28 @@
                 <h1><span class="accent">Microsoft Credential</span> Tracker</h1>
                 <p id="cred-subtitle"></p>
                 <div class="head-meta">
-                    <span class="chip-badge" id="freshness" title="When this catalogue was last reconciled against the Microsoft credential posters."></span>
+                    <div class="fresh-wrap">
+                        <button type="button" class="chip-badge" id="freshness" aria-haspopup="true" aria-expanded="false"
+                                title="When this catalogue was last reconciled against the Microsoft credential posters. Click to see what changed."></button>
+                        <div class="fresh-panel" id="fresh-panel" hidden></div>
+                    </div>
                     <span class="chip-badge sync-chip" id="sync-chip" data-state="idle" hidden></span>
                 </div>
             </div>
             <div class="head-links">
                 <a id="explore-link" href="https://aka.ms/ExploreCredentials" target="_blank" rel="noopener"><i data-lucide="external-link" style="width:13px;height:13px"></i> Explore credentials</a>
+                <button class="ghost-btn" id="copy-link-btn" title="Copy a link to this exact view — mode, filters, and search included."><i data-lucide="link" style="width:13px;height:13px"></i> Copy link</button>
+                <button class="ghost-btn" id="insights-btn" aria-expanded="false" title="Your earned-credential timeline and local activity."><i data-lucide="chart-line" style="width:13px;height:13px"></i> Insights</button>
                 <div class="export-wrap">
                     <button class="ghost-btn" id="export-btn" aria-haspopup="true" aria-expanded="false"><i data-lucide="download" style="width:13px;height:13px"></i> Export</button>
                     <div class="export-menu" id="export-menu" role="menu" hidden>
                         <button type="button" role="menuitem" data-export="csv"><i data-lucide="table" style="width:14px;height:14px"></i> Download CSV</button>
                         <button type="button" role="menuitem" data-export="json"><i data-lucide="braces" style="width:14px;height:14px"></i> Download JSON</button>
+                        <button type="button" role="menuitem" id="import-btn"><i data-lucide="upload" style="width:14px;height:14px"></i> Import JSON</button>
                     </div>
+                    <input type="file" id="import-file" accept="application/json,.json" hidden>
                 </div>
-                <button class="ghost-btn danger" id="reset-btn"><i data-lucide="rotate-ccw" style="width:13px;height:13px"></i> Reset</button>
+                <button class="ghost-btn danger" id="reset-btn"><i data-lucide="rotate-ccw" style="width:13px;height:13px"></i> <span id="reset-label">Reset</span></button>
             </div>
         </div>
 
@@ -374,6 +448,9 @@
 
         <div class="metrics" id="metrics"></div>
         <div class="status-strip" id="status-strip"></div>
+
+        <!-- Insights: earned timeline (#4) + local, on-device activity counters (#12). -->
+        <section class="insights" id="insights" hidden aria-label="Insights"></section>
 
         <!-- Explains the two per-item icon actions, which were previously undiscoverable (#16). -->
         <div class="status-help">
@@ -386,7 +463,10 @@
             <div class="lvl-filters" id="level-filters">
                 <span class="lf-label">Levels</span>
             </div>
-            <label class="toggle"><input type="checkbox" id="hide-done"> Hide completed</label>
+            <!-- Status filter chips (#2) — generalizes the old "Hide completed" toggle. -->
+            <div class="lvl-filters" id="status-filters">
+                <span class="lf-label">Status</span>
+            </div>
         </div>
 
         <div class="toolbar">
@@ -399,6 +479,9 @@
 
         <div class="columns" id="columns"></div>
         <div class="no-results" id="no-results" hidden></div>
+
+        <!-- Progress on credentials that later left the catalogue (#17). -->
+        <section class="retired-sec" id="retired-sec" hidden aria-label="Retired credentials"></section>
     </div>
 
     <!-- Live region: announces progress changes to screen readers (#9). -->
@@ -415,9 +498,9 @@
 
         // ---- Catalogue + pure logic come from extracted, unit-tested modules ----
         // (Johari #29 data/view split, #26 testable logic.)
-        const { CATALOGUE_UPDATED, CATEGORIES, CERT_LEVELS, APPLIED_LEVELS, CERTS, APPLIED_SKILLS } = window.CertData;
+        const { CATALOGUE_UPDATED, CATEGORIES, CERT_LEVELS, APPLIED_LEVELS, CERTS, APPLIED_SKILLS, RETIRED } = window.CertData;
         const L = window.CertLogic;
-        const { todayISO, fmtDate, normalizeMap, mergeProgress, computeMetrics } = L;
+        const { todayISO, fmtDate, normalizeMap, mergeProgress, computeMetrics, renewal, statusAgeDays } = L;
 
         // Derive a stable storage id for each applied skill and tag it.
         APPLIED_SKILLS.forEach(s => { s.code = "as-" + L.slugify(s.title); s.applied = true; });
@@ -438,6 +521,8 @@
         const STORAGE_PREFIX = "fc_cert_progress_v1";
         const UI_STATE_KEY = "fc_cert_ui_v1";
         const STATS_KEY = "fc_cert_stats_v1";
+        const LAST_DATES_KEY = "fc_cert_last_dates_v1";   // remembers earned dates through unmarks (#6)
+        const RESET_BACKUP_KEY = "fc_cert_reset_backup_v1"; // durable reset undo (#10)
         const API_BASE = window.__API_BASE__ || "";
         const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
@@ -500,17 +585,35 @@
             if (window.lucide) lucide.createIcons();
         }
         let syncTimer = null;
-        function doPush() {
+        let syncRev = null; // server revision this device last saw (#18)
+        function doPush(isRetry) {
             if (!loggedIn()) return Promise.resolve();
             setSync("syncing", "Syncing…");
             // keepalive lets this survive a tab close / navigation (part of #23).
             return Auth.apiFetch(`${API_BASE}/api/cert-progress`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ data: progress }),
+                body: JSON.stringify({ data: progress, baseRev: syncRev }),
                 keepalive: true,
-            }).then(res => setSync(res && res.ok ? "synced" : "offline", res && res.ok ? "Saved" : "Not saved"))
-              .catch(() => setSync("offline", "Offline"));
+            }).then(async res => {
+                if (res && res.status === 409 && !isRetry) {
+                    // Another device wrote first — merge its state in, then retry once.
+                    const body = await res.json();
+                    const server = normalizeMap(body.data, todayISO());
+                    const { merged } = mergeProgress(progress, server);
+                    progress = merged;
+                    syncRev = body.rev;
+                    localStorage.setItem(bucketKey(), JSON.stringify(progress));
+                    render();
+                    return doPush(true);
+                }
+                if (res && res.ok) {
+                    try { syncRev = (await res.json()).rev || syncRev; } catch { /* keep old rev */ }
+                    setSync("synced", "Saved");
+                } else {
+                    setSync("offline", "Not saved");
+                }
+            }).catch(() => setSync("offline", "Offline"));
         }
         function pushServer(immediate) {
             if (!loggedIn()) return;
@@ -529,12 +632,18 @@
             try {
                 const res = await Auth.apiFetch(`${API_BASE}/api/cert-progress`);
                 if (!res.ok) { setSync("offline", "Offline"); return; }
-                const server = normalizeMap((await res.json()).data, todayISO());
+                const body = await res.json();
+                syncRev = body.rev || null;
+                const server = normalizeMap(body.data, todayISO());
                 // Non-destructive reconcile: earned always survives, earliest date wins (#22).
-                const { merged, changedLocally } = mergeProgress(progress, server);
+                const { merged, changedLocally, changedFromLocal } = mergeProgress(progress, server);
                 progress = merged;
                 localStorage.setItem(bucketKey(), JSON.stringify(progress));
                 render();
+                // Tell the user what sync actually did — it was invisible before (#13).
+                if (changedFromLocal > 0) {
+                    toast(`Updated ${changedFromLocal} credential${changedFromLocal === 1 ? "" : "s"} from your account.`);
+                }
                 if (changedLocally) pushServer(true); else setSync("synced", "Saved");
             } catch { setSync("offline", "Offline"); }
         }
@@ -548,26 +657,38 @@
         const activeLevels = () => activeLevelsByMode[mode];
         const scopedCerts = () => items().filter(c => activeLevels().has(c.level));
 
-        // ---- Persisted UI state (mode, level filters, hide-completed, search) (#3) ----
+        // ---- Status filters (#2) — generalize the old "Hide completed" toggle ----
+        const ALL_STATUSES = ["none", "target", "await", "earned"];
+        const STATUS_META = {
+            none:   { label: "Not started", icon: "circle" },
+            target: { label: "Targeting",   icon: "target" },
+            await:  { label: "Awaiting",    icon: "hourglass" },
+            earned: { label: "Earned",      icon: "circle-check-big" },
+        };
+        let activeStatuses = new Set(ALL_STATUSES);
+
+        // ---- Persisted UI state (mode, level/status filters, search) (#3) ----
         const searchInput = document.getElementById("search");
-        const hideDone = document.getElementById("hide-done");
         function saveUIState() {
             try {
                 localStorage.setItem(UI_STATE_KEY, JSON.stringify({
                     mode,
-                    hideDone: hideDone.checked,
+                    statuses: [...activeStatuses],
                     levels: { certs: [...activeLevelsByMode.certs], applied: [...activeLevelsByMode.applied] },
                 }));
             } catch { /* ignore */ }
             syncURL();
         }
         function syncURL() {
-            // Shareable deep link: mode + search query in the URL (#3).
+            // Shareable deep link: the FULL view state — mode, search, level and
+            // status filters — so "Copy link" reproduces exactly this view (#14).
             try {
                 const p = new URLSearchParams();
                 if (mode !== "certs") p.set("mode", mode);
                 const q = searchInput.value.trim();
                 if (q) p.set("q", q);
+                if (activeLevels().size !== CRED[mode].levels.length) p.set("levels", [...activeLevels()].join("~"));
+                if (activeStatuses.size !== ALL_STATUSES.length) p.set("status", [...activeStatuses].join("~"));
                 const qs = p.toString();
                 history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
             } catch { /* ignore */ }
@@ -579,7 +700,13 @@
             const urlMode = url.get("mode");
             if (urlMode === "certs" || urlMode === "applied") mode = urlMode;
             else if (saved.mode === "certs" || saved.mode === "applied") mode = saved.mode;
-            if (typeof saved.hideDone === "boolean") hideDone.checked = saved.hideDone;
+            if (Array.isArray(saved.statuses)) {
+                const valid = saved.statuses.filter(s => ALL_STATUSES.includes(s));
+                if (valid.length) activeStatuses = new Set(valid);
+            } else if (saved.hideDone === true) {
+                // Migrate the pre-#2 "hide completed" checkbox into the status set.
+                activeStatuses = new Set(ALL_STATUSES.filter(s => s !== "earned"));
+            }
             if (saved.levels) {
                 for (const m of ["certs", "applied"]) {
                     if (Array.isArray(saved.levels[m]) && saved.levels[m].length) {
@@ -587,6 +714,16 @@
                         if (valid.length) activeLevelsByMode[m] = new Set(valid);
                     }
                 }
+            }
+            const urlLevels = url.get("levels");
+            if (urlLevels) {
+                const valid = urlLevels.split("~").filter(l => CRED[mode].levels.includes(l));
+                if (valid.length) activeLevelsByMode[mode] = new Set(valid);
+            }
+            const urlStatus = url.get("status");
+            if (urlStatus) {
+                const valid = urlStatus.split("~").filter(s => ALL_STATUSES.includes(s));
+                if (valid.length) activeStatuses = new Set(valid);
             }
             const q = url.get("q");
             if (q) searchInput.value = q;
@@ -624,8 +761,37 @@
 
         function renderFreshness() {
             const el = document.getElementById("freshness");
-            if (el) el.innerHTML = `<i data-lucide="refresh-ccw-dot"></i> Catalogue updated ${fmtDate(CATALOGUE_UPDATED)}`;
+            if (el) el.innerHTML = `<i data-lucide="refresh-ccw-dot"></i> Catalogue updated ${fmtDate(CATALOGUE_UPDATED)} <i data-lucide="chevron-down"></i>`;
         }
+
+        // The freshness badge now answers "what changed?" (#15): click for the
+        // catalogue's new arrivals and recent retirements.
+        const freshBtn = document.getElementById("freshness");
+        const freshPanel = document.getElementById("fresh-panel");
+        function toggleFreshPanel(open) {
+            const show = open === undefined ? freshPanel.hidden : open;
+            if (show && !freshPanel.innerHTML) {
+                const news = [...CERTS, ...APPLIED_SKILLS].filter(c => c.isNew);
+                const newRows = news.map(c =>
+                    `<li><span class="fp-code">${escapeHtml(c.applied ? "Skill" : c.code)}</span> ${escapeHtml(c.title)}</li>`).join("");
+                const retiredRows = (RETIRED || []).map(r =>
+                    `<li><span class="fp-code">${escapeHtml(r.code)}</span> ${escapeHtml(r.title)}</li>`).join("");
+                freshPanel.innerHTML = `
+                    <h3>New in this catalogue (${news.length})</h3>
+                    <ul>${newRows || "<li>Nothing new this cycle.</li>"}</ul>
+                    <h3>Recently retired (${(RETIRED || []).length})</h3>
+                    <ul>${retiredRows || "<li>No recent retirements.</li>"}</ul>`;
+            }
+            freshPanel.hidden = !show;
+            freshBtn.setAttribute("aria-expanded", String(show));
+        }
+        freshBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleFreshPanel(); track("freshness_panel"); });
+        document.addEventListener("click", (e) => {
+            if (!freshPanel.hidden && !e.target.closest(".fresh-wrap")) toggleFreshPanel(false);
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !freshPanel.hidden) { toggleFreshPanel(false); freshBtn.focus(); }
+        });
 
         function renderModeUI() {
             elSubtitle.textContent = CRED[mode].blurb;
@@ -654,12 +820,29 @@
             const soon = !!c.comingSoon;
             const badges = [];
             if (c.expert) badges.push('<span class="badge expert"><i data-lucide="star" class="b-icon"></i>Expert</span>');
-            if (c.prereq) badges.push('<span class="badge prereq"><i data-lucide="lock" class="b-icon"></i>Prereq</span>');
+            if (c.prereqs && c.prereqs.length) {
+                // Dependency-aware prereq badge (#1): name the requirement, show if met.
+                const met = c.prereqs.some(p => isEarned(p));
+                const listing = c.prereqs.map(p => `${p}${isEarned(p) ? " ✓" : ""}`).join(", ");
+                const tip = `Requires ${c.prereqs.length > 1 ? "one of: " : ""}${listing}`;
+                badges.push(`<span class="badge prereq${met ? " met" : ""}" title="${escapeHtml(tip)}">` +
+                    `<i data-lucide="${met ? "lock-open" : "lock"}" class="b-icon"></i>` +
+                    `${met ? "Prereq met" : "Requires " + escapeHtml(c.prereqs[0]) + (c.prereqs.length > 1 ? "+" : "")}</span>`);
+            } else if (c.prereq) {
+                badges.push('<span class="badge prereq"><i data-lucide="lock" class="b-icon"></i>Prereq</span>');
+            }
             if (c.beta) badges.push('<span class="badge beta">Beta</span>');
             if (c.isNew) badges.push('<span class="badge new">New</span>');
             if (soon) badges.push('<span class="badge soon"><i data-lucide="clock" class="b-icon"></i>Coming soon</span>');
-            if (st === "target") badges.push('<span class="status-pill s-target"><i data-lucide="target" class="b-icon"></i>Targeting</span>');
-            if (st === "await") badges.push('<span class="status-pill s-await"><i data-lucide="hourglass" class="b-icon"></i>Awaiting results</span>');
+            const age = statusAgeDays(progress[c.code], todayISO());
+            const sinceTip = progress[c.code] && progress[c.code].since ? ` title="Since ${escapeHtml(fmtDate(progress[c.code].since))}"` : "";
+            if (st === "target") badges.push(`<span class="status-pill s-target"${sinceTip}><i data-lucide="target" class="b-icon"></i>Targeting${age >= 60 ? ` · ${Math.round(age / 30)} mo` : ""}</span>`);
+            // Results shouldn't take a month — visibly age a stale "awaiting" so it gets resolved (#20).
+            if (st === "await") badges.push(`<span class="status-pill s-await${age > 30 ? " stale" : ""}"${sinceTip}><i data-lucide="hourglass" class="b-icon"></i>Awaiting results${age > 30 ? ` · ${Math.round(age / 7)} wk` : ""}</span>`);
+            // Study bridge (#19): open the flash-card generator on this exam's study guide.
+            const studyURL = (!c.applied && c.provider !== "github" && !soon)
+                ? `/?url=${encodeURIComponent(`https://learn.microsoft.com/credentials/certifications/resources/study-guides/${c.code.split(" / ")[0].toLowerCase()}`)}`
+                : null;
             // Certifications carry an exam code; Applied Skills show their Technical/Business type.
             const chip = c.applied
                 ? `<span class="type-pill type-${c.provider}">${c.provider === "business" ? "Business" : "Technical"}</span>`
@@ -673,9 +856,19 @@
             const checkLabel = soon
                 ? `${escapeHtml(c.title)} — not yet earnable`
                 : `${escapeHtml(c.title)}, currently ${stateWord}. Activate to ${done ? "clear" : "mark earned"}.`;
+            // Renewal (#16): role-based/specialty certs expire a year after earning.
+            const rnw = renewal(c, progress[c.code], todayISO());
+            const renewHTML = !rnw ? "" : rnw.state === "overdue"
+                ? `<span class="renew-pill r-overdue" title="Renewal was due ${escapeHtml(fmtDate(rnw.due))} — renew on Microsoft Learn to keep this active."><i data-lucide="alert-triangle"></i>Renewal overdue</span>`
+                : rnw.state === "due"
+                ? `<span class="renew-pill r-due" title="Renewal window is open — due ${escapeHtml(fmtDate(rnw.due))}."><i data-lucide="refresh-cw"></i>Renew in ${rnw.daysLeft}d</span>`
+                : `<span class="renew-pill r-ok" title="Annual renewal due ${escapeHtml(fmtDate(rnw.due))}.">Renews ${escapeHtml(fmtDate(rnw.due))}</span>`;
+            // Searchable haystack (#3): title + code + category/level/provider/badge words.
+            const catName = (CATEGORIES.find(x => x.key === c.cat) || {}).name || "";
+            const extraTerms = [catName, c.level, c.provider === "github" ? "github" : "", c.beta ? "beta" : "", c.isNew ? "new" : "", c.expert ? "expert" : "", soon ? "coming soon" : ""].join(" ");
             return `
             <div class="cert${cls}${soon ? " coming" : ""}" role="listitem" data-code="${escapeHtml(c.code)}" data-cat="${c.cat}" data-provider="${c.provider}" data-status="${st || ""}"
-                 data-search="${escapeHtml((c.title + " " + c.code).toLowerCase())}" data-done="${done}">
+                 data-search="${escapeHtml((c.title + " " + c.code + " " + extraTerms).toLowerCase())}" data-done="${done}">
                 <div class="c-main">
                     <div class="check"${soon ? "" : ` role="checkbox" aria-checked="${done}" tabindex="0"`}
                          title="${soon ? "Not yet earnable" : (done ? "Click to unmark" : "Click to mark earned")}"
@@ -685,6 +878,7 @@
                         <div class="c-meta">
                             ${chip}
                             ${badges.join("")}
+                            ${studyURL && !done ? `<a class="study-link" href="${studyURL}" title="Generate flash cards from the ${escapeHtml(c.code)} study guide"><i data-lucide="zap"></i>Study</a>` : ""}
                         </div>
                         ${soon ? '<div class="c-meta" style="font-size:0.66rem;color:var(--f-text-3)">Not yet earnable — check back later.</div>' : ''}
                     </div>
@@ -704,8 +898,55 @@
                     <i data-lucide="badge-check" class="df-icon"></i>
                     <label>${c.applied ? "Completed" : "Earned"}</label>
                     <input type="date" value="${date}" max="${todayISO()}" title="Date earned — you can log a past exam date here." aria-label="Date for ${escapeHtml(c.title)}">
+                    ${renewHTML}
                 </div>` : ""}
             </div>`;
+        }
+
+        const elStatusFilters = document.getElementById("status-filters");
+        function renderStatusFilters() {
+            const scoped = scopedCerts();
+            const chips = ALL_STATUSES.map(s => {
+                const n = scoped.filter(c => (statusOf(c.code) || "none") === s).length;
+                const on = activeStatuses.has(s);
+                return `<button type="button" class="lvl-chip${on ? " active" : ""}" data-fstatus="${s}" aria-pressed="${on}">
+                    <i data-lucide="check" class="lf-check"></i>${STATUS_META[s].label}
+                    <span class="lvl-count">${n}</span>
+                </button>`;
+            }).join("");
+            elStatusFilters.innerHTML = `<span class="lf-label">Status</span>${chips}`;
+        }
+
+        // Progress on credentials no longer in the catalogue — keep it visible (#17).
+        const elRetired = document.getElementById("retired-sec");
+        function renderRetired() {
+            const orphans = Object.keys(progress).filter(code => !ITEM_BY_CODE[code]);
+            if (!orphans.length) { elRetired.hidden = true; elRetired.innerHTML = ""; return; }
+            const retiredByCode = {};
+            (RETIRED || []).forEach(r => { retiredByCode[r.code] = r; });
+            const rows = orphans.sort().map(code => {
+                const info = retiredByCode[code];
+                const p = progress[code];
+                const when = p.st === "earned" && p.date ? `Earned ${fmtDate(p.date)}` : (STATUS_META[p.st === "target" ? "target" : p.st === "await" ? "await" : "none"] || {}).label || p.st;
+                return `<div class="rs-item"><span class="c-code">${escapeHtml(code)}</span>
+                    <span>${escapeHtml(info ? info.title : "(no longer in the catalogue)")}</span>
+                    <span class="rs-date">${escapeHtml(when)}</span></div>`;
+            }).join("");
+            elRetired.innerHTML = `
+                <h2><i data-lucide="archive"></i> Retired credentials</h2>
+                <p class="rs-sub">These left the Microsoft poster in a catalogue update. Your progress on them is preserved here and in exports — it just no longer counts toward the totals above.</p>
+                ${rows}`;
+            elRetired.hidden = false;
+        }
+
+        // Scope the Reset button to what it will actually clear (#5).
+        function renderResetLabel() {
+            const label = document.getElementById("reset-label");
+            const btn = document.getElementById("reset-btn");
+            if (!label || !btn) return;
+            const n = items().filter(c => progress[c.code]).length;
+            label.textContent = `Reset ${CRED[mode].label}`;
+            btn.title = n ? `Clears your ${n} ${CRED[mode].label} entr${n === 1 ? "y" : "ies"} (undoable).` : `Nothing to clear in ${CRED[mode].label}.`;
         }
 
         const elLevelFilters = document.getElementById("level-filters");
@@ -725,6 +966,10 @@
         function render() {
             renderModeUI();
             renderLevelFilters();
+            renderStatusFilters();
+            renderRetired();
+            renderResetLabel();
+            renderInsights();
             if (!activeLevels().size) {
                 elColumns.innerHTML = `<div class="cols-empty">Select at least one level to display certifications.</div>`;
                 renderMetrics();
@@ -811,10 +1056,14 @@
             });
         }
 
-        // Metrics + status strip + level filter chips (none hold interaction focus).
+        // Metrics + status strip + filter chips (none hold interaction focus).
         function refreshAggregates() {
             renderMetrics();
             renderLevelFilters();
+            renderStatusFilters();
+            renderRetired();
+            renderResetLabel();
+            renderInsights();
             recalcColumnHeaders();
             if (window.lucide) lucide.createIcons();
         }
@@ -826,9 +1075,15 @@
 
             const strip = document.getElementById("status-strip");
             if (strip) {
+                // Renewal pressure at a glance (#16).
+                const renewDue = scoped.filter(c => {
+                    const r = renewal(c, progress[c.code], todayISO());
+                    return r && r.state !== "ok";
+                }).length;
                 strip.innerHTML = `
                     <span class="ss s-target"><i data-lucide="target"></i> <b>${m.targeting}</b> targeting</span>
-                    <span class="ss s-await"><i data-lucide="hourglass"></i> <b>${m.awaiting}</b> awaiting results</span>`;
+                    <span class="ss s-await"><i data-lucide="hourglass"></i> <b>${m.awaiting}</b> awaiting results</span>
+                    ${renewDue ? `<span class="ss" style="color:#d9920a"><i data-lucide="refresh-cw"></i> <b>${renewDue}</b> renewal${renewDue === 1 ? "" : "s"} due</span>` : ""}`;
             }
 
             elMetrics.innerHTML = `
@@ -861,12 +1116,34 @@
 
         // ---- Interactions ----
         // Each item has a single status: earned (with date), targeting, awaiting, or none.
+        // Earned dates survive an unmark (#6): a stray click must not rewrite history,
+        // so the date is remembered per bucket and restored on re-mark.
+        function rememberDate(code, date) {
+            try {
+                const m = JSON.parse(localStorage.getItem(LAST_DATES_KEY) || "{}");
+                m[code] = date;
+                localStorage.setItem(LAST_DATES_KEY, JSON.stringify(m));
+            } catch { /* best-effort */ }
+        }
+        function recallDate(code) {
+            try { return JSON.parse(localStorage.getItem(LAST_DATES_KEY) || "{}")[code] || null; } catch { return null; }
+        }
         function toggleEarned(code) {
             if (ITEM_BY_CODE[code]?.comingSoon) return; // not yet available
             const cur = progress[code];
             const nowEarned = !(cur && cur.st === "earned");
-            if (cur && cur.st === "earned") delete progress[code];
-            else progress[code] = { st: "earned", date: (cur && cur.date) || todayISO() };
+            if (cur && cur.st === "earned") {
+                if (cur.date) rememberDate(code, cur.date);
+                const backup = { ...cur };
+                delete progress[code];
+                toast(`Unmarked ${ITEM_BY_CODE[code].title}.`, "Undo", () => {
+                    progress[code] = backup;
+                    saveProgress(progress);
+                    updateCard(code);
+                });
+            } else {
+                progress[code] = { st: "earned", date: (cur && cur.date) || recallDate(code) || todayISO() };
+            }
             saveProgress(progress);
             track(nowEarned ? "mark_earned" : "unmark_earned");
             announce(`${ITEM_BY_CODE[code].title} ${nowEarned ? "marked earned" : "unmarked"}.`);
@@ -877,9 +1154,12 @@
             const cur = progress[code];
             const cleared = cur && cur.st === status;
             if (cleared) delete progress[code]; // toggle off
-            else progress[code] = { st: status };
+            else progress[code] = { st: status, since: todayISO() }; // since powers status aging (#20)
             saveProgress(progress);
             track(status === "target" ? "set_target" : "set_await");
+            // Status toggles were silent to screen readers (#7).
+            const word = status === "target" ? "targeting" : "awaiting results";
+            announce(`${ITEM_BY_CODE[code].title} ${cleared ? `no longer ${word}` : `marked as ${word}`}.`);
             updateCard(code);
         }
 
@@ -907,6 +1187,7 @@
             if (!input) return;
             const card = input.closest(".cert");
             progress[card.dataset.code] = { st: "earned", date: input.value || todayISO() };
+            rememberDate(card.dataset.code, progress[card.dataset.code].date);
             saveProgress(progress);
             refreshAggregates(); // keep focus on the date field — no full re-render
         });
@@ -914,10 +1195,9 @@
         // ---- Filters ----
         function applyFilterToCard(card) {
             const q = searchInput.value.trim().toLowerCase();
-            const hide = hideDone.checked;
             const matchQ = !q || card.dataset.search.includes(q);
-            const matchDone = !(hide && card.dataset.done === "true");
-            card.classList.toggle("hidden-card", !(matchQ && matchDone));
+            const matchStatus = activeStatuses.has(card.dataset.status || "none");
+            card.classList.toggle("hidden-card", !(matchQ && matchStatus));
         }
         function applyFilter() {
             const q = searchInput.value.trim().toLowerCase();
@@ -933,14 +1213,14 @@
             document.querySelectorAll(".col").forEach(col => {
                 col.classList.toggle("empty-col", !col.querySelector(".cert:not(.hidden-card)"));
             });
-            // No-results empty state (#2) — only meaningful when a filter is active.
-            const filtering = q || hideDone.checked;
+            // No-results empty state — only meaningful when a filter is active.
+            const filtering = q || activeStatuses.size !== ALL_STATUSES.length;
             if (elNoResults) {
                 if (visible === 0 && filtering) {
                     elNoResults.hidden = false;
                     elNoResults.textContent = q
                         ? `No credentials match “${searchInput.value.trim()}”.`
-                        : "All credentials are completed and hidden.";
+                        : "No credentials match the active status filters.";
                 } else {
                     elNoResults.hidden = true;
                 }
@@ -951,17 +1231,66 @@
             clearTimeout(searchDebounce); // debounce keystrokes (#1)
             searchDebounce = setTimeout(() => { applyFilter(); saveUIState(); }, 150);
         });
-        hideDone.addEventListener("change", () => { applyFilter(); saveUIState(); track("toggle_hide_done"); });
+        // "/" focuses search from anywhere; Escape clears it (#3).
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey
+                && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "")) {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+        });
+        searchInput.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && searchInput.value) {
+                e.stopPropagation();
+                searchInput.value = "";
+                applyFilter();
+                saveUIState();
+            }
+        });
+
+        // Status filter chips (#2).
+        elStatusFilters.addEventListener("click", (e) => {
+            const chip = e.target.closest(".lvl-chip");
+            if (!chip) return;
+            const s = chip.dataset.fstatus;
+            if (activeStatuses.has(s)) {
+                if (activeStatuses.size === 1) return; // keep at least one status visible
+                activeStatuses.delete(s);
+            } else {
+                activeStatuses.add(s);
+            }
+            renderStatusFilters();
+            if (window.lucide) lucide.createIcons();
+            applyFilter();
+            saveUIState();
+            track("toggle_status_filter");
+        });
 
         // Credential mode switch (Certifications ⇄ Applied Skills) — swaps the whole view.
-        elModeSwitch.addEventListener("click", (e) => {
-            const btn = e.target.closest(".mode-btn");
-            if (!btn || btn.dataset.mode === mode) return;
-            mode = btn.dataset.mode;
+        function switchMode(next) {
+            if (next === mode) return;
+            mode = next;
             searchInput.value = "";
             track("mode_switch");
             render();
             saveUIState();
+        }
+        elModeSwitch.addEventListener("click", (e) => {
+            const btn = e.target.closest(".mode-btn");
+            if (btn) switchMode(btn.dataset.mode);
+        });
+        // ARIA tabs promise arrow-key navigation — deliver it (#8).
+        elModeSwitch.addEventListener("keydown", (e) => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+            e.preventDefault();
+            const tabs = [...elModeSwitch.querySelectorAll(".mode-btn")];
+            let i = tabs.findIndex(b => b.dataset.mode === mode);
+            if (e.key === "ArrowLeft") i = (i - 1 + tabs.length) % tabs.length;
+            else if (e.key === "ArrowRight") i = (i + 1) % tabs.length;
+            else i = e.key === "Home" ? 0 : tabs.length - 1;
+            switchMode(tabs[i].dataset.mode);
+            elModeSwitch.querySelectorAll(".mode-btn")[i].focus();
         });
 
         // Level filter chips — toggling rescopes the rendered list and ALL metrics.
@@ -980,33 +1309,61 @@
             saveUIState();
         });
 
-        // ---- Reset (undoable, no blocking confirm) (#5) ----
+        // ---- Reset (undoable) ----
+        // The undo now survives beyond the toast: the backup is persisted until the
+        // next reset, so a missed 15-second window isn't permanent data loss (#10).
         document.getElementById("reset-btn").addEventListener("click", () => {
             const label = CRED[mode].label;
             const backup = {};
             items().forEach(c => { if (progress[c.code]) { backup[c.code] = progress[c.code]; delete progress[c.code]; } });
             if (!Object.keys(backup).length) { toast(`No ${label} progress to clear.`); return; }
+            try { localStorage.setItem(RESET_BACKUP_KEY, JSON.stringify({ ts: Date.now(), bucket: bucketKey(), data: backup })); } catch { /* best-effort */ }
             saveProgress(progress);
             track("reset");
             render();
             toast(`Cleared ${Object.keys(backup).length} ${label} entries.`, "Undo", () => {
                 Object.assign(progress, backup);
                 saveProgress(progress);
+                try { localStorage.removeItem(RESET_BACKUP_KEY); } catch { /* ignore */ }
                 render();
-            });
+            }, 15000);
         });
+        // Recover a persisted reset backup from a previous session (< 24h old).
+        (function offerResetRecovery() {
+            let saved = null;
+            try { saved = JSON.parse(localStorage.getItem(RESET_BACKUP_KEY) || "null"); } catch { /* ignore */ }
+            if (!saved || saved.bucket !== bucketKey() || Date.now() - saved.ts > 24 * 3600 * 1000) return;
+            const stillGone = Object.keys(saved.data || {}).some(code => !progress[code]);
+            if (!stillGone) { try { localStorage.removeItem(RESET_BACKUP_KEY); } catch { /* ignore */ } return; }
+            toast(`A reset cleared ${Object.keys(saved.data).length} entries recently.`, "Restore", () => {
+                const { merged } = mergeProgress(saved.data, progress);
+                progress = merged;
+                saveProgress(progress);
+                try { localStorage.removeItem(RESET_BACKUP_KEY); } catch { /* ignore */ }
+                render();
+            }, 12000);
+        })();
 
-        // ---- Export (#28) ----
+        // ---- Export / Import ----
         const exportBtn = document.getElementById("export-btn");
         const exportMenu = document.getElementById("export-menu");
         function toggleExportMenu(open) {
             const show = open === undefined ? exportMenu.hidden : open;
             exportMenu.hidden = !show;
             exportBtn.setAttribute("aria-expanded", String(show));
+            if (show) { const first = exportMenu.querySelector("button"); if (first) first.focus(); }
         }
         exportBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleExportMenu(); });
         document.addEventListener("click", (e) => {
             if (!exportMenu.hidden && !e.target.closest(".export-wrap")) toggleExportMenu(false);
+        });
+        // role="menu" keyboard contract: arrows cycle, Escape closes and restores focus (#8).
+        exportMenu.addEventListener("keydown", (e) => {
+            const itemsEls = [...exportMenu.querySelectorAll("button")];
+            const i = itemsEls.indexOf(document.activeElement);
+            if (e.key === "Escape") { e.preventDefault(); toggleExportMenu(false); exportBtn.focus(); }
+            else if (e.key === "ArrowDown") { e.preventDefault(); itemsEls[(i + 1) % itemsEls.length].focus(); }
+            else if (e.key === "ArrowUp") { e.preventDefault(); itemsEls[(i - 1 + itemsEls.length) % itemsEls.length].focus(); }
         });
         function download(filename, text, type) {
             const blob = new Blob([text], { type });
@@ -1017,8 +1374,10 @@
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
         function exportRows() {
-            // Export ALL credentials across both families, with each one's status.
-            return [...CERTS, ...APPLIED_SKILLS].map(c => {
+            // Export ALL credentials across both families, with each one's status —
+            // plus orphaned progress on retired credentials, so a catalogue update
+            // never silently drops an achievement from the export (#17).
+            const rows = [...CERTS, ...APPLIED_SKILLS].map(c => {
                 const p = progress[c.code] || {};
                 return {
                     family: c.applied ? "Applied Skill" : "Certification",
@@ -1030,7 +1389,59 @@
                     date: p.date || "",
                 };
             });
+            const retiredByCode = {};
+            (RETIRED || []).forEach(r => { retiredByCode[r.code] = r; });
+            Object.keys(progress).filter(code => !ITEM_BY_CODE[code]).sort().forEach(code => {
+                const p = progress[code];
+                rows.push({
+                    family: "Retired", code,
+                    title: (retiredByCode[code] || {}).title || "",
+                    category: "", level: "",
+                    status: p.st || "none", date: p.date || "",
+                });
+            });
+            return rows;
         }
+
+        // ---- Import (#11): read a previously exported JSON back in ----
+        const importFile = document.getElementById("import-file");
+        document.getElementById("import-btn").addEventListener("click", () => {
+            toggleExportMenu(false);
+            importFile.click();
+        });
+        importFile.addEventListener("change", async () => {
+            const file = importFile.files && importFile.files[0];
+            importFile.value = "";
+            if (!file) return;
+            let rows;
+            try { rows = JSON.parse(await file.text()); } catch { toast("That file isn't valid JSON."); return; }
+            if (!Array.isArray(rows)) { toast("Expected a JSON export from this page (an array of rows)."); return; }
+            const incoming = {};
+            for (const r of rows) {
+                if (!r || typeof r !== "object" || !["earned", "target", "await"].includes(r.status)) continue;
+                // Certs carry their code; Applied Skills are re-keyed from the title.
+                const code = r.code || (r.family === "Applied Skill" && r.title ? "as-" + L.slugify(r.title) : null);
+                if (!code || (!ITEM_BY_CODE[code] && r.family !== "Retired")) continue;
+                incoming[code] = r.status === "earned"
+                    ? { st: "earned", date: (L.DATE_RE.test(r.date || "") ? r.date : todayISO()) }
+                    : { st: r.status, since: todayISO() };
+            }
+            const n = Object.keys(incoming).length;
+            if (!n) { toast("No usable entries found in that file."); return; }
+            const snapshot = JSON.parse(JSON.stringify(progress));
+            // Merge, never clobber: existing earned entries always survive (#22 rules).
+            const { merged, changedFromLocal } = mergeProgress(progress, normalizeMap(incoming, todayISO()));
+            progress = merged;
+            saveProgress(progress);
+            track("import_json");
+            render();
+            if (!changedFromLocal) { toast("Import matched your existing progress — nothing to change."); return; }
+            toast(`Imported ${changedFromLocal} entr${changedFromLocal === 1 ? "y" : "ies"}.`, "Undo", () => {
+                progress = snapshot;
+                saveProgress(progress);
+                render();
+            }, 12000);
+        });
         exportMenu.addEventListener("click", (e) => {
             const btn = e.target.closest("button[data-export]");
             if (!btn) return;
@@ -1046,6 +1457,74 @@
             }
             track("export_" + btn.dataset.export);
             toggleExportMenu(false);
+        });
+
+        // ---- Copy link (#14): the URL already encodes the full view state ----
+        document.getElementById("copy-link-btn").addEventListener("click", async () => {
+            syncURL();
+            try {
+                await navigator.clipboard.writeText(location.href);
+                toast("Link to this view copied.");
+            } catch {
+                toast("Couldn't access the clipboard — copy the address bar URL instead.");
+            }
+            track("copy_link");
+        });
+
+        // ---- Insights: earned timeline (#4) + on-device activity counters (#12) ----
+        const insightsBtn = document.getElementById("insights-btn");
+        const elInsights = document.getElementById("insights");
+        const ACTIVITY_LABELS = {
+            mark_earned: "Marked earned", unmark_earned: "Unmarked", set_target: "Set targeting",
+            set_await: "Set awaiting", mode_switch: "Mode switches", reset: "Resets",
+            export_csv: "CSV exports", export_json: "JSON exports", import_json: "Imports",
+            copy_link: "Links copied", toggle_status_filter: "Status filters", freshness_panel: "Catalogue peeks",
+        };
+        function renderInsights() {
+            if (elInsights.hidden) return;
+            const earned = [...CERTS, ...APPLIED_SKILLS]
+                .filter(c => isEarned(c.code) && dateOf(c.code))
+                .sort((a, b) => dateOf(b.code).localeCompare(dateOf(a.code)));
+            let tl;
+            if (!earned.length) {
+                tl = `<p class="tl-empty">Nothing earned yet — your timeline starts with your first check-off.</p>`;
+            } else {
+                let lastMonth = "";
+                tl = earned.map(c => {
+                    const d = dateOf(c.code);
+                    const [y, m] = d.split("-").map(Number);
+                    const monthLabel = new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+                    const head = monthLabel !== lastMonth ? `<div class="tl-month">${monthLabel}</div>` : "";
+                    lastMonth = monthLabel;
+                    const accent = (CATEGORIES.find(x => x.key === c.cat) || {}).accent || "#888";
+                    return `${head}<div class="tl-item"><span class="tl-dot" style="background:${accent}"></span>
+                        <span>${escapeHtml(c.title)}</span><span class="tl-date">${escapeHtml(fmtDate(d))}</span></div>`;
+                }).join("");
+            }
+            let stats = {};
+            try { stats = JSON.parse(localStorage.getItem(STATS_KEY) || "{}"); } catch { /* ignore */ }
+            const chips = Object.entries(stats)
+                .sort((a, b) => b[1] - a[1])
+                .map(([k, v]) => `<span class="ac">${escapeHtml(ACTIVITY_LABELS[k] || k)} <b>${v}</b></span>`)
+                .join("");
+            elInsights.innerHTML = `
+                <h2><i data-lucide="chart-line"></i> Timeline</h2>
+                ${tl}
+                <h2 style="margin-top:1rem"><i data-lucide="activity"></i> Activity on this device</h2>
+                ${chips || '<p class="tl-empty">No activity recorded yet.</p>'}
+                <p class="ins-note">Activity counters live only in this browser — nothing is transmitted.</p>`;
+        }
+        insightsBtn.addEventListener("click", () => {
+            elInsights.hidden = !elInsights.hidden;
+            insightsBtn.setAttribute("aria-expanded", String(!elInsights.hidden));
+            if (!elInsights.hidden) { renderInsights(); if (window.lucide) lucide.createIcons(); }
+        });
+
+        // ---- Multi-tab safety (#9): adopt writes made by another tab ----
+        window.addEventListener("storage", (e) => {
+            if (e.key !== bucketKey() || e.newValue === null) return;
+            progress = loadProgress();
+            render();
         });
 
         // ---- Flush pending sync before the page is hidden/closed (#23) ----

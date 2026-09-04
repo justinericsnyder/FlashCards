@@ -770,19 +770,22 @@ async function getCertGoal(userId) {
 }
 
 // ── Certification Progress (tracker check-offs) ────────
+// rev is the row's updated_at — used by the PUT handler for optimistic
+// concurrency so a stale device can't blindly overwrite newer progress.
 async function getCertProgress(userId) {
   const db = getSql();
-  const [row] = await db`SELECT data FROM cert_progress WHERE user_id = ${userId}`;
-  return row ? row.data : {};
+  const [row] = await db`SELECT data, updated_at FROM cert_progress WHERE user_id = ${userId}`;
+  return row ? { data: row.data, rev: new Date(row.updated_at).toISOString() } : { data: {}, rev: null };
 }
 
 async function saveCertProgress(userId, data) {
   const db = getSql();
   const json = JSON.stringify(data || {});
-  await db`
+  const [row] = await db`
     INSERT INTO cert_progress (user_id, data, updated_at)
     VALUES (${userId}, ${json}::jsonb, NOW())
     ON CONFLICT (user_id) DO UPDATE SET data = ${json}::jsonb, updated_at = NOW()
+    RETURNING updated_at
   `;
-  return data;
+  return { data, rev: row ? new Date(row.updated_at).toISOString() : null };
 }

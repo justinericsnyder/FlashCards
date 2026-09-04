@@ -32,10 +32,14 @@ describe("normalizeMap", () => {
             "2026-07-03"
         );
         expect(out).toEqual({
-            A: { st: "target" },
+            A: { st: "target", since: "2026-07-03" },
             B: { st: "earned", date: "2026-07-03" },
-            C: { st: "await" },
+            C: { st: "await", since: "2026-07-03" },
         });
+    });
+    test("preserves an existing since on non-earned statuses", () => {
+        const out = L.normalizeMap({ A: { st: "target", since: "2026-01-10" } }, "2026-07-03");
+        expect(out.A).toEqual({ st: "target", since: "2026-01-10" });
     });
     test("drops junk values and bad status strings", () => {
         expect(L.normalizeMap({ A: "not-a-date", B: { st: "bogus" }, C: 42, D: null }))
@@ -77,6 +81,53 @@ describe("mergeProgress", () => {
     test("identical maps report no local change", () => {
         const same = { A: { st: "earned", date: "2026-02-01" } };
         expect(L.mergeProgress(same, same).changedLocally).toBe(false);
+    });
+    test("same non-earned status keeps the earlier since", () => {
+        const { merged } = L.mergeProgress(
+            { A: { st: "target", since: "2026-01-05" } },
+            { A: { st: "target", since: "2026-03-01" } }
+        );
+        expect(merged.A).toEqual({ st: "target", since: "2026-01-05" });
+    });
+    test("counts entries a pull changed on this device", () => {
+        const { changedFromLocal } = L.mergeProgress(
+            { A: { st: "earned", date: "2026-02-01" } },
+            { A: { st: "earned", date: "2026-02-01" }, B: { st: "earned", date: "2026-03-01" }, C: { st: "target", since: "2026-04-01" } }
+        );
+        expect(changedFromLocal).toBe(2); // B and C are new locally; A unchanged
+    });
+});
+
+describe("renewal", () => {
+    const roleCert = { code: "AZ-104", level: "Role-based" };
+    test("role-based certs renew one year after earning", () => {
+        const r = L.renewal(roleCert, { st: "earned", date: "2026-01-15" }, "2026-06-01");
+        expect(r.due).toBe("2027-01-15");
+        expect(r.state).toBe("ok");
+    });
+    test("enters the due window at 180 days and goes overdue after the date", () => {
+        expect(L.renewal(roleCert, { st: "earned", date: "2025-09-01" }, "2026-06-01").state).toBe("due");
+        expect(L.renewal(roleCert, { st: "earned", date: "2025-01-01" }, "2026-06-01").state).toBe("overdue");
+    });
+    test("does not apply to Fundamentals, Business, Applied Skills, or unearned items", () => {
+        expect(L.renewal({ level: "Fundamentals" }, { st: "earned", date: "2026-01-01" }, "2026-06-01")).toBeNull();
+        expect(L.renewal({ level: "Business" }, { st: "earned", date: "2026-01-01" }, "2026-06-01")).toBeNull();
+        expect(L.renewal({ level: "Role-based", applied: true }, { st: "earned", date: "2026-01-01" }, "2026-06-01")).toBeNull();
+        expect(L.renewal(roleCert, { st: "target", since: "2026-01-01" }, "2026-06-01")).toBeNull();
+    });
+    test("addYears clamps Feb 29 to Feb 28", () => {
+        expect(L.addYears("2028-02-29", 1)).toBe("2029-02-28");
+    });
+});
+
+describe("statusAgeDays", () => {
+    test("ages a non-earned status from its since date", () => {
+        expect(L.statusAgeDays({ st: "await", since: "2026-06-01" }, "2026-07-03")).toBe(32);
+    });
+    test("returns null for earned or unstamped entries", () => {
+        expect(L.statusAgeDays({ st: "earned", date: "2026-06-01" }, "2026-07-03")).toBeNull();
+        expect(L.statusAgeDays({ st: "target" }, "2026-07-03")).toBeNull();
+        expect(L.statusAgeDays(null, "2026-07-03")).toBeNull();
     });
 });
 
@@ -139,5 +190,19 @@ describe("catalogue data integrity", () => {
     });
     test("CATALOGUE_UPDATED is an ISO date", () => {
         expect(CertData.CATALOGUE_UPDATED).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+    test("prereq references point at real, active cert codes", () => {
+        const codes = new Set(CertData.CERTS.map(c => c.code));
+        for (const c of CertData.CERTS) {
+            (c.prereqs || []).forEach(p => expect(codes.has(p)).toBe(true));
+        }
+    });
+    test("retired codes never collide with the active catalogue", () => {
+        const codes = new Set(CertData.CERTS.map(c => c.code));
+        for (const r of CertData.RETIRED) {
+            expect(codes.has(r.code)).toBe(false);
+            expect(r.title).toBeTruthy();
+            expect(r.retired).toMatch(/^\d{4}-\d{2}$/);
+        }
     });
 });

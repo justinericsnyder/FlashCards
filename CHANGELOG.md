@@ -20,6 +20,38 @@
 
 ---
 
+## v3.3.0 — 2026-09-04
+
+> **PR #3** — `feat/cert-tracker-johari-20`
+
+20 more Johari-framework improvements to the credential tracker — a second pass across all four quadrants: visible polish, accessibility and edge-case fixes, hidden-capability surfacing, and latent-risk mitigation.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-feat">feature</span> | Dependency-aware prereq badges — name the required cert(s) and show whether they're met |
+| <span class="cl-tag cl-feat">feature</span> | Status filter chips (Not started / Targeting / Awaiting / Earned) replace the "Hide completed" toggle |
+| <span class="cl-tag cl-design">design</span> | `/` focuses search, Escape clears it; search matches category, level, provider, and badge terms |
+| <span class="cl-tag cl-feat">feature</span> | Insights panel — chronological earned-credential timeline plus on-device activity counters |
+| <span class="cl-tag cl-design">design</span> | Reset button scoped per credential family, with entry count in the tooltip |
+| <span class="cl-tag cl-fix">fix</span> | Unmarking no longer destroys the earned date — remembered and restored on re-mark, with an undo toast |
+| <span class="cl-tag cl-a11y">a11y</span> | Targeting / Awaiting toggles now announce to screen readers |
+| <span class="cl-tag cl-a11y">a11y</span> | ARIA contracts delivered — tablist arrow-key navigation; export menu arrows + Escape |
+| <span class="cl-tag cl-fix">fix</span> | `storage` event listener keeps multiple open tabs consistent |
+| <span class="cl-tag cl-fix">fix</span> | Reset undo is durable — backup persisted for 24h with a recovery toast on the next visit |
+| <span class="cl-tag cl-feat">feature</span> | Import JSON restores a previous export (merge-safe, undoable) |
+| <span class="cl-tag cl-design">design</span> | Pull sync reports what it changed ("Updated N credentials from your account") |
+| <span class="cl-tag cl-feat">feature</span> | Copy-link button — the URL now encodes level + status filters too |
+| <span class="cl-tag cl-feat">feature</span> | Freshness badge opens a what's-new / recently-retired catalogue panel |
+| <span class="cl-tag cl-feat">feature</span> | Annual renewal tracking for role-based & specialty certs — due dates, 180-day window, overdue states |
+| <span class="cl-tag cl-fix">fix</span> | Retired credentials keep earned progress visible on the page and in exports |
+| <span class="cl-tag cl-security">security</span> | Optimistic-concurrency sync — `rev` on GET/PUT, 409 + client merge-and-retry against stale-device clobbering |
+| <span class="cl-tag cl-feat">feature</span> | Study links bridge each Microsoft cert to the flash-card generator via its exam study guide |
+| <span class="cl-tag cl-feat">feature</span> | Statuses are timestamped; stale "awaiting results" (>30 days) visibly ages |
+| <span class="cl-tag cl-infra">infra</span> | July 2026 catalogue update merged into the extracted `certs-data.js` module |
+| <span class="cl-tag cl-infra">infra</span> | 11 new unit tests (44 total) + a 25-check jsdom smoke test; service-worker cache bumped to v7 |
+
+---
+
 ## v3.2.0 — 2026-08-15
 
 > Certification catalogue refresh — July 2026 Microsoft Certification Poster

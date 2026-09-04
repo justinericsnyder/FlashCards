@@ -94,6 +94,36 @@
     <script>
         const releases = [
             {
+                version: 'v3.3.0',
+                date: '2026-09-04',
+                pr: 'PR #3',
+                branch: 'feat/cert-tracker-johari-20',
+                description: '20 more Johari-framework improvements — second pass: polish, a11y, capability surfacing, risk mitigation.',
+                entries: [
+                    { tag: 'feature', text: 'Dependency-aware prereq badges — name the required cert(s) and show whether they\'re met' },
+                    { tag: 'feature', text: 'Status filter chips (Not started / Targeting / Awaiting / Earned) replace the "Hide completed" toggle' },
+                    { tag: 'design', text: '"/" focuses search, Escape clears it; search matches category, level, provider, and badge terms' },
+                    { tag: 'feature', text: 'Insights panel — chronological earned-credential timeline plus on-device activity counters' },
+                    { tag: 'design', text: 'Reset button scoped per credential family, with entry count in the tooltip' },
+                    { tag: 'fix', text: 'Unmarking no longer destroys the earned date — remembered and restored on re-mark, with an undo toast' },
+                    { tag: 'a11y', text: 'Targeting / Awaiting toggles now announce to screen readers' },
+                    { tag: 'a11y', text: 'ARIA contracts delivered — tablist arrow-key navigation; export menu arrows + Escape' },
+                    { tag: 'fix', text: 'storage event listener keeps multiple open tabs consistent' },
+                    { tag: 'fix', text: 'Reset undo is durable — backup persisted for 24h with a recovery toast on the next visit' },
+                    { tag: 'feature', text: 'Import JSON restores a previous export (merge-safe, undoable)' },
+                    { tag: 'design', text: 'Pull sync reports what it changed ("Updated N credentials from your account")' },
+                    { tag: 'feature', text: 'Copy-link button — the URL now encodes level + status filters too' },
+                    { tag: 'feature', text: 'Freshness badge opens a what\'s-new / recently-retired catalogue panel' },
+                    { tag: 'feature', text: 'Annual renewal tracking for role-based & specialty certs — due dates, 180-day window, overdue states' },
+                    { tag: 'fix', text: 'Retired credentials keep earned progress visible on the page and in exports' },
+                    { tag: 'security', text: 'Optimistic-concurrency sync — rev on GET/PUT, 409 + client merge-and-retry against stale-device clobbering' },
+                    { tag: 'feature', text: 'Study links bridge each Microsoft cert to the flash-card generator via its exam study guide' },
+                    { tag: 'feature', text: 'Statuses are timestamped; stale "awaiting results" (>30 days) visibly ages' },
+                    { tag: 'infra', text: 'July 2026 catalogue update merged into the extracted certs-data.js module' },
+                    { tag: 'infra', text: '11 new unit tests (44 total) + a 25-check jsdom smoke test; service-worker cache bumped to v7' },
+                ]
+            },
+            {
                 version: 'v3.2.0',
                 date: '2026-08-15',
                 pr: null,

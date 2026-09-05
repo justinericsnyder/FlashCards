@@ -153,8 +153,11 @@
             position: relative; display: flex; flex-direction: column; gap: 0.35rem;
             border: 1px solid var(--f-stroke); border-left: 3px solid var(--f-stroke-2);
             border-radius: var(--f-radius); padding: 0.55rem 0.65rem 0.55rem 0.7rem; margin-bottom: 0.4rem;
-            background: var(--f-surface); cursor: pointer; transition: box-shadow .1s, border-color .1s, background .15s, transform .08s;
+            background: var(--f-surface); transition: box-shadow .1s, border-color .1s, background .15s, transform .08s;
         }
+        /* Earned-toggling lives on the check control only (#10) — the card grew too
+           many interactive children for whole-card toggling to stay safe. */
+        .check { cursor: pointer; }
         /* Hover affordance: the whole row is clickable — make that visible (#12). */
         .cert:hover { box-shadow: var(--f-shadow-4); border-left-color: var(--col-accent); background: var(--f-surface-2); }
         .cert:focus-within { outline: 2px solid var(--f-brand); outline-offset: 1px; }
@@ -378,6 +381,80 @@
         .retired-sec .rs-item .c-code { font-size: 0.62rem; }
         .retired-sec .rs-item .rs-date { margin-left: auto; font-size: 0.68rem; color: var(--f-success); font-weight: 600; }
 
+        /* ---- Sticky filter toolbar (#5) ---- */
+        .toolbar-wrap { position: sticky; top: 0; z-index: 25; background: var(--f-canvas); padding-top: 0.5rem; margin-top: -0.5rem; }
+        .toolbar-wrap .toolbar:last-child { margin-bottom: 0.75rem; }
+
+        /* ---- Collapsible columns / level groups (#2) ---- */
+        .col-head .ch-collapse, .level-title .lg-collapse {
+            background: none; border: none; padding: 2px; cursor: pointer; color: var(--f-text-3);
+            display: inline-flex; align-items: center; border-radius: 3px;
+        }
+        .col-head .ch-collapse:hover, .level-title .lg-collapse:hover { color: var(--f-text); background: var(--f-surface-2); }
+        .col-head .ch-collapse svg, .level-title .lg-collapse svg { width: 14px; height: 14px; transition: transform .15s; }
+        .col.collapsed .ch-collapse svg, .level-group.collapsed .lg-collapse svg { transform: rotate(-90deg); }
+        .col.collapsed .level-group { display: none; }
+        .level-group.collapsed .cert { display: none; }
+
+        /* ---- "Up next" recommendation strip (#1) ---- */
+        .up-next { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: -0.5rem 0 1.25rem; }
+        .up-next[hidden] { display: none; }
+        .up-next .un-label { font-size: 0.7rem; font-weight: 700; color: var(--f-text-3); text-transform: uppercase; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .up-next .un-label svg { width: 13px; height: 13px; color: var(--f-brand); }
+        .un-chip {
+            font-family: var(--f-font); font-size: 0.75rem; font-weight: 600; color: var(--f-text-2);
+            background: var(--f-surface); border: 1px solid var(--f-stroke-2); border-radius: 99px;
+            padding: 0.28rem 0.65rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;
+        }
+        .un-chip:hover { border-color: var(--f-brand); color: var(--f-text); }
+        .un-chip svg { width: 12px; height: 12px; }
+        .un-chip .un-why { font-size: 0.62rem; color: var(--f-text-3); font-weight: 700; }
+        .cert.flash { animation: cardflash 1.2s ease-out; }
+        @keyframes cardflash { 0%, 40% { outline: 2px solid var(--f-brand); outline-offset: 2px; } 100% { outline: 2px solid transparent; } }
+
+        /* ---- First-run hint (#4) ---- */
+        .first-run {
+            display: flex; align-items: flex-start; gap: 0.6rem; background: color-mix(in srgb, var(--f-brand) 7%, var(--f-surface));
+            border: 1px solid color-mix(in srgb, var(--f-brand) 30%, var(--f-stroke)); border-radius: var(--f-radius-lg);
+            padding: 0.8rem 1rem; margin-bottom: 1.25rem; font-size: 0.82rem; color: var(--f-text-2);
+        }
+        .first-run[hidden] { display: none; }
+        .first-run svg { width: 16px; height: 16px; color: var(--f-brand); flex-shrink: 0; margin-top: 1px; }
+        .first-run .fr-close { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--f-text-3); padding: 2px; }
+        .first-run .fr-close:hover { color: var(--f-text); }
+
+        /* ---- Clickable status-strip counters (#11) ---- */
+        .status-strip button.ss {
+            font-family: var(--f-font); font-size: inherit; font-weight: inherit; background: none;
+            border: none; padding: 0; cursor: pointer; color: var(--f-text-2);
+        }
+        .status-strip button.ss:hover { color: var(--f-text); text-decoration: underline; }
+
+        /* ---- Keyboard shortcuts overlay (#12) ---- */
+        .kbd-overlay { position: fixed; inset: 0; z-index: 80; background: color-mix(in srgb, var(--f-text) 30%, transparent); display: flex; align-items: center; justify-content: center; }
+        .kbd-overlay[hidden] { display: none; }
+        .kbd-card { background: var(--f-surface); border: 1px solid var(--f-stroke-2); border-radius: var(--f-radius-lg); box-shadow: var(--f-shadow-8); padding: 1.1rem 1.3rem; width: min(360px, 90vw); }
+        .kbd-card h2 { font-size: 0.85rem; margin: 0 0 0.6rem; }
+        .kbd-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.3rem 0; font-size: 0.78rem; color: var(--f-text-2); }
+        .kbd-row kbd { font-family: var(--font-mono, monospace); font-size: 0.68rem; background: var(--f-surface-2); border: 1px solid var(--f-stroke-2); border-bottom-width: 2px; border-radius: 4px; padding: 0.1rem 0.4rem; color: var(--f-text); }
+
+        /* ---- Booked exam date on targeted certs (#20) ---- */
+        .exam-foot { display: flex; align-items: center; gap: 0.4rem; padding-left: 1.6rem; }
+        .exam-foot .ef-icon { width: 12px; height: 12px; color: #d9920a; flex-shrink: 0; }
+        .exam-foot label { font-size: 0.68rem; color: #d9920a; font-weight: 700; }
+        .exam-foot input[type=date] {
+            font-family: var(--f-font); font-size: 0.7rem; color: var(--f-text); font-weight: 600;
+            border: 1px solid color-mix(in srgb, #d9920a 45%, var(--f-stroke)); background: var(--f-surface); border-radius: 3px; padding: 0.1rem 0.3rem; cursor: pointer;
+            color-scheme: light dark;
+        }
+        .exam-pill { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.4rem; border-radius: 3px; background: rgba(217,146,10,.16); color: #d9920a; display: inline-flex; align-items: center; gap: 0.25rem; }
+        .exam-pill.soon { background: rgba(177,14,28,.14); color: #b10e1c; }
+        .exam-pill .b-icon { width: 9px; height: 9px; }
+
+        /* ---- Recent activity (journal) in Insights (#16) ---- */
+        .jr-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0; font-size: 0.74rem; color: var(--f-text-2); }
+        .jr-item .jr-when { font-family: var(--font-mono, monospace); font-size: 0.62rem; color: var(--f-text-3); margin-left: auto; flex-shrink: 0; }
+
         /* ---- Toast (undoable reset, migration notice) ---- */
         .toast-host { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
         .toast {
@@ -433,9 +510,10 @@
                     <div class="export-menu" id="export-menu" role="menu" hidden>
                         <button type="button" role="menuitem" data-export="csv"><i data-lucide="table" style="width:14px;height:14px"></i> Download CSV</button>
                         <button type="button" role="menuitem" data-export="json"><i data-lucide="braces" style="width:14px;height:14px"></i> Download JSON</button>
-                        <button type="button" role="menuitem" id="import-btn"><i data-lucide="upload" style="width:14px;height:14px"></i> Import JSON</button>
+                        <button type="button" role="menuitem" data-export="ics"><i data-lucide="calendar-plus" style="width:14px;height:14px"></i> Calendar (.ics)</button>
+                        <button type="button" role="menuitem" id="import-btn"><i data-lucide="upload" style="width:14px;height:14px"></i> Import JSON / CSV</button>
                     </div>
-                    <input type="file" id="import-file" accept="application/json,.json" hidden>
+                    <input type="file" id="import-file" accept="application/json,.json,text/csv,.csv" hidden>
                 </div>
                 <button class="ghost-btn danger" id="reset-btn"><i data-lucide="rotate-ccw" style="width:13px;height:13px"></i> <span id="reset-label">Reset</span></button>
             </div>
@@ -456,25 +534,38 @@
         <div class="status-help">
             <span class="sh sh-target"><i data-lucide="target"></i> <span><b>Targeting</b> — on your roadmap</span></span>
             <span class="sh sh-await"><i data-lucide="hourglass"></i> <span><b>Awaiting results</b> — exam taken</span></span>
-            <span class="sh"><i data-lucide="mouse-pointer-click"></i> <span>Click a card to mark it earned</span></span>
+            <span class="sh"><i data-lucide="mouse-pointer-click"></i> <span>Click a card's circle to mark it earned</span></span>
+            <span class="sh"><i data-lucide="keyboard"></i> <span>Press <b>?</b> for shortcuts</span></span>
         </div>
 
-        <div class="toolbar">
-            <div class="lvl-filters" id="level-filters">
-                <span class="lf-label">Levels</span>
-            </div>
-            <!-- Status filter chips (#2) — generalizes the old "Hide completed" toggle. -->
-            <div class="lvl-filters" id="status-filters">
-                <span class="lf-label">Status</span>
-            </div>
+        <!-- First-run hint (#4): shown only while progress is empty. -->
+        <div class="first-run" id="first-run" hidden>
+            <i data-lucide="sparkles"></i>
+            <span>Welcome! Start by clicking the circle on anything you've <b>already earned</b>, or use the <i data-lucide="target" style="width:12px;height:12px;vertical-align:-2px"></i> button to target your first credential. Signed in, your progress follows you across devices.</span>
+            <button type="button" class="fr-close" id="first-run-close" aria-label="Dismiss"><i data-lucide="x" style="width:14px;height:14px"></i></button>
         </div>
 
-        <div class="toolbar">
-            <div class="search">
-                <i data-lucide="search" class="s-icon"></i>
-                <input type="text" id="search" placeholder="Search by name or exam code…" autocomplete="off" aria-label="Search credentials">
+        <!-- "Up next" recommendations (#1): awaiting → booked exams → targets → unlocked. -->
+        <div class="up-next" id="up-next" hidden></div>
+
+        <!-- Sticky (#5): filters stay reachable while scrolling the long list. -->
+        <div class="toolbar-wrap">
+            <div class="toolbar">
+                <div class="lvl-filters" id="level-filters">
+                    <span class="lf-label">Levels</span>
+                </div>
+                <div class="lvl-filters" id="status-filters">
+                    <span class="lf-label">Status</span>
+                </div>
             </div>
-            <div class="legend" id="cred-legend"></div>
+
+            <div class="toolbar">
+                <div class="search">
+                    <i data-lucide="search" class="s-icon"></i>
+                    <input type="text" id="search" placeholder="Search name, code, or category…  ( / )" autocomplete="off" aria-label="Search credentials">
+                </div>
+                <div class="legend" id="cred-legend"></div>
+            </div>
         </div>
 
         <div class="columns" id="columns"></div>
@@ -487,6 +578,19 @@
     <!-- Live region: announces progress changes to screen readers (#9). -->
     <div class="sr-only" id="a11y-live" aria-live="polite" role="status"></div>
     <div class="toast-host" id="toast-host" aria-live="polite"></div>
+
+    <!-- Keyboard shortcuts overlay (#12): press ? -->
+    <div class="kbd-overlay" id="kbd-overlay" hidden role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+        <div class="kbd-card">
+            <h2>Keyboard shortcuts</h2>
+            <div class="kbd-row"><span>Focus search</span><kbd>/</kbd></div>
+            <div class="kbd-row"><span>Clear search / close panels</span><kbd>Esc</kbd></div>
+            <div class="kbd-row"><span>Switch Certifications ⇄ Applied Skills</span><kbd>← →</kbd></div>
+            <div class="kbd-row"><span>Toggle earned on a focused circle</span><kbd>Space</kbd></div>
+            <div class="kbd-row"><span>Move through menus</span><kbd>↑ ↓</kbd></div>
+            <div class="kbd-row"><span>This help</span><kbd>?</kbd></div>
+        </div>
+    </div>
 
     <script src="config.js"></script>
     <script src="auth.js"></script>
@@ -521,8 +625,10 @@
         const STORAGE_PREFIX = "fc_cert_progress_v1";
         const UI_STATE_KEY = "fc_cert_ui_v1";
         const STATS_KEY = "fc_cert_stats_v1";
-        const LAST_DATES_KEY = "fc_cert_last_dates_v1";   // remembers earned dates through unmarks (#6)
-        const RESET_BACKUP_KEY = "fc_cert_reset_backup_v1"; // durable reset undo (#10)
+        const LAST_DATES_KEY = "fc_cert_last_dates_v1";   // remembers earned dates through unmarks
+        const RESET_BACKUP_KEY = "fc_cert_reset_backup_v1"; // durable reset undo
+        const JOURNAL_KEY = "fc_cert_journal_v1";           // append-only change history (#16)
+        const JOURNAL_CAP = 500;
         const API_BASE = window.__API_BASE__ || "";
         const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
@@ -535,6 +641,21 @@
                 s[event] = (s[event] || 0) + 1;
                 localStorage.setItem(STATS_KEY, JSON.stringify(s));
             } catch { /* storage full / disabled — analytics are best-effort */ }
+        }
+
+        // ---- Append-only event journal (#16) ----
+        // Records every local state change ({ts, code, from, to}) so streaks are
+        // computable, sync surprises are explainable, and history survives toasts.
+        function journalKey() { return `${JOURNAL_KEY}:${bucketKey()}`; }
+        function journal(code, from, to) {
+            try {
+                const log = JSON.parse(localStorage.getItem(journalKey()) || "[]");
+                log.push({ ts: Date.now(), code, from: from || null, to: to || null });
+                localStorage.setItem(journalKey(), JSON.stringify(log.slice(-JOURNAL_CAP)));
+            } catch { /* best-effort */ }
+        }
+        function readJournal() {
+            try { return JSON.parse(localStorage.getItem(journalKey()) || "[]"); } catch { return []; }
         }
 
         // ---- Per-user storage ----
@@ -666,15 +787,22 @@
             earned: { label: "Earned",      icon: "circle-check-big" },
         };
         let activeStatuses = new Set(ALL_STATUSES);
+        // Collapsed columns/level groups (#2) — persisted across visits.
+        let collapsedCols = new Set();
+        let collapsedGroups = new Set(); // "cat:level"
 
         // ---- Persisted UI state (mode, level/status filters, search) (#3) ----
         const searchInput = document.getElementById("search");
         function saveUIState() {
             try {
+                const prev = JSON.parse(localStorage.getItem(UI_STATE_KEY) || "{}") || {};
                 localStorage.setItem(UI_STATE_KEY, JSON.stringify({
+                    ...prev,
                     mode,
                     statuses: [...activeStatuses],
                     levels: { certs: [...activeLevelsByMode.certs], applied: [...activeLevelsByMode.applied] },
+                    collapsedCols: [...collapsedCols],
+                    collapsedGroups: [...collapsedGroups],
                 }));
             } catch { /* ignore */ }
             syncURL();
@@ -725,6 +853,8 @@
                 const valid = urlStatus.split("~").filter(s => ALL_STATUSES.includes(s));
                 if (valid.length) activeStatuses = new Set(valid);
             }
+            if (Array.isArray(saved.collapsedCols)) collapsedCols = new Set(saved.collapsedCols);
+            if (Array.isArray(saved.collapsedGroups)) collapsedGroups = new Set(saved.collapsedGroups);
             const q = url.get("q");
             if (q) searchInput.value = q;
         }
@@ -821,13 +951,14 @@
             const badges = [];
             if (c.expert) badges.push('<span class="badge expert"><i data-lucide="star" class="b-icon"></i>Expert</span>');
             if (c.prereqs && c.prereqs.length) {
-                // Dependency-aware prereq badge (#1): name the requirement, show if met.
+                // Dependency-aware prereq badge: name the requirement, show if met.
+                // A button, not a title tooltip — touch devices have no hover (#8).
                 const met = c.prereqs.some(p => isEarned(p));
                 const listing = c.prereqs.map(p => `${p}${isEarned(p) ? " ✓" : ""}`).join(", ");
                 const tip = `Requires ${c.prereqs.length > 1 ? "one of: " : ""}${listing}`;
-                badges.push(`<span class="badge prereq${met ? " met" : ""}" title="${escapeHtml(tip)}">` +
+                badges.push(`<button type="button" class="badge prereq${met ? " met" : ""}" data-tip="${escapeHtml(tip)}" style="border:none;cursor:pointer;font-family:inherit" aria-label="${escapeHtml(tip)}">` +
                     `<i data-lucide="${met ? "lock-open" : "lock"}" class="b-icon"></i>` +
-                    `${met ? "Prereq met" : "Requires " + escapeHtml(c.prereqs[0]) + (c.prereqs.length > 1 ? "+" : "")}</span>`);
+                    `${met ? "Prereq met" : "Requires " + escapeHtml(c.prereqs[0]) + (c.prereqs.length > 1 ? "+" : "")}</button>`);
             } else if (c.prereq) {
                 badges.push('<span class="badge prereq"><i data-lucide="lock" class="b-icon"></i>Prereq</span>');
             }
@@ -837,6 +968,13 @@
             const age = statusAgeDays(progress[c.code], todayISO());
             const sinceTip = progress[c.code] && progress[c.code].since ? ` title="Since ${escapeHtml(fmtDate(progress[c.code].since))}"` : "";
             if (st === "target") badges.push(`<span class="status-pill s-target"${sinceTip}><i data-lucide="target" class="b-icon"></i>Targeting${age >= 60 ? ` · ${Math.round(age / 30)} mo` : ""}</span>`);
+            // Booked exam countdown (#20).
+            const exam = progress[c.code] && progress[c.code].exam;
+            if (st === "target" && exam) {
+                const dLeft = L.daysBetween(todayISO(), exam);
+                const label = dLeft < 0 ? "Exam passed?" : dLeft === 0 ? "Exam today!" : `Exam in ${dLeft}d`;
+                badges.push(`<span class="exam-pill${dLeft <= 7 ? " soon" : ""}" title="Exam booked for ${escapeHtml(fmtDate(exam))}"><i data-lucide="calendar" class="b-icon"></i>${label}</span>`);
+            }
             // Results shouldn't take a month — visibly age a stale "awaiting" so it gets resolved (#20).
             if (st === "await") badges.push(`<span class="status-pill s-await${age > 30 ? " stale" : ""}"${sinceTip}><i data-lucide="hourglass" class="b-icon"></i>Awaiting results${age > 30 ? ` · ${Math.round(age / 7)} wk` : ""}</span>`);
             // Study bridge (#19): open the flash-card generator on this exam's study guide.
@@ -900,6 +1038,12 @@
                     <input type="date" value="${date}" max="${todayISO()}" title="Date earned — you can log a past exam date here." aria-label="Date for ${escapeHtml(c.title)}">
                     ${renewHTML}
                 </div>` : ""}
+                ${st === "target" ? `
+                <div class="exam-foot">
+                    <i data-lucide="calendar-plus" class="ef-icon"></i>
+                    <label for="exam-${escapeHtml(c.code)}">Exam booked</label>
+                    <input type="date" id="exam-${escapeHtml(c.code)}" class="exam-date" value="${exam || ""}" aria-label="Booked exam date for ${escapeHtml(c.title)}">
+                </div>` : ""}
             </div>`;
         }
 
@@ -939,6 +1083,61 @@
             elRetired.hidden = false;
         }
 
+        // "Up next" (#1): awaiting results → booked exams → targets → newly unlocked.
+        const elUpNext = document.getElementById("up-next");
+        function renderUpNext() {
+            const pool = items().filter(c => !c.comingSoon);
+            const recs = [];
+            pool.filter(c => statusOf(c.code) === "await")
+                .forEach(c => recs.push({ c, icon: "hourglass", why: "awaiting" }));
+            pool.filter(c => statusOf(c.code) === "target" && progress[c.code].exam)
+                .sort((a, b) => progress[a.code].exam.localeCompare(progress[b.code].exam))
+                .forEach(c => recs.push({ c, icon: "calendar", why: fmtDate(progress[c.code].exam) }));
+            pool.filter(c => statusOf(c.code) === "target" && !progress[c.code].exam)
+                .forEach(c => recs.push({ c, icon: "target", why: "targeted" }));
+            pool.filter(c => !statusOf(c.code) && c.prereqs && c.prereqs.some(p => isEarned(p)))
+                .forEach(c => recs.push({ c, icon: "lock-open", why: "unlocked" }));
+            const top = recs.slice(0, 5);
+            if (!top.length) { elUpNext.hidden = true; elUpNext.innerHTML = ""; return; }
+            elUpNext.innerHTML = `<span class="un-label"><i data-lucide="list-todo"></i> Up next</span>` +
+                top.map(r => `<button type="button" class="un-chip" data-goto="${escapeHtml(r.c.code)}">
+                    <i data-lucide="${r.icon}"></i>${escapeHtml(r.c.applied ? r.c.title : r.c.code)}
+                    <span class="un-why">${escapeHtml(r.why)}</span></button>`).join("");
+            elUpNext.hidden = false;
+        }
+        elUpNext.addEventListener("click", (e) => {
+            const chip = e.target.closest("[data-goto]");
+            if (!chip) return;
+            const code = chip.dataset.goto;
+            pinnedCode = code; // make sure it's visible even if filtered out
+            applyFilter();
+            const card = [...elColumns.querySelectorAll(".cert")].find(el => el.dataset.code === code);
+            if (!card) return;
+            // Un-collapse anything hiding it.
+            const col = card.closest(".col"), grp = card.closest(".level-group");
+            if (col?.classList.contains("collapsed")) { col.classList.remove("collapsed"); collapsedCols.delete(col.dataset.cat); }
+            if (grp?.classList.contains("collapsed")) { grp.classList.remove("collapsed"); collapsedGroups.delete(grp.dataset.gkey); }
+            card.scrollIntoView({ behavior: "smooth", block: "center" });
+            card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
+            track("up_next_jump");
+        });
+
+        // First-run hint (#4): only while this bucket has zero progress.
+        function renderFirstRun() {
+            const el = document.getElementById("first-run");
+            let saved = {};
+            try { saved = JSON.parse(localStorage.getItem(UI_STATE_KEY) || "{}") || {}; } catch { /* ignore */ }
+            el.hidden = !!saved.firstRunDismissed || Object.keys(progress).length > 0;
+        }
+        document.getElementById("first-run-close").addEventListener("click", () => {
+            try {
+                const saved = JSON.parse(localStorage.getItem(UI_STATE_KEY) || "{}") || {};
+                saved.firstRunDismissed = true;
+                localStorage.setItem(UI_STATE_KEY, JSON.stringify(saved));
+            } catch { /* ignore */ }
+            document.getElementById("first-run").hidden = true;
+        });
+
         // Scope the Reset button to what it will actually clear (#5).
         function renderResetLabel() {
             const label = document.getElementById("reset-label");
@@ -970,6 +1169,8 @@
             renderRetired();
             renderResetLabel();
             renderInsights();
+            renderUpNext();
+            renderFirstRun();
             if (!activeLevels().size) {
                 elColumns.innerHTML = `<div class="cols-empty">Select at least one level to display certifications.</div>`;
                 renderMetrics();
@@ -984,17 +1185,21 @@
                     const levelCerts = catCerts.filter(c => c.level === level);
                     if (!levelCerts.length) return "";
                     const lDone = levelCerts.filter(c => isEarned(c.code)).length;
+                    const gKey = `${cat.key}:${level}`;
                     return `
-                    <div class="level-group" role="list" data-level="${level}">
-                        <div class="level-title">${level}<span class="lt-count">${lDone}/${levelCerts.length}</span></div>
+                    <div class="level-group${collapsedGroups.has(gKey) ? " collapsed" : ""}" role="list" data-level="${level}" data-gkey="${gKey}">
+                        <div class="level-title">
+                            <button type="button" class="lg-collapse" aria-expanded="${!collapsedGroups.has(gKey)}" aria-label="Collapse ${level}"><i data-lucide="chevron-down"></i></button>
+                            ${level}<span class="lt-count">${lDone}/${levelCerts.length}</span>
+                        </div>
                         ${levelCerts.map(certCardHTML).join("")}
                     </div>`;
                 }).join("");
                 return `
-                <section class="col" data-cat="${cat.key}" style="--col-accent:${cat.accent}">
+                <section class="col${collapsedCols.has(cat.key) ? " collapsed" : ""}" data-cat="${cat.key}" style="--col-accent:${cat.accent}">
                     <div class="col-head">
                         <div class="ch-top">
-                            <h2><i data-lucide="${cat.icon}" class="ch-icon"></i>${cat.name}</h2>
+                            <h2><button type="button" class="ch-collapse" aria-expanded="${!collapsedCols.has(cat.key)}" aria-label="Collapse ${cat.name}"><i data-lucide="chevron-down"></i></button><i data-lucide="${cat.icon}" class="ch-icon"></i>${cat.name}</h2>
                             <div style="text-align:right">
                                 <div class="ch-pct">${pct}%</div>
                                 <div class="ch-frac">${earned}/${catCerts.length}</div>
@@ -1064,6 +1269,8 @@
             renderRetired();
             renderResetLabel();
             renderInsights();
+            renderUpNext();
+            renderFirstRun();
             recalcColumnHeaders();
             if (window.lucide) lucide.createIcons();
         }
@@ -1080,10 +1287,11 @@
                     const r = renewal(c, progress[c.code], todayISO());
                     return r && r.state !== "ok";
                 }).length;
+                // Counters are buttons (#11): clicking one applies the matching filter.
                 strip.innerHTML = `
-                    <span class="ss s-target"><i data-lucide="target"></i> <b>${m.targeting}</b> targeting</span>
-                    <span class="ss s-await"><i data-lucide="hourglass"></i> <b>${m.awaiting}</b> awaiting results</span>
-                    ${renewDue ? `<span class="ss" style="color:#d9920a"><i data-lucide="refresh-cw"></i> <b>${renewDue}</b> renewal${renewDue === 1 ? "" : "s"} due</span>` : ""}`;
+                    <button type="button" class="ss s-target" data-strip="target" title="Show only targeted credentials"><i data-lucide="target"></i> <b>${m.targeting}</b> targeting</button>
+                    <button type="button" class="ss s-await" data-strip="await" title="Show only credentials awaiting results"><i data-lucide="hourglass"></i> <b>${m.awaiting}</b> awaiting results</button>
+                    ${renewDue ? `<button type="button" class="ss" data-strip="earned" style="color:#d9920a" title="Show earned credentials — renewal pills are on the cards"><i data-lucide="refresh-cw"></i> <b>${renewDue}</b> renewal${renewDue === 1 ? "" : "s"} due</button>` : ""}`;
             }
 
             elMetrics.innerHTML = `
@@ -1128,6 +1336,28 @@
         function recallDate(code) {
             try { return JSON.parse(localStorage.getItem(LAST_DATES_KEY) || "{}")[code] || null; } catch { return null; }
         }
+        // A just-changed card stays visible even if its new status is filtered out,
+        // so it can't vanish under the user's pointer or steal focus (#7). Cleared
+        // on the next explicit filter/mode change.
+        let pinnedCode = null;
+
+        // Milestone celebrations (#3): once per threshold, per family.
+        function checkMilestones() {
+            const m = computeMetrics(items(), progress, todayISO());
+            const hit = [100, 75, 50, 25].find(t => m.pct >= t);
+            if (!hit) return;
+            let saved = {};
+            try { saved = JSON.parse(localStorage.getItem(UI_STATE_KEY) || "{}") || {}; } catch { /* ignore */ }
+            const key = `${mode}:${hit}`;
+            const done = Array.isArray(saved.milestones) ? saved.milestones : [];
+            if (done.includes(key)) return;
+            saved.milestones = [...done, key];
+            try { localStorage.setItem(UI_STATE_KEY, JSON.stringify(saved)); } catch { /* ignore */ }
+            toast(hit === 100
+                ? `🎉 100% — every ${CRED[mode].label.replace(/s$/, "").toLowerCase()} earned!`
+                : `🎉 Milestone: ${hit}% of ${CRED[mode].label} earned.`);
+        }
+
         function toggleEarned(code) {
             if (ITEM_BY_CODE[code]?.comingSoon) return; // not yet available
             const cur = progress[code];
@@ -1138,39 +1368,70 @@
                 delete progress[code];
                 toast(`Unmarked ${ITEM_BY_CODE[code].title}.`, "Undo", () => {
                     progress[code] = backup;
+                    journal(code, null, "earned");
                     saveProgress(progress);
                     updateCard(code);
                 });
             } else {
                 progress[code] = { st: "earned", date: (cur && cur.date) || recallDate(code) || todayISO() };
             }
+            journal(code, cur ? cur.st : null, nowEarned ? "earned" : null);
             saveProgress(progress);
             track(nowEarned ? "mark_earned" : "unmark_earned");
             announce(`${ITEM_BY_CODE[code].title} ${nowEarned ? "marked earned" : "unmarked"}.`);
+            pinnedCode = code;
             updateCard(code);
+            if (nowEarned) checkMilestones();
         }
         function setStatus(code, status) {
             if (status === "await" && ITEM_BY_CODE[code]?.comingSoon) return;
             const cur = progress[code];
             const cleared = cur && cur.st === status;
             if (cleared) delete progress[code]; // toggle off
-            else progress[code] = { st: status, since: todayISO() }; // since powers status aging (#20)
+            else progress[code] = { st: status, since: todayISO() }; // since powers status aging
+            journal(code, cur ? cur.st : null, cleared ? null : status);
             saveProgress(progress);
             track(status === "target" ? "set_target" : "set_await");
-            // Status toggles were silent to screen readers (#7).
             const word = status === "target" ? "targeting" : "awaiting results";
             announce(`${ITEM_BY_CODE[code].title} ${cleared ? `no longer ${word}` : `marked as ${word}`}.`);
+            pinnedCode = code;
             updateCard(code);
         }
 
         elColumns.addEventListener("click", (e) => {
+            // Column / level-group collapse toggles (#2).
+            const colBtn = e.target.closest(".ch-collapse");
+            if (colBtn) {
+                const col = colBtn.closest(".col");
+                const key = col.dataset.cat;
+                collapsedCols.has(key) ? collapsedCols.delete(key) : collapsedCols.add(key);
+                col.classList.toggle("collapsed");
+                colBtn.setAttribute("aria-expanded", String(!col.classList.contains("collapsed")));
+                saveUIState();
+                return;
+            }
+            const grpBtn = e.target.closest(".lg-collapse");
+            if (grpBtn) {
+                const grp = grpBtn.closest(".level-group");
+                const key = grp.dataset.gkey;
+                collapsedGroups.has(key) ? collapsedGroups.delete(key) : collapsedGroups.add(key);
+                grp.classList.toggle("collapsed");
+                grpBtn.setAttribute("aria-expanded", String(!grp.classList.contains("collapsed")));
+                saveUIState();
+                return;
+            }
+            // Prereq detail on tap — tooltips don't exist on touch (#8).
+            const tipBtn = e.target.closest("[data-tip]");
+            if (tipBtn) { toast(tipBtn.dataset.tip); return; }
             if (e.target.closest('input[type="date"]')) return; // handled on change
             if (e.target.closest("a")) return; // let Learn links work
             const card = e.target.closest(".cert");
             if (!card) return;
             const actBtn = e.target.closest(".act-btn");
             if (actBtn) { setStatus(card.dataset.code, actBtn.dataset.status); return; }
-            toggleEarned(card.dataset.code); // click on check or card body
+            // Earned-toggling is scoped to the check control only (#10) — the card
+            // body carries too many other interactive elements now.
+            if (e.target.closest(".check")) toggleEarned(card.dataset.code);
         });
 
         elColumns.addEventListener("keydown", (e) => {
@@ -1186,14 +1447,28 @@
             const input = e.target.closest('input[type="date"]');
             if (!input) return;
             const card = input.closest(".cert");
-            progress[card.dataset.code] = { st: "earned", date: input.value || todayISO() };
-            rememberDate(card.dataset.code, progress[card.dataset.code].date);
+            const code = card.dataset.code;
+            if (input.classList.contains("exam-date")) {
+                // Booked exam date on a targeted credential (#20).
+                const cur = progress[code] || { st: "target", since: todayISO() };
+                if (input.value) cur.exam = input.value; else delete cur.exam;
+                progress[code] = cur;
+                journal(code, "target", "target");
+                saveProgress(progress);
+                pinnedCode = code;
+                updateCard(code);
+                return;
+            }
+            progress[code] = { st: "earned", date: input.value || todayISO() };
+            rememberDate(code, progress[code].date);
+            journal(code, "earned", "earned");
             saveProgress(progress);
             refreshAggregates(); // keep focus on the date field — no full re-render
         });
 
         // ---- Filters ----
         function applyFilterToCard(card) {
+            if (card.dataset.code === pinnedCode) { card.classList.remove("hidden-card"); return; } // #7
             const q = searchInput.value.trim().toLowerCase();
             const matchQ = !q || card.dataset.search.includes(q);
             const matchStatus = activeStatuses.has(card.dataset.status || "none");
@@ -1228,7 +1503,8 @@
         }
         let searchDebounce = null;
         searchInput.addEventListener("input", () => {
-            clearTimeout(searchDebounce); // debounce keystrokes (#1)
+            clearTimeout(searchDebounce); // debounce keystrokes
+            pinnedCode = null;
             searchDebounce = setTimeout(() => { applyFilter(); saveUIState(); }, 150);
         });
         // "/" focuses search from anywhere; Escape clears it (#3).
@@ -1250,9 +1526,22 @@
         });
 
         // Status filter chips (#2).
+        document.getElementById("status-strip").addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-strip]");
+            if (!btn) return;
+            pinnedCode = null;
+            activeStatuses = new Set([btn.dataset.strip]);
+            renderStatusFilters();
+            if (window.lucide) lucide.createIcons();
+            applyFilter();
+            saveUIState();
+            track("strip_filter");
+        });
+
         elStatusFilters.addEventListener("click", (e) => {
             const chip = e.target.closest(".lvl-chip");
             if (!chip) return;
+            pinnedCode = null;
             const s = chip.dataset.fstatus;
             if (activeStatuses.has(s)) {
                 if (activeStatuses.size === 1) return; // keep at least one status visible
@@ -1271,6 +1560,7 @@
         function switchMode(next) {
             if (next === mode) return;
             mode = next;
+            pinnedCode = null;
             searchInput.value = "";
             track("mode_switch");
             render();
@@ -1317,6 +1607,7 @@
             const backup = {};
             items().forEach(c => { if (progress[c.code]) { backup[c.code] = progress[c.code]; delete progress[c.code]; } });
             if (!Object.keys(backup).length) { toast(`No ${label} progress to clear.`); return; }
+            Object.entries(backup).forEach(([code, v]) => journal(code, v.st, null));
             try { localStorage.setItem(RESET_BACKUP_KEY, JSON.stringify({ ts: Date.now(), bucket: bucketKey(), data: backup })); } catch { /* best-effort */ }
             saveProgress(progress);
             track("reset");
@@ -1387,6 +1678,8 @@
                     level: c.level,
                     status: p.st || "none",
                     date: p.date || "",
+                    since: p.since || "",
+                    exam: p.exam || "",
                 };
             });
             const retiredByCode = {};
@@ -1398,6 +1691,7 @@
                     title: (retiredByCode[code] || {}).title || "",
                     category: "", level: "",
                     status: p.st || "none", date: p.date || "",
+                    since: p.since || "", exam: p.exam || "",
                 });
             });
             return rows;
@@ -1409,28 +1703,64 @@
             toggleExportMenu(false);
             importFile.click();
         });
+        // Minimal CSV parser for our own quoted exports (#9).
+        function parseCSV(text) {
+            const rows = [];
+            let row = [], field = "", inQ = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (inQ) {
+                    if (ch === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+                    else field += ch;
+                } else if (ch === '"') inQ = true;
+                else if (ch === ",") { row.push(field); field = ""; }
+                else if (ch === "\n" || ch === "\r") {
+                    if (ch === "\r" && text[i + 1] === "\n") i++;
+                    row.push(field); field = "";
+                    if (row.some(f => f !== "")) rows.push(row);
+                    row = [];
+                } else field += ch;
+            }
+            row.push(field);
+            if (row.some(f => f !== "")) rows.push(row);
+            if (!rows.length) return [];
+            const headers = rows[0].map(h => h.trim().toLowerCase());
+            return rows.slice(1).map(r => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? ""])));
+        }
         importFile.addEventListener("change", async () => {
             const file = importFile.files && importFile.files[0];
             importFile.value = "";
             if (!file) return;
+            const text = await file.text();
             let rows;
-            try { rows = JSON.parse(await file.text()); } catch { toast("That file isn't valid JSON."); return; }
-            if (!Array.isArray(rows)) { toast("Expected a JSON export from this page (an array of rows)."); return; }
+            if (/\.csv$/i.test(file.name) || (!text.trim().startsWith("[") && text.includes(","))) {
+                rows = parseCSV(text);
+            } else {
+                try { rows = JSON.parse(text); } catch { toast("That file isn't valid JSON or CSV."); return; }
+            }
+            if (!Array.isArray(rows)) { toast("Expected an export from this page (rows of credentials)."); return; }
             const incoming = {};
             for (const r of rows) {
                 if (!r || typeof r !== "object" || !["earned", "target", "await"].includes(r.status)) continue;
                 // Certs carry their code; Applied Skills are re-keyed from the title.
                 const code = r.code || (r.family === "Applied Skill" && r.title ? "as-" + L.slugify(r.title) : null);
                 if (!code || (!ITEM_BY_CODE[code] && r.family !== "Retired")) continue;
-                incoming[code] = r.status === "earned"
-                    ? { st: "earned", date: (L.DATE_RE.test(r.date || "") ? r.date : todayISO()) }
-                    : { st: r.status, since: todayISO() };
+                if (r.status === "earned") {
+                    incoming[code] = { st: "earned", date: (L.DATE_RE.test(r.date || "") ? r.date : todayISO()) };
+                } else {
+                    // Roundtrip since/exam so re-imports don't reset status ages (#9).
+                    incoming[code] = { st: r.status, since: (L.DATE_RE.test(r.since || "") ? r.since : todayISO()) };
+                    if (L.DATE_RE.test(r.exam || "")) incoming[code].exam = r.exam;
+                }
             }
             const n = Object.keys(incoming).length;
             if (!n) { toast("No usable entries found in that file."); return; }
             const snapshot = JSON.parse(JSON.stringify(progress));
             // Merge, never clobber: existing earned entries always survive (#22 rules).
             const { merged, changedFromLocal } = mergeProgress(progress, normalizeMap(incoming, todayISO()));
+            Object.keys(merged).forEach(code => {
+                if (JSON.stringify(merged[code]) !== JSON.stringify(snapshot[code])) journal(code, (snapshot[code] || {}).st || null, merged[code].st);
+            });
             progress = merged;
             saveProgress(progress);
             track("import_json");
@@ -1442,6 +1772,27 @@
                 render();
             }, 12000);
         });
+        // Renewal due dates + booked exams as an iCalendar file (#14) — put the
+        // deadlines where people actually track deadlines.
+        function buildICS() {
+            const esc = s => String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,");
+            const events = [];
+            [...CERTS, ...APPLIED_SKILLS].forEach(c => {
+                const p = progress[c.code];
+                const r = renewal(c, p, todayISO());
+                if (r) events.push({ date: r.due, uid: `renew-${c.code}`, summary: `Renew ${c.code} — ${c.title}`, desc: "Annual Microsoft certification renewal window closes today." });
+                if (p && p.st === "target" && p.exam) events.push({ date: p.exam, uid: `exam-${c.code}`, summary: `Exam: ${c.applied ? c.title : c.code + " — " + c.title}`, desc: "Booked in the Good Better Best credential tracker." });
+            });
+            if (!events.length) return null;
+            const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Good Better Best//Credential Tracker//EN"];
+            events.forEach(ev => {
+                const d = ev.date.replace(/-/g, "");
+                lines.push("BEGIN:VEVENT", `UID:${ev.uid}@goodbetterbest`, `DTSTART;VALUE=DATE:${d}`,
+                    `SUMMARY:${esc(ev.summary)}`, `DESCRIPTION:${esc(ev.desc)}`, "END:VEVENT");
+            });
+            lines.push("END:VCALENDAR");
+            return lines.join("\r\n");
+        }
         exportMenu.addEventListener("click", (e) => {
             const btn = e.target.closest("button[data-export]");
             if (!btn) return;
@@ -1449,8 +1800,12 @@
             const stamp = todayISO();
             if (btn.dataset.export === "json") {
                 download(`credential-progress-${stamp}.json`, JSON.stringify(rows, null, 2), "application/json");
+            } else if (btn.dataset.export === "ics") {
+                const ics = buildICS();
+                if (!ics) { toast("No renewal or exam dates to export yet."); toggleExportMenu(false); return; }
+                download(`credential-dates-${stamp}.ics`, ics, "text/calendar");
             } else {
-                const headers = ["family", "code", "title", "category", "level", "status", "date"];
+                const headers = ["family", "code", "title", "category", "level", "status", "date", "since", "exam"];
                 const esc = v => `"${String(v).replace(/"/g, '""')}"`;
                 const csv = [headers.join(","), ...rows.map(r => headers.map(h => esc(r[h])).join(","))].join("\r\n");
                 download(`credential-progress-${stamp}.csv`, csv, "text/csv");
@@ -1458,6 +1813,33 @@
             track("export_" + btn.dataset.export);
             toggleExportMenu(false);
         });
+
+        // ---- Keyboard shortcuts overlay (#12) ----
+        const kbdOverlay = document.getElementById("kbd-overlay");
+        function toggleKbd(open) {
+            kbdOverlay.hidden = open === undefined ? !kbdOverlay.hidden : !open;
+        }
+        document.addEventListener("keydown", (e) => {
+            if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "")) return;
+            if (e.key === "?") { e.preventDefault(); toggleKbd(); track("kbd_help"); }
+            else if (e.key === "Escape" && !kbdOverlay.hidden) toggleKbd(false);
+        });
+        kbdOverlay.addEventListener("click", (e) => { if (e.target === kbdOverlay) toggleKbd(false); });
+
+        // ---- Guest sync nudge (#13): the sync capability is invisible to guests ----
+        function renderGuestNudge() {
+            if (loggedIn() || !hasAuth || document.getElementById("guest-nudge")) return;
+            const meta = document.querySelector(".head-meta");
+            if (!meta) return;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.id = "guest-nudge";
+            btn.className = "chip-badge";
+            btn.innerHTML = '<i data-lucide="cloud-off"></i> Device-only — sign in to sync';
+            btn.title = "Your progress lives only in this browser. Sign in and it follows you across devices.";
+            btn.addEventListener("click", () => Auth.showAuthModal(() => location.reload()));
+            meta.appendChild(btn);
+        }
 
         // ---- Copy link (#14): the URL already encodes the full view state ----
         document.getElementById("copy-link-btn").addEventListener("click", async () => {
@@ -1507,12 +1889,29 @@
                 .sort((a, b) => b[1] - a[1])
                 .map(([k, v]) => `<span class="ac">${escapeHtml(ACTIVITY_LABELS[k] || k)} <b>${v}</b></span>`)
                 .join("");
+            // Recent changes from the append-only journal (#16).
+            const STATUS_WORD = { earned: "earned", target: "targeting", await: "awaiting results" };
+            const ago = ts => {
+                const mins = Math.round((Date.now() - ts) / 60000);
+                if (mins < 1) return "now";
+                if (mins < 60) return `${mins}m ago`;
+                if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
+                return `${Math.round(mins / 1440)}d ago`;
+            };
+            const events = readJournal().slice(-8).reverse().map(ev => {
+                const item = ITEM_BY_CODE[ev.code];
+                const name = item ? (item.applied ? item.title : ev.code) : ev.code;
+                const what = ev.to ? `→ ${STATUS_WORD[ev.to] || ev.to}` : "cleared";
+                return `<div class="jr-item"><span><b>${escapeHtml(name)}</b> ${escapeHtml(what)}</span><span class="jr-when">${ago(ev.ts)}</span></div>`;
+            }).join("");
             elInsights.innerHTML = `
                 <h2><i data-lucide="chart-line"></i> Timeline</h2>
                 ${tl}
+                <h2 style="margin-top:1rem"><i data-lucide="history"></i> Recent changes</h2>
+                ${events || '<p class="tl-empty">No changes recorded yet.</p>'}
                 <h2 style="margin-top:1rem"><i data-lucide="activity"></i> Activity on this device</h2>
                 ${chips || '<p class="tl-empty">No activity recorded yet.</p>'}
-                <p class="ins-note">Activity counters live only in this browser — nothing is transmitted.</p>`;
+                <p class="ins-note">History and counters live only in this browser — nothing is transmitted.</p>`;
         }
         insightsBtn.addEventListener("click", () => {
             elInsights.hidden = !elInsights.hidden;
@@ -1538,16 +1937,60 @@
             window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); });
         }
 
+        // ---- Deadline digest (#17): surface what's due without hunting for pills ----
+        function showDigest() {
+            try { if (sessionStorage.getItem("fc_cert_digest_shown")) return; } catch { /* ignore */ }
+            const t = todayISO();
+            const parts = [];
+            const dues = [...CERTS].filter(c => { const r = renewal(c, progress[c.code], t); return r && r.state !== "ok"; });
+            if (dues.length) {
+                const worst = dues.map(c => renewal(c, progress[c.code], t)).sort((a, b) => a.daysLeft - b.daysLeft)[0];
+                parts.push(`${dues.length} renewal${dues.length === 1 ? "" : "s"} due${worst.daysLeft < 0 ? " (one overdue)" : ` — soonest in ${worst.daysLeft}d`}`);
+            }
+            const exams = [...CERTS, ...APPLIED_SKILLS].filter(c => {
+                const p = progress[c.code];
+                return p && p.st === "target" && p.exam && L.daysBetween(t, p.exam) >= 0 && L.daysBetween(t, p.exam) <= 14;
+            });
+            if (exams.length) parts.push(`${exams.length} exam${exams.length === 1 ? "" : "s"} within 14 days`);
+            if (!parts.length) return;
+            toast(`Heads up: ${parts.join(" · ")}.`, "Show", () => {
+                activeStatuses = new Set(dues.length ? ["earned", "target"] : ["target"]);
+                renderStatusFilters();
+                if (window.lucide) lucide.createIcons();
+                applyFilter();
+            }, 10000);
+            try { sessionStorage.setItem("fc_cert_digest_shown", "1"); } catch { /* ignore */ }
+        }
+
+        // ---- Guest data durability (#18) ----
+        function protectGuestData() {
+            if (loggedIn() || !Object.keys(progress).length) return;
+            // Ask the browser not to evict this origin's storage under pressure.
+            try { navigator.storage?.persist?.().catch(() => {}); } catch { /* ignore */ }
+            // One-time nudge once real progress has accumulated and never been backed up.
+            let saved = {}, stats = {};
+            try { saved = JSON.parse(localStorage.getItem(UI_STATE_KEY) || "{}") || {}; } catch { /* ignore */ }
+            try { stats = JSON.parse(localStorage.getItem(STATS_KEY) || "{}"); } catch { /* ignore */ }
+            const earnedCount = Object.values(progress).filter(p => p.st === "earned").length;
+            if (earnedCount >= 5 && !saved.backupNudged && !stats.export_json && !stats.export_csv) {
+                saved.backupNudged = true;
+                try { localStorage.setItem(UI_STATE_KEY, JSON.stringify(saved)); } catch { /* ignore */ }
+                toast("Your progress lives only in this browser — export a backup or sign in to sync.", "Export", () => toggleExportMenu(true), 12000);
+            }
+        }
+
         // ---- Boot ----
         restoreUIState();
         renderFreshness();
+        renderGuestNudge();
         render();
         if (window.lucide) lucide.createIcons();
         pullServer(); // reconcile with the account's saved progress when logged in
         if (adoptedLegacy) {
-            // Tell the user their guest/older progress was preserved (#17/#18).
             toast(loggedIn() ? "Imported your earlier progress into this account." : "Restored your saved progress.");
         }
+        showDigest();
+        protectGuestData();
     })();
     </script>
     <script src="nav.js"></script>

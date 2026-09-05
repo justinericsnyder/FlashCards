@@ -36,13 +36,21 @@
         return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
     }
 
+    // All date math parses "YYYY-MM-DD" the same way — as a LOCAL calendar date.
+    // new Date("YYYY-MM-DD") is UTC midnight, which disagrees with todayISO()'s
+    // local calendar day; mixing the two shifted countdowns by a day for users
+    // west of UTC. parseISO keeps every comparison on the user's own calendar.
+    function parseISO(iso) {
+        const [y, m, d] = String(iso).split("-").map(Number);
+        return new Date(y, m - 1, d);
+    }
+
     function monthsBetween(isoA, isoB) {
-        const a = new Date(isoA), b = new Date(isoB);
-        return (b - a) / (1000 * 60 * 60 * 24 * 30.44);
+        return (parseISO(isoB) - parseISO(isoA)) / (1000 * 60 * 60 * 24 * 30.44);
     }
 
     function daysBetween(isoA, isoB) {
-        return Math.round((new Date(isoB) - new Date(isoA)) / (1000 * 60 * 60 * 24));
+        return Math.round((parseISO(isoB) - parseISO(isoA)) / (1000 * 60 * 60 * 24));
     }
 
     // Calendar-aware "same day next year" (Feb 29 clamps to Feb 28).
@@ -66,9 +74,13 @@
             if (typeof v === "string") {
                 if (DATE_RE.test(v)) out[k] = { st: "earned", date: v };
             } else if (v && typeof v === "object" && STATUSES.includes(v.st)) {
-                out[k] = v.st === "earned"
-                    ? { st: "earned", date: (typeof v.date === "string" && DATE_RE.test(v.date)) ? v.date : t }
-                    : { st: v.st, since: (typeof v.since === "string" && DATE_RE.test(v.since)) ? v.since : t };
+                if (v.st === "earned") {
+                    out[k] = { st: "earned", date: (typeof v.date === "string" && DATE_RE.test(v.date)) ? v.date : t };
+                } else {
+                    out[k] = { st: v.st, since: (typeof v.since === "string" && DATE_RE.test(v.since)) ? v.since : t };
+                    // A booked exam date on a targeted credential (#20).
+                    if (typeof v.exam === "string" && DATE_RE.test(v.exam)) out[k].exam = v.exam;
+                }
             }
         }
         return out;
@@ -85,7 +97,7 @@
     //   changedFromLocal — how many entries differ from `local` (what a pull changed
     //                      on this device — lets the UI say "updated N items", #13)
     function sameEntry(a, b) {
-        return !!a && !!b && a.st === b.st && a.date === b.date && a.since === b.since;
+        return !!a && !!b && a.st === b.st && a.date === b.date && a.since === b.since && a.exam === b.exam;
     }
     function mergeProgress(local, server) {
         const l = local || {}, s = server || {};
@@ -102,9 +114,12 @@
                 } else if (b.st === "earned") {
                     merged[k] = b;
                 } else if (a.st === b.st) {
-                    // Same status on both sides — keep the earlier "since" (true start).
+                    // Same status on both sides — keep the earlier "since" (true start)
+                    // and whichever booked exam date exists (server's wins if both).
                     const since = (a.since && b.since) ? (a.since <= b.since ? a.since : b.since) : (a.since || b.since);
                     merged[k] = since ? { st: b.st, since } : { st: b.st };
+                    const exam = b.exam || a.exam;
+                    if (exam) merged[k].exam = exam;
                 } else {
                     merged[k] = b; // both non-earned, different → server wins
                 }
@@ -178,5 +193,5 @@
         return Math.max(daysBetween(entry.since, today || todayISO()), 0);
     }
 
-    return { DATE_RE, STATUSES, slugify, todayISO, fmtDate, monthsBetween, daysBetween, addYears, normalizeMap, mergeProgress, computeMetrics, renewal, statusAgeDays };
+    return { DATE_RE, STATUSES, slugify, todayISO, fmtDate, parseISO, monthsBetween, daysBetween, addYears, normalizeMap, mergeProgress, computeMetrics, renewal, statusAgeDays };
 });

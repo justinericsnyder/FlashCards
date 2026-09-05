@@ -41,6 +41,14 @@ describe("normalizeMap", () => {
         const out = L.normalizeMap({ A: { st: "target", since: "2026-01-10" } }, "2026-07-03");
         expect(out.A).toEqual({ st: "target", since: "2026-01-10" });
     });
+    test("preserves a booked exam date on targeted entries, drops invalid ones", () => {
+        const out = L.normalizeMap({
+            A: { st: "target", since: "2026-01-10", exam: "2026-09-20" },
+            B: { st: "target", since: "2026-01-10", exam: "soon" },
+        }, "2026-07-03");
+        expect(out.A).toEqual({ st: "target", since: "2026-01-10", exam: "2026-09-20" });
+        expect(out.B).toEqual({ st: "target", since: "2026-01-10" });
+    });
     test("drops junk values and bad status strings", () => {
         expect(L.normalizeMap({ A: "not-a-date", B: { st: "bogus" }, C: 42, D: null }))
             .toEqual({});
@@ -89,6 +97,13 @@ describe("mergeProgress", () => {
         );
         expect(merged.A).toEqual({ st: "target", since: "2026-01-05" });
     });
+    test("same-status merge carries the booked exam date through", () => {
+        const { merged } = L.mergeProgress(
+            { A: { st: "target", since: "2026-01-05", exam: "2026-10-01" } },
+            { A: { st: "target", since: "2026-03-01" } }
+        );
+        expect(merged.A).toEqual({ st: "target", since: "2026-01-05", exam: "2026-10-01" });
+    });
     test("counts entries a pull changed on this device", () => {
         const { changedFromLocal } = L.mergeProgress(
             { A: { st: "earned", date: "2026-02-01" } },
@@ -117,6 +132,21 @@ describe("renewal", () => {
     });
     test("addYears clamps Feb 29 to Feb 28", () => {
         expect(L.addYears("2028-02-29", 1)).toBe("2029-02-28");
+    });
+});
+
+describe("date math parses local calendar dates (#6)", () => {
+    test("parseISO returns local midnight, matching todayISO's calendar", () => {
+        const d = L.parseISO("2026-07-03");
+        expect(d.getFullYear()).toBe(2026);
+        expect(d.getMonth()).toBe(6);
+        expect(d.getDate()).toBe(3);
+        expect(d.getHours()).toBe(0); // local, not UTC
+    });
+    test("daysBetween counts calendar days exactly", () => {
+        expect(L.daysBetween("2026-06-30", "2026-07-03")).toBe(3);
+        expect(L.daysBetween("2026-07-03", "2026-07-03")).toBe(0);
+        expect(L.daysBetween("2026-07-04", "2026-07-03")).toBe(-1);
     });
 });
 
@@ -196,6 +226,34 @@ describe("catalogue data integrity", () => {
         for (const c of CertData.CERTS) {
             (c.prereqs || []).forEach(p => expect(codes.has(p)).toBe(true));
         }
+    });
+    // Catalogue governance (#19): every credential code this app has EVER shipped
+    // must still exist in CERTS or RETIRED. A poster refresh that deletes a code
+    // without retiring it would orphan user progress invisibly — this freezes the
+    // full historical roster so that mistake fails CI instead of shipping.
+    // When adding a new cert: add its code here. When removing one: move it to
+    // RETIRED in certs-data.js — never just delete it.
+    test("no historical code may vanish without being retired", () => {
+        const EVER_SHIPPED = [
+            // v3.0 (June 2026 poster)
+            "AZ-900", "AI-900", "AI-901", "DP-900", "AZ-104", "AZ-204", "AZ-305", "AZ-400",
+            "AZ-700", "AZ-800 / AZ-801", "AI-102", "AI-103", "AI-200", "AI-300", "DP-300",
+            "DP-600", "DP-700", "DP-750", "DP-800", "PL-300", "AZ-120", "AZ-140", "DP-420",
+            "GH-900", "GH-100", "GH-200", "GH-300", "GH-600", "AB-900", "PL-900", "MD-102",
+            "MS-102", "MS-721", "MS-700", "MB-230", "MB-240", "MB-280", "MB-310", "MB-330",
+            "MB-335", "MB-500", "MB-700", "MB-800", "MB-820", "PL-200", "PL-400", "PL-500",
+            "PL-600", "AB-100", "AB-620", "AB-210", "AB-250", "AB-410", "AB-730", "AB-731",
+            "SC-900", "AZ-500", "SC-100", "SC-200", "SC-300", "SC-401", "SC-500", "SC-730",
+            "GH-500",
+            // v3.2 additions (July 2026 poster)
+            "AZ-802", "AI-500", "AB-650",
+        ];
+        const live = new Set([
+            ...CertData.CERTS.map(c => c.code),
+            ...CertData.RETIRED.map(r => r.code),
+        ]);
+        const lost = EVER_SHIPPED.filter(code => !live.has(code));
+        expect(lost).toEqual([]);
     });
     test("retired codes never collide with the active catalogue", () => {
         const codes = new Set(CertData.CERTS.map(c => c.code));

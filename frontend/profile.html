@@ -88,6 +88,7 @@
         </header>
         <div id="profile-stats" class="profile-stats"></div>
         <div id="cert-section"></div>
+        <div id="cert-tracker-section"></div>
         <div id="weakness-section"></div>
         <div id="badges-earned" class="badges-section"></div>
         <div id="badges-locked" class="badges-section"></div>
@@ -240,6 +241,36 @@
         }
 
         loadProfile();
+    </script>
+    <script src="certs-data.js"></script>
+    <script src="cert-logic.js"></script>
+    <script>
+    // Credential tracker summary — the tracker's progress was invisible outside
+    // its own page (Johari-3 #15). Reads the same per-user localStorage bucket.
+    (function () {
+        try {
+            const user = typeof Auth !== "undefined" && Auth.getUser ? Auth.getUser() : null;
+            const key = `fc_cert_progress_v1:${user ? (user.id || user.email) : "guest"}`;
+            const raw = localStorage.getItem(key) || localStorage.getItem("fc_cert_progress_v1");
+            const progress = window.CertLogic.normalizeMap(raw ? JSON.parse(raw) : {});
+            const { CERTS, APPLIED_SKILLS } = window.CertData;
+            APPLIED_SKILLS.forEach(s => { if (!s.code) { s.code = "as-" + window.CertLogic.slugify(s.title); s.applied = true; } });
+            const earnedCerts = CERTS.filter(c => progress[c.code] && progress[c.code].st === "earned").length;
+            const earnedSkills = APPLIED_SKILLS.filter(s => progress[s.code] && progress[s.code].st === "earned").length;
+            const targeting = [...CERTS, ...APPLIED_SKILLS].filter(c => progress[c.code] && progress[c.code].st === "target").length;
+            if (!earnedCerts && !earnedSkills && !targeting) return; // nothing to show yet
+            document.getElementById("cert-tracker-section").innerHTML = `
+                <div class="cert-card" style="margin-bottom:1.25rem">
+                    <div class="badges-title" style="text-align:center;margin-bottom:0.5rem;">Credential Tracker</div>
+                    <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;text-align:center;">
+                        <div><div style="font-size:1.3rem;font-weight:800;color:var(--primary)">${earnedCerts}</div><div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Certifications</div></div>
+                        <div><div style="font-size:1.3rem;font-weight:800;color:var(--primary)">${earnedSkills}</div><div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Applied Skills</div></div>
+                        <div><div style="font-size:1.3rem;font-weight:800;color:var(--primary)">${targeting}</div><div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Targeting</div></div>
+                    </div>
+                    <div style="text-align:center;margin-top:0.6rem;"><a href="/certifications.html" style="color:var(--primary);font-size:0.75rem;font-weight:600;text-decoration:none;">Open the tracker →</a></div>
+                </div>`;
+        } catch { /* tracker summary is best-effort */ }
+    })();
     </script>
     <script>lucide.createIcons();</script>
     <script src="nav.js"></script>

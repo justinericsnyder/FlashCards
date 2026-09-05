@@ -81,7 +81,7 @@
         .cert-page .ghost-btn.danger:hover { color: #b10e1c; border-color: #b10e1c; }
 
         /* ---- Top metrics ---- */
-        .metrics { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .metrics { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
         .metric-card {
             background: var(--f-surface); border: 1px solid var(--f-stroke); border-radius: var(--f-radius-lg);
             padding: 0.9rem 1rem; box-shadow: var(--f-shadow-2);
@@ -216,13 +216,15 @@
         .status-pill.s-target { background: rgba(217,146,10,.16); color: #d9920a; }
         .status-pill.s-await  { background: rgba(139,92,246,.16); color: #9b7cf0; }
 
-        /* Compact totals strip under the metrics */
-        .status-strip { display: flex; gap: 1rem; flex-wrap: wrap; margin: -0.5rem 0 1.25rem; font-size: 0.78rem; font-weight: 600; }
-        .status-strip .ss { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--f-text-2); }
-        .status-strip .ss svg { width: 14px; height: 14px; }
-        .status-strip .ss.s-target svg { color: #d9920a; }
-        .status-strip .ss.s-await svg { color: #9b7cf0; }
-        .status-strip .ss b { color: var(--f-text); font-variant-numeric: tabular-nums; }
+        /* Renewal warning chip inside the Earned metric card */
+        .renew-warn {
+            display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.3rem;
+            font-family: var(--f-font); font-size: 0.68rem; font-weight: 700; color: #d9920a;
+            background: rgba(217,146,10,.14); border: none; border-radius: 99px;
+            padding: 0.15rem 0.5rem; cursor: pointer;
+        }
+        .renew-warn:hover { background: rgba(217,146,10,.24); }
+        .renew-warn svg { width: 11px; height: 11px; }
 
         /* ---- Mode switch (segmented control) ---- */
         .mode-switch { display: inline-flex; gap: 0.25rem; padding: 0.25rem; background: var(--f-surface-2); border: 1px solid var(--f-stroke); border-radius: var(--f-radius-lg); margin-bottom: 1.25rem; }
@@ -285,15 +287,13 @@
         .sync-chip[data-state="offline"] { color: #d9920a; }
         .sync-chip[data-state="idle"], .sync-chip[hidden] { display: none; }
 
-        /* ---- Status help line (explains the Targeting / Awaiting icons) ---- */
-        .status-help {
-            display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-            font-size: 0.72rem; color: var(--f-text-3); margin: -0.4rem 0 1rem;
+        /* ---- Toolbar help button (opens the legend/shortcuts overlay) ---- */
+        .help-btn {
+            background: none; border: none; padding: 4px; cursor: pointer; color: var(--f-text-3);
+            display: inline-flex; align-items: center; border-radius: 50%;
         }
-        .status-help .sh { display: inline-flex; align-items: center; gap: 0.35rem; }
-        .status-help svg { width: 13px; height: 13px; }
-        .status-help .sh-target svg { color: #d9920a; }
-        .status-help .sh-await svg { color: #9b7cf0; }
+        .help-btn:hover { color: var(--f-text); background: var(--f-surface-2); }
+        .help-btn svg { width: 16px; height: 16px; }
 
         /* ---- No-results empty state ---- */
         .no-results { grid-column: 1 / -1; text-align: center; color: var(--f-text-3); padding: 3rem 1rem; font-size: 0.9rem; }
@@ -356,7 +356,7 @@
         /* ---- Insights panel: timeline + local activity (#4, #12) ---- */
         .insights {
             background: var(--f-surface); border: 1px solid var(--f-stroke); border-radius: var(--f-radius-lg);
-            box-shadow: var(--f-shadow-2); padding: 1rem 1.15rem; margin-bottom: 1.25rem;
+            box-shadow: var(--f-shadow-2); padding: 1rem 1.15rem; margin-bottom: 1rem;
         }
         .insights[hidden] { display: none; }
         .insights h2 { font-size: 0.8rem; margin: 0 0 0.6rem; display: flex; align-items: center; gap: 0.4rem; }
@@ -381,9 +381,15 @@
         .retired-sec .rs-item .c-code { font-size: 0.62rem; }
         .retired-sec .rs-item .rs-date { margin-left: auto; font-size: 0.68rem; color: var(--f-success); font-weight: 600; }
 
-        /* ---- Sticky filter toolbar (#5) ---- */
-        .toolbar-wrap { position: sticky; top: 0; z-index: 25; background: var(--f-canvas); padding-top: 0.5rem; margin-top: -0.5rem; }
-        .toolbar-wrap .toolbar:last-child { margin-bottom: 0.75rem; }
+        /* ---- Sticky filter toolbar ---- */
+        .toolbar-wrap {
+            position: sticky; top: 0; z-index: 25; background: var(--f-canvas);
+            padding-top: 0.5rem; margin-top: -0.5rem;
+            border-bottom: 1px solid var(--f-stroke); margin-bottom: 1rem;
+        }
+        .toolbar-wrap .toolbar:last-child { margin-bottom: 0.6rem; }
+        /* Up-next jumps and focus land below the sticky bar, not under it. */
+        .cert { scroll-margin-top: 110px; }
 
         /* ---- Collapsible columns / level groups (#2) ---- */
         .col-head .ch-collapse, .level-title .lg-collapse {
@@ -396,8 +402,8 @@
         .col.collapsed .level-group { display: none; }
         .level-group.collapsed .cert { display: none; }
 
-        /* ---- "Up next" recommendation strip (#1) ---- */
-        .up-next { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: -0.5rem 0 1.25rem; }
+        /* ---- "Up next" recommendation strip ---- */
+        .up-next { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 0 0 1rem; }
         .up-next[hidden] { display: none; }
         .up-next .un-label { font-size: 0.7rem; font-weight: 700; color: var(--f-text-3); text-transform: uppercase; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 0.3rem; }
         .up-next .un-label svg { width: 13px; height: 13px; color: var(--f-brand); }
@@ -416,27 +422,23 @@
         .first-run {
             display: flex; align-items: flex-start; gap: 0.6rem; background: color-mix(in srgb, var(--f-brand) 7%, var(--f-surface));
             border: 1px solid color-mix(in srgb, var(--f-brand) 30%, var(--f-stroke)); border-radius: var(--f-radius-lg);
-            padding: 0.8rem 1rem; margin-bottom: 1.25rem; font-size: 0.82rem; color: var(--f-text-2);
+            padding: 0.8rem 1rem; margin-bottom: 1rem; font-size: 0.82rem; color: var(--f-text-2);
         }
         .first-run[hidden] { display: none; }
         .first-run svg { width: 16px; height: 16px; color: var(--f-brand); flex-shrink: 0; margin-top: 1px; }
         .first-run .fr-close { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--f-text-3); padding: 2px; }
         .first-run .fr-close:hover { color: var(--f-text); }
 
-        /* ---- Clickable status-strip counters (#11) ---- */
-        .status-strip button.ss {
-            font-family: var(--f-font); font-size: inherit; font-weight: inherit; background: none;
-            border: none; padding: 0; cursor: pointer; color: var(--f-text-2);
-        }
-        .status-strip button.ss:hover { color: var(--f-text); text-decoration: underline; }
-
-        /* ---- Keyboard shortcuts overlay (#12) ---- */
+        /* ---- Legend + keyboard shortcuts overlay ---- */
         .kbd-overlay { position: fixed; inset: 0; z-index: 80; background: color-mix(in srgb, var(--f-text) 30%, transparent); display: flex; align-items: center; justify-content: center; }
         .kbd-overlay[hidden] { display: none; }
         .kbd-card { background: var(--f-surface); border: 1px solid var(--f-stroke-2); border-radius: var(--f-radius-lg); box-shadow: var(--f-shadow-8); padding: 1.1rem 1.3rem; width: min(360px, 90vw); }
         .kbd-card h2 { font-size: 0.85rem; margin: 0 0 0.6rem; }
         .kbd-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.3rem 0; font-size: 0.78rem; color: var(--f-text-2); }
         .kbd-row kbd { font-family: var(--font-mono, monospace); font-size: 0.68rem; background: var(--f-surface-2); border: 1px solid var(--f-stroke-2); border-bottom-width: 2px; border-radius: 4px; padding: 0.1rem 0.4rem; color: var(--f-text); }
+        .kbd-row .kbd-icon { width: 13px; height: 13px; vertical-align: -2px; margin-right: 0.2rem; }
+        .kbd-row .sh-target svg { color: #d9920a; }
+        .kbd-row .sh-await svg { color: #9b7cf0; }
 
         /* ---- Booked exam date on targeted certs (#20) ---- */
         .exam-foot { display: flex; align-items: center; gap: 0.4rem; padding-left: 1.6rem; }
@@ -503,11 +505,11 @@
             </div>
             <div class="head-links">
                 <a id="explore-link" href="https://aka.ms/ExploreCredentials" target="_blank" rel="noopener"><i data-lucide="external-link" style="width:13px;height:13px"></i> Explore credentials</a>
-                <button class="ghost-btn" id="copy-link-btn" title="Copy a link to this exact view — mode, filters, and search included."><i data-lucide="link" style="width:13px;height:13px"></i> Copy link</button>
                 <button class="ghost-btn" id="insights-btn" aria-expanded="false" title="Your earned-credential timeline and local activity."><i data-lucide="chart-line" style="width:13px;height:13px"></i> Insights</button>
                 <div class="export-wrap">
-                    <button class="ghost-btn" id="export-btn" aria-haspopup="true" aria-expanded="false"><i data-lucide="download" style="width:13px;height:13px"></i> Export</button>
+                    <button class="ghost-btn" id="export-btn" aria-haspopup="true" aria-expanded="false"><i data-lucide="share-2" style="width:13px;height:13px"></i> Share</button>
                     <div class="export-menu" id="export-menu" role="menu" hidden>
+                        <button type="button" role="menuitem" id="copy-link-btn"><i data-lucide="link" style="width:14px;height:14px"></i> Copy link to view</button>
                         <button type="button" role="menuitem" data-export="csv"><i data-lucide="table" style="width:14px;height:14px"></i> Download CSV</button>
                         <button type="button" role="menuitem" data-export="json"><i data-lucide="braces" style="width:14px;height:14px"></i> Download JSON</button>
                         <button type="button" role="menuitem" data-export="ics"><i data-lucide="calendar-plus" style="width:14px;height:14px"></i> Calendar (.ics)</button>
@@ -525,28 +527,19 @@
         </div>
 
         <div class="metrics" id="metrics"></div>
-        <div class="status-strip" id="status-strip"></div>
 
-        <!-- Insights: earned timeline (#4) + local, on-device activity counters (#12). -->
+        <!-- "Up next" recommendations: awaiting → booked exams → targets → unlocked. -->
+        <div class="up-next" id="up-next" hidden></div>
+
+        <!-- Insights: earned timeline + local, on-device activity counters. -->
         <section class="insights" id="insights" hidden aria-label="Insights"></section>
 
-        <!-- Explains the two per-item icon actions, which were previously undiscoverable (#16). -->
-        <div class="status-help">
-            <span class="sh sh-target"><i data-lucide="target"></i> <span><b>Targeting</b> — on your roadmap</span></span>
-            <span class="sh sh-await"><i data-lucide="hourglass"></i> <span><b>Awaiting results</b> — exam taken</span></span>
-            <span class="sh"><i data-lucide="mouse-pointer-click"></i> <span>Click a card's circle to mark it earned</span></span>
-            <span class="sh"><i data-lucide="keyboard"></i> <span>Press <b>?</b> for shortcuts</span></span>
-        </div>
-
-        <!-- First-run hint (#4): shown only while progress is empty. -->
+        <!-- First-run hint: shown only while progress is empty. -->
         <div class="first-run" id="first-run" hidden>
             <i data-lucide="sparkles"></i>
             <span>Welcome! Start by clicking the circle on anything you've <b>already earned</b>, or use the <i data-lucide="target" style="width:12px;height:12px;vertical-align:-2px"></i> button to target your first credential. Signed in, your progress follows you across devices.</span>
             <button type="button" class="fr-close" id="first-run-close" aria-label="Dismiss"><i data-lucide="x" style="width:14px;height:14px"></i></button>
         </div>
-
-        <!-- "Up next" recommendations (#1): awaiting → booked exams → targets → unlocked. -->
-        <div class="up-next" id="up-next" hidden></div>
 
         <!-- Sticky (#5): filters stay reachable while scrolling the long list. -->
         <div class="toolbar-wrap">
@@ -564,6 +557,7 @@
                     <i data-lucide="search" class="s-icon"></i>
                     <input type="text" id="search" placeholder="Search name, code, or category…  ( / )" autocomplete="off" aria-label="Search credentials">
                 </div>
+                <button type="button" class="help-btn" id="help-btn" title="Legend &amp; keyboard shortcuts (?)" aria-label="Legend and keyboard shortcuts"><i data-lucide="circle-help"></i></button>
                 <div class="legend" id="cred-legend"></div>
             </div>
         </div>
@@ -579,10 +573,14 @@
     <div class="sr-only" id="a11y-live" aria-live="polite" role="status"></div>
     <div class="toast-host" id="toast-host" aria-live="polite"></div>
 
-    <!-- Keyboard shortcuts overlay (#12): press ? -->
-    <div class="kbd-overlay" id="kbd-overlay" hidden role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+    <!-- Legend + keyboard shortcuts overlay: press ? or the toolbar help button -->
+    <div class="kbd-overlay" id="kbd-overlay" hidden role="dialog" aria-modal="true" aria-label="Legend and keyboard shortcuts">
         <div class="kbd-card">
-            <h2>Keyboard shortcuts</h2>
+            <h2>Legend</h2>
+            <div class="kbd-row"><span><i data-lucide="mouse-pointer-click" class="kbd-icon"></i> Click a card's <b>circle</b> to mark it earned</span></div>
+            <div class="kbd-row"><span class="sh-target"><i data-lucide="target" class="kbd-icon"></i> <b>Targeting</b> — on your roadmap</span></div>
+            <div class="kbd-row"><span class="sh-await"><i data-lucide="hourglass" class="kbd-icon"></i> <b>Awaiting results</b> — exam taken</span></div>
+            <h2 style="margin-top:0.9rem">Keyboard shortcuts</h2>
             <div class="kbd-row"><span>Focus search</span><kbd>/</kbd></div>
             <div class="kbd-row"><span>Clear search / close panels</span><kbd>Esc</kbd></div>
             <div class="kbd-row"><span>Switch Certifications ⇄ Applied Skills</span><kbd>← →</kbd></div>
@@ -1280,19 +1278,14 @@
             const scoped = scopedCerts();
             const m = computeMetrics(scoped, progress, todayISO());
 
-            const strip = document.getElementById("status-strip");
-            if (strip) {
-                // Renewal pressure at a glance (#16).
-                const renewDue = scoped.filter(c => {
-                    const r = renewal(c, progress[c.code], todayISO());
-                    return r && r.state !== "ok";
-                }).length;
-                // Counters are buttons (#11): clicking one applies the matching filter.
-                strip.innerHTML = `
-                    <button type="button" class="ss s-target" data-strip="target" title="Show only targeted credentials"><i data-lucide="target"></i> <b>${m.targeting}</b> targeting</button>
-                    <button type="button" class="ss s-await" data-strip="await" title="Show only credentials awaiting results"><i data-lucide="hourglass"></i> <b>${m.awaiting}</b> awaiting results</button>
-                    ${renewDue ? `<button type="button" class="ss" data-strip="earned" style="color:#d9920a" title="Show earned credentials — renewal pills are on the cards"><i data-lucide="refresh-cw"></i> <b>${renewDue}</b> renewal${renewDue === 1 ? "" : "s"} due</button>` : ""}`;
-            }
+            // Renewal pressure lives inside the Earned card — no separate band.
+            const renewDue = scoped.filter(c => {
+                const r = renewal(c, progress[c.code], todayISO());
+                return r && r.state !== "ok";
+            }).length;
+            const renewWarn = renewDue
+                ? `<button type="button" class="renew-warn" data-strip="earned" title="Show earned credentials — renewal pills are on the cards"><i data-lucide="refresh-cw"></i>${renewDue} renewal${renewDue === 1 ? "" : "s"} due</button>`
+                : "";
 
             elMetrics.innerHTML = `
             <div class="metric-card overall">
@@ -1304,6 +1297,7 @@
                 <div class="m-label"><i data-lucide="circle-check-big" class="m-icon"></i> Earned</div>
                 <div class="m-value">${m.earned}</div>
                 <div class="m-sub">${m.remaining} remaining</div>
+                ${renewWarn}
             </div>
             <div class="metric-card">
                 <div class="m-label"><i data-lucide="gauge" class="m-icon"></i> Velocity</div>
@@ -1526,7 +1520,7 @@
         });
 
         // Status filter chips (#2).
-        document.getElementById("status-strip").addEventListener("click", (e) => {
+        elMetrics.addEventListener("click", (e) => {
             const btn = e.target.closest("[data-strip]");
             if (!btn) return;
             pinnedCode = null;
@@ -1825,6 +1819,7 @@
             else if (e.key === "Escape" && !kbdOverlay.hidden) toggleKbd(false);
         });
         kbdOverlay.addEventListener("click", (e) => { if (e.target === kbdOverlay) toggleKbd(false); });
+        document.getElementById("help-btn").addEventListener("click", () => { toggleKbd(true); track("kbd_help"); if (window.lucide) lucide.createIcons(); });
 
         // ---- Guest sync nudge (#13): the sync capability is invisible to guests ----
         function renderGuestNudge() {
@@ -1841,8 +1836,9 @@
             meta.appendChild(btn);
         }
 
-        // ---- Copy link (#14): the URL already encodes the full view state ----
+        // ---- Copy link (in the Share menu): the URL encodes the full view state ----
         document.getElementById("copy-link-btn").addEventListener("click", async () => {
+            toggleExportMenu(false);
             syncURL();
             try {
                 await navigator.clipboard.writeText(location.href);

@@ -20,6 +20,38 @@
 
 ---
 
+## v3.4.0 — 2026-09-04
+
+> **PR #5** — `feat/cert-tracker-johari-20b`
+
+A site-map footer across all 12 pages, plus the third Johari-framework pass over the credential tracker — 20 improvements spanning visible polish, timezone-safe date math, hidden-capability surfacing, and latent-risk hardening.
+
+| | |
+|---|---|
+| <span class="cl-tag cl-design">design</span> | Site-map footer injected sitewide by `nav.js` — Study / Track / Account columns, responsive, themed |
+| <span class="cl-tag cl-feat">feature</span> | "Up next" strip — prereq-aware recommendations: awaiting results → booked exams → targets → newly unlocked |
+| <span class="cl-tag cl-design">design</span> | Collapsible category columns and level groups, persisted across visits |
+| <span class="cl-tag cl-feat">feature</span> | Milestone toasts at 25 / 50 / 75 / 100% per credential family, fired once each |
+| <span class="cl-tag cl-design">design</span> | First-run hint for the empty state; sticky filter toolbar while scrolling |
+| <span class="cl-tag cl-fix">fix</span> | Uniform local-calendar date parsing — renewal countdowns can no longer drift a day by timezone |
+| <span class="cl-tag cl-fix">fix</span> | Just-changed cards stay pinned visible instead of vanishing when filters exclude their new status |
+| <span class="cl-tag cl-a11y">a11y</span> | Prereq details are tappable buttons — tooltips don't exist on touch devices |
+| <span class="cl-tag cl-fix">fix</span> | Export/import roundtrips `since` + `exam`; CSV imports accepted alongside JSON |
+| <span class="cl-tag cl-fix">fix</span> | Earned-toggling scoped to the check control — card bodies carry too many interactive children now |
+| <span class="cl-tag cl-feat">feature</span> | Status-strip counters are clickable filters |
+| <span class="cl-tag cl-feat">feature</span> | `?` keyboard-shortcuts overlay; `/` hint in the search placeholder |
+| <span class="cl-tag cl-feat">feature</span> | Guest nudge — "Device-only — sign in to sync" chip opens the auth modal |
+| <span class="cl-tag cl-feat">feature</span> | iCalendar (.ics) export of renewal due dates and booked exams |
+| <span class="cl-tag cl-feat">feature</span> | Credential summary card on the profile page with a link into the tracker |
+| <span class="cl-tag cl-feat">feature</span> | Append-only event journal (capped at 500) feeding a "Recent changes" list in Insights |
+| <span class="cl-tag cl-feat">feature</span> | Once-per-session deadline digest — renewals due and exams within 14 days, with a jump-to filter |
+| <span class="cl-tag cl-security">security</span> | Guest data durability — `navigator.storage.persist()` plus a one-time backup nudge |
+| <span class="cl-tag cl-infra">infra</span> | CI-enforced catalogue governance — every code ever shipped must live in `CERTS ∪ RETIRED` |
+| <span class="cl-tag cl-feat">feature</span> | Booked exam dates on targeted certs — countdown pills feeding Up next, the digest, and calendar export |
+| <span class="cl-tag cl-infra">infra</span> | 49 jest tests (5 new); 23-check jsdom smoke test; service-worker cache bumped to v8 |
+
+---
+
 ## v3.3.0 — 2026-09-04
 
 > **PR #3** — `feat/cert-tracker-johari-20`

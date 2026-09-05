@@ -50,8 +50,40 @@
         </div>
     </div>`;
 
-    // Inject nav into the page
+    const footerHTML = `
+    <footer class="site-footer" aria-label="Site map">
+        <div class="site-footer-inner">
+            <div class="footer-brand">
+                <div class="footer-title">Good Better Best</div>
+                <p>Flash cards, spaced review, and credential tracking for Microsoft Learn.</p>
+            </div>
+            <nav class="footer-col" aria-label="Study">
+                <h3>Study</h3>
+                <a href="/">Flash Cards</a>
+                <a href="/review.html">Review</a>
+                <a href="/paths.html">Learning Paths</a>
+                <a href="/socratic.html">AI Coach</a>
+            </nav>
+            <nav class="footer-col" aria-label="Track">
+                <h3>Track</h3>
+                <a href="/certifications.html">Certifications</a>
+                <a href="/history.html">History</a>
+                <a href="/topics.html">Topics</a>
+                <a href="/compare.html">Compare</a>
+                <a href="/leaderboard.html">Leaderboard</a>
+            </nav>
+            <nav class="footer-col" aria-label="Account">
+                <h3>Account</h3>
+                <a href="/profile.html">Profile</a>
+                <a href="/settings.html">Settings</a>
+                <a href="/changelog.html">Changelog</a>
+            </nav>
+        </div>
+    </footer>`;
+
+    // Inject nav into the page, and the site-map footer after the page content
     document.body.insertAdjacentHTML('beforeend', navHTML);
+    document.body.insertAdjacentHTML('beforeend', footerHTML);
 
     // Initialize icons
     if (typeof lucide !== 'undefined') lucide.createIcons();

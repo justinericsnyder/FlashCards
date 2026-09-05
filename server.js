@@ -441,6 +441,7 @@ app.put('/api/cert-progress', authMiddleware, async (req, res) => {
         if (val.st === 'target' || val.st === 'await') {
           entry = { st: val.st };
           if (typeof val.since === 'string' && DATE_RE.test(val.since)) entry.since = val.since;
+          if (typeof val.exam === 'string' && DATE_RE.test(val.exam)) entry.exam = val.exam;
         } else if (val.st === 'earned' && typeof val.date === 'string' && DATE_RE.test(val.date)) {
           entry = { st: 'earned', date: val.date };
         }

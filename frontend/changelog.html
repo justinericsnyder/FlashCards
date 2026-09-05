@@ -94,6 +94,36 @@
     <script>
         const releases = [
             {
+                version: 'v3.4.0',
+                date: '2026-09-04',
+                pr: 'PR #5',
+                branch: 'feat/cert-tracker-johari-20b',
+                description: 'Site-map footer sitewide + third Johari pass — 20 tracker improvements.',
+                entries: [
+                    { tag: 'design', text: 'Site-map footer injected sitewide by nav.js — Study / Track / Account columns, responsive, themed' },
+                    { tag: 'feature', text: '"Up next" strip — prereq-aware recommendations: awaiting results → booked exams → targets → newly unlocked' },
+                    { tag: 'design', text: 'Collapsible category columns and level groups, persisted across visits' },
+                    { tag: 'feature', text: 'Milestone toasts at 25 / 50 / 75 / 100% per credential family, fired once each' },
+                    { tag: 'design', text: 'First-run hint for the empty state; sticky filter toolbar while scrolling' },
+                    { tag: 'fix', text: 'Uniform local-calendar date parsing — renewal countdowns can no longer drift a day by timezone' },
+                    { tag: 'fix', text: 'Just-changed cards stay pinned visible instead of vanishing when filters exclude their new status' },
+                    { tag: 'a11y', text: 'Prereq details are tappable buttons — tooltips don\'t exist on touch devices' },
+                    { tag: 'fix', text: 'Export/import roundtrips since + exam; CSV imports accepted alongside JSON' },
+                    { tag: 'fix', text: 'Earned-toggling scoped to the check control — card bodies carry too many interactive children now' },
+                    { tag: 'feature', text: 'Status-strip counters are clickable filters' },
+                    { tag: 'feature', text: '"?" keyboard-shortcuts overlay; "/" hint in the search placeholder' },
+                    { tag: 'feature', text: 'Guest nudge — "Device-only — sign in to sync" chip opens the auth modal' },
+                    { tag: 'feature', text: 'iCalendar (.ics) export of renewal due dates and booked exams' },
+                    { tag: 'feature', text: 'Credential summary card on the profile page with a link into the tracker' },
+                    { tag: 'feature', text: 'Append-only event journal (capped at 500) feeding a "Recent changes" list in Insights' },
+                    { tag: 'feature', text: 'Once-per-session deadline digest — renewals due and exams within 14 days, with a jump-to filter' },
+                    { tag: 'security', text: 'Guest data durability — navigator.storage.persist() plus a one-time backup nudge' },
+                    { tag: 'infra', text: 'CI-enforced catalogue governance — every code ever shipped must live in CERTS ∪ RETIRED' },
+                    { tag: 'feature', text: 'Booked exam dates on targeted certs — countdown pills feeding Up next, the digest, and calendar export' },
+                    { tag: 'infra', text: '49 jest tests (5 new); 23-check jsdom smoke test; service-worker cache bumped to v8' },
+                ]
+            },
+            {
                 version: 'v3.3.0',
                 date: '2026-09-04',
                 pr: 'PR #3',
